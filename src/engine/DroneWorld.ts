@@ -363,8 +363,11 @@ export class DroneWorld {
   private redWarningLights: THREE.Mesh[] = [];
   private fountainWater: THREE.Mesh | null = null;
 
-  // Time tracking
+  // Time tracking & 30 FPS Performance Limiter
   private lastTime: number = performance.now();
+  private lastRenderTime: number = performance.now();
+  private readonly targetFps: number = 30;
+  private readonly fpsInterval: number = 1000 / 30; // ~33.33ms per frame
   private hoverTimeTracker: number = 0;
 
   constructor(container: HTMLElement, skin: DroneSkin, callbacks: WorldCallbacks) {
@@ -393,7 +396,8 @@ export class DroneWorld {
       logarithmicDepthBuffer: true // Absolute solution for Z-fighting across entire depth range
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    // Optimized 0.8x resolution scaling to dramatically cut GPU fillrate overhead and eliminate lag
+    this.renderer.setPixelRatio(0.8);
     
     // Shadows: Completely disabled on mobile to avoid shadow map pass overhead
     this.renderer.shadowMap.enabled = false;
@@ -3699,11 +3703,20 @@ export class DroneWorld {
     }
   }
 
-  // Main Loop
+  // Main Loop (Strict 30 FPS Limiter to eliminate lag and maximize GPU efficiency)
   private animate = () => {
     this.animationFrameId = requestAnimationFrame(this.animate);
     const now = performance.now();
-    const dt = Math.min((now - this.lastTime) / 1000, 0.1); // cap dt
+    const elapsed = now - this.lastRenderTime;
+
+    // Enforce 30 FPS (~33.33ms per frame)
+    if (elapsed < this.fpsInterval) {
+      return;
+    }
+
+    // Keep consistent cadence and calculate delta time
+    this.lastRenderTime = now - (elapsed % this.fpsInterval);
+    const dt = Math.min(elapsed / 1000, 0.1); // cap dt to avoid physics leaps
     this.lastTime = now;
 
     this.updatePhysics(dt);
