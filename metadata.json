@@ -1,0 +1,6 @@
+{
+  "name": "Probe Drone Simulator",
+  "description": "어린이와 초보자를 위한 3D 프로브 드론 비행 시뮬레이터. Mode 2 가상 조이스틱, 비행 보조 모드, AI 레이싱, 환자 구출, 링 통과 및 동전 수집 미션을 제공하는 100% 오프라인 지원 앱.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
