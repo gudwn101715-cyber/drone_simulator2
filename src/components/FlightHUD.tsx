@@ -94,7 +94,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
     }
   };
 
-  const isAiRace = stage.type === 'AI_RACING' || stage.id === 'ai-racing-1' || stage.id === 'stage-6';
+  const isAiRace = stage.type === 'AI_RACING';
 
   return (
     <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-2 font-sans select-none z-10">
@@ -143,7 +143,9 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
               )}
               {stage.type === 'TUTORIAL' && (
                 <span className="text-emerald-700 font-black">
-                  {stage.id === 'tutorial-2' ? `${missionData.currentRing}/${missionData.totalRings}` : '훈련 중'}
+                  {stage.id === 'tutorial-2' 
+                    ? (missionData.currentRing > 3 ? '★ 베이스 착륙!' : `${missionData.currentRing}/3 게이트`) 
+                    : '훈련 중'}
                 </span>
               )}
             </div>

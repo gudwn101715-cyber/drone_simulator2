@@ -48,6 +48,8 @@ export interface DroneTelemetry {
   };
 }
 
+export type AiDifficulty = 'LEVEL_1' | 'LEVEL_2';
+
 export interface MissionStage {
   id: string;
   type: MissionType;
@@ -60,6 +62,7 @@ export interface MissionStage {
   timeLimitSec: number;
   starThresholds: [number, number, number]; // [3 stars max time, 2 stars max time, 1 star max time]
   objectives: string[];
+  aiDifficulty?: AiDifficulty;
 }
 
 export interface MissionProgress {

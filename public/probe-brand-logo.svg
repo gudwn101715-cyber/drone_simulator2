@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 280" width="100%" height="100%">
+  <defs>
+    <!-- Cyan to Deep Navy Gradient for Orbital Ring -->
+    <linearGradient id="orbit-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#1e3a8a" />
+    </linearGradient>
+
+    <!-- Vibrant Royal Blue Gradient for P Emblem Frame -->
+    <linearGradient id="p-frame-grad" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#1d6fd8" />
+      <stop offset="60%" stop-color="#1e40af" />
+      <stop offset="100%" stop-color="#172554" />
+    </linearGradient>
+  </defs>
+
+  <!-- ==================================================== -->
+  <!-- 1. LEFT EMBLEM: Stylized 'P' + Orbital Ring + Probe + Stars -->
+  <!-- ==================================================== -->
+
+  <!-- Sweeping Orbital Ring (Cyan-Blue Gradient) -->
+  <g>
+    <!-- Front/Left Sweeping Ring -->
+    <path d="M 64 216 C 30 196 0 156 0 110 C 0 58 32 18 78 2 C 90 -2 104 -1 106 5 C 107 9 99 15 88 20 C 52 38 28 74 28 110 C 28 148 48 180 78 198 C 84 202 84 207 80 211 C 76 215 69 217 64 216 Z" fill="url(#orbit-grad)" />
+    
+    <!-- Rear/Right Sweeping Ring -->
+    <path d="M 142 184 C 182 198 222 192 245 170 C 258 156 262 136 256 116 C 253 110 258 107 263 109 C 269 111 276 126 271 144 C 264 174 230 208 178 214 C 158 216 140 211 130 204 C 126 200 128 195 133 193 C 136 191 139 187 142 184 Z" fill="url(#orbit-grad)" />
+  </g>
+
+  <!-- 'P' Main Emblem Body with Blue Gradient -->
+  <g fill="url(#p-frame-grad)">
+    <!-- Lower Rounded Stem -->
+    <path d="M 52 136 L 52 208 C 52 232 72 252 96 252 C 120 252 140 232 140 208 L 140 136 Z" />
+
+    <!-- Upper Loop Frame with Dynamic Top Spire -->
+    <path d="M 76 20 C 60 25 52 38 52 60 L 52 124 L 140 124 L 140 88 C 140 74 152 62 166 62 L 202 62 C 218 62 232 74 232 90 C 232 100 226 110 216 118 L 248 138 C 266 122 276 102 276 78 C 276 44 252 20 220 20 L 250 4 C 252 2 250 -1 247 0 C 234 8 222 15 212 20 Z" />
+  </g>
+
+  <!-- Space Probe Satellite (White Body + Dark Blue Panels & Lines) -->
+  <g transform="translate(182, 102) rotate(-42)">
+    <!-- Flared Solar Wing Panels (White with dark blue borders & slit) -->
+    <path d="M -20 18 L -46 10 L -48 42 L -20 34 Z" fill="#ffffff" />
+    <path d="M 20 18 L 46 10 L 48 42 L 20 34 Z" fill="#ffffff" />
+    
+    <!-- Central Probe Body Capsule -->
+    <path d="M -20 -30 C -20 -46 20 -46 20 -30 L 20 28 C 20 33 -20 33 -20 28 Z" fill="#ffffff" />
+
+    <!-- Capsule Dark Blue Sensor Optical Lens -->
+    <ellipse cx="-5" cy="-28" rx="5" ry="9" fill="#1b3a7a" transform="rotate(-15)" />
+    <circle cx="5" cy="-20" rx="3.5" ry="3.5" fill="#1b3a7a" />
+    
+    <!-- Capsule Ring Grooves -->
+    <rect x="-21" y="-8" width="42" height="5" fill="#1b3a7a" rx="1.5" />
+    <rect x="-21" y="8" width="42" height="5" fill="#1b3a7a" rx="1.5" />
+
+    <!-- Wing Slit Lines -->
+    <line x1="-44" y1="17" x2="-22" y2="25" stroke="#1b3a7a" stroke-width="3" />
+    <line x1="44" y1="17" x2="22" y2="25" stroke="#1b3a7a" stroke-width="3" />
+  </g>
+
+  <!-- 4-Point Sparkle Stars (Royal Blue) -->
+  <g fill="#1d4ed8">
+    <!-- Big Sparkle Star -->
+    <path d="M 268 58 Q 271 71 284 74 Q 271 77 268 90 Q 265 77 252 74 Q 265 71 268 58 Z" />
+    <!-- Small Sparkle Star -->
+    <path d="M 288 34 Q 290 42 298 44 Q 290 46 288 54 Q 286 46 278 44 Q 286 42 288 34 Z" />
+  </g>
+
+
+  <!-- ==================================================== -->
+  <!-- 2. LARGE TOP ENGLISH TYPOGRAPHY: "P R O B E" (#1b3a7a) -->
+  <!-- ==================================================== -->
+  <g fill="#1b3a7a">
+    <!-- P -->
+    <path d="M 340 52 L 340 152 L 368 152 L 368 114 L 410 114 C 438 114 456 98 456 83 C 456 68 438 52 410 52 Z M 368 74 L 406 74 C 420 74 428 80 428 83 C 428 86 420 92 406 92 L 368 92 Z" />
+
+    <!-- R -->
+    <path d="M 474 52 L 474 152 L 502 152 L 502 114 L 526 114 L 558 152 L 594 152 L 554 104 C 576 98 586 86 586 78 C 586 64 570 52 542 52 Z M 502 74 L 536 74 C 550 74 558 79 558 83 C 558 87 550 92 536 92 L 502 92 Z" />
+
+    <!-- O -->
+    <path d="M 654 50 C 618 50 590 73 590 102 C 590 131 618 154 654 154 C 690 154 718 131 718 102 C 718 73 690 50 654 50 Z M 654 73 C 674 73 690 86 690 102 C 690 118 674 131 654 131 C 634 131 618 118 618 102 C 618 86 634 73 654 73 Z" />
+
+    <!-- B -->
+    <path d="M 736 52 L 736 152 L 782 152 C 808 152 824 140 824 125 C 824 113 816 105 802 101 C 814 97 820 89 820 78 C 820 64 804 52 780 52 Z M 764 73 L 778 73 C 788 73 794 77 794 82 C 794 87 788 91 778 91 L 764 91 Z M 764 111 L 782 111 C 794 111 800 116 800 122 C 800 128 794 133 782 133 L 764 133 Z" />
+
+    <!-- E -->
+    <path d="M 844 52 L 844 152 L 910 152 L 910 130 L 872 130 L 872 113 L 904 113 L 904 91 L 872 91 L 872 74 L 908 74 L 908 52 Z" />
+  </g>
+
+
+  <!-- ==================================================== -->
+  <!-- 3. LOWER KOREAN TYPOGRAPHY: "프  로  브" (#1b3a7a) -->
+  <!-- ==================================================== -->
+  <g fill="#1b3a7a">
+    <!-- "프" (Centered under PR) -->
+    <g transform="translate(530, 196)">
+      <!-- ㅍ Top bar -->
+      <rect x="0" y="0" width="48" height="6.5" />
+      <!-- ㅍ Left vertical -->
+      <rect x="11" y="6" width="7" height="15" />
+      <!-- ㅍ Right vertical -->
+      <rect x="30" y="6" width="7" height="15" />
+      <!-- ㅍ Middle bar -->
+      <rect x="0" y="21" width="48" height="6.5" />
+      <!-- ㅡ Bottom bar -->
+      <rect x="-4" y="34" width="56" height="7.5" />
+    </g>
+
+    <!-- "로" (Centered under OB) -->
+    <g transform="translate(626, 196)">
+      <!-- ㄹ Top bar -->
+      <rect x="0" y="0" width="48" height="6" />
+      <!-- ㄹ Top-right vertical -->
+      <rect x="41" y="5.5" width="7" height="9" />
+      <!-- ㄹ Middle bar -->
+      <rect x="0" y="14" width="48" height="6" />
+      <!-- ㄹ Bottom-left vertical -->
+      <rect x="0" y="19.5" width="7" height="9" />
+      <!-- ㄹ Bottom bar -->
+      <rect x="0" y="28" width="48" height="6" />
+      <!-- ㅗ Center vertical stem -->
+      <rect x="20.5" y="32" width="7" height="5" />
+      <!-- ㅗ Bottom bar -->
+      <rect x="-4" y="36.5" width="56" height="7.5" />
+    </g>
+
+    <!-- "브" (Centered under E) -->
+    <g transform="translate(722, 196)">
+      <!-- ㅂ Left vertical -->
+      <rect x="0" y="0" width="7" height="30" />
+      <!-- ㅂ Right vertical -->
+      <rect x="41" y="0" width="7" height="30" />
+      <!-- ㅂ Middle horizontal cross -->
+      <rect x="7" y="12" width="34" height="6" />
+      <!-- ㅂ Lower horizontal cross -->
+      <rect x="0" y="24" width="48" height="6" />
+      <!-- ㅡ Bottom horizontal bar -->
+      <rect x="-4" y="34" width="56" height="7.5" />
+    </g>
+  </g>
+</svg>

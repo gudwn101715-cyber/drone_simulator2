@@ -32,8 +32,12 @@ import { DroneSkinModal } from './components/DroneSkinModal';
 import { SettingsModal } from './components/SettingsModal';
 import { HelpManualModal } from './components/HelpManualModal';
 import { CountdownOverlay } from './components/CountdownOverlay';
+import { StartSplashScreen } from './components/StartSplashScreen';
 
 export default function App() {
+  // App Title / Splash Screen State
+  const [hasStartedApp, setHasStartedApp] = useState<boolean>(false);
+
   // Pilot Profile State
   const [profile, setProfile] = useState<UserPilotProfile>(loadUserProfile);
 
@@ -140,6 +144,33 @@ export default function App() {
     soundManager.setDroneModel(activeSkin.modelType);
   }, [profile.soundEnabled, profile.voiceGuideEnabled, activeSkin.modelType]);
 
+  // Manage Lobby BGM vs AI Rival Racing BGM vs In-game sound
+  useEffect(() => {
+    if (!profile.soundEnabled) {
+      soundManager.stopBgm();
+      return;
+    }
+
+    if (!currentStage) {
+      // In Lobby / Main screen: Play atmospheric cyber drone Lobby BGM once app is active
+      if (hasStartedApp) {
+        soundManager.playLobbyBgm();
+      }
+    } else {
+      // In Game:
+      if (currentStage.id === 'ai-racing-2') {
+        // AI Rival Racing Level 2 (Veteran Hard): Play 162 BPM Cyber Overdrive DnB track!
+        soundManager.playRacingLevel2Bgm();
+      } else if (currentStage.type === 'AI_RACING' || currentStage.id === 'ai-racing-1' || currentStage.id === 'stage-6') {
+        // AI Rival Racing Level 1 (Rookie): Play 148 BPM Hot Drop Trap EDM track!
+        soundManager.playRacingBgm();
+      } else {
+        // Other flight stages: Stop BGM to focus purely on motor acoustics and flight telemetry
+        soundManager.stopBgm();
+      }
+    }
+  }, [currentStage, profile.soundEnabled, hasStartedApp]);
+
   // Clean up sounds completely when app is closed / unmounted
   useEffect(() => {
     return () => {
@@ -156,8 +187,9 @@ export default function App() {
     const timeSec = finishTimeSec !== undefined ? finishTimeSec : elapsedSecRef.current;
 
     soundManager.stopMotorSound();
+    soundManager.stopBgm();
 
-    const isAiRace = stage.type === 'AI_RACING' || stage.id === 'ai-racing-1';
+    const isAiRace = stage.type === 'AI_RACING';
     let stars = 1;
 
     if (isAiRace) {
@@ -420,7 +452,7 @@ export default function App() {
     soundManager.startMotorSound();
 
     // Reuse existing world or create new if not existing
-    const isAiRace = currentStage.type === 'AI_RACING' || currentStage.id === 'ai-racing-1' || currentStage.id === 'stage-6';
+    const isAiRace = currentStage.type === 'AI_RACING';
     if (isAiRace) {
       setSpeedGear(2); // Strictly lock to Sport Mode (Gear 2) in Stage 6 Grand Prix
     }
@@ -678,8 +710,14 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-slate-950 select-none font-sans">
-      {/* 1. If in Menu: Show Stage Selector */}
-      {!currentStage ? (
+      {/* 0. If First Launch / Splash Screen: Show Start Screen with Title and Photo */}
+      {!hasStartedApp ? (
+        <StartSplashScreen
+          profile={profile}
+          onStart={() => setHasStartedApp(true)}
+        />
+      ) : !currentStage ? (
+        /* 1. If in Menu: Show Stage Expedition Roadmap Selector */
         <MissionSelector
           profile={profile}
           activeSkin={activeSkin}
@@ -688,6 +726,7 @@ export default function App() {
           onOpenSkins={() => setShowSkinModal(true)}
           onOpenSettings={() => setShowSettingsModal(true)}
           onOpenHelp={() => setShowHelpModal(true)}
+          onReturnHome={() => setHasStartedApp(false)}
         />
       ) : (
         /* 2. If in 3D Flight Simulation: Render Canvas & HUD & Controls */
@@ -877,13 +916,16 @@ export default function App() {
             saveUserProfile(fresh);
             setShowSettingsModal(false);
           }}
-          onResetStars={() => {
+          onResetProgressAndStars={() => {
             updateProfile(prev => {
               const resetProgress = { ...prev.missionProgress };
               Object.keys(resetProgress).forEach(key => {
                 resetProgress[key] = {
                   ...resetProgress[key],
-                  stars: 0
+                  stars: 0,
+                  completed: false,
+                  bestTimeSec: null,
+                  highScore: 0
                 };
               });
               return {

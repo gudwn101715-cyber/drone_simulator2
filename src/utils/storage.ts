@@ -103,8 +103,8 @@ export const MISSION_STAGES: MissionStage[] = [
     difficulty: '쉬움',
     badgeIcon: 'Sparkles',
     targetCount: 3,
-    timeLimitSec: 90,
-    starThresholds: [25, 45, 80],
+    timeLimitSec: 120,
+    starThresholds: [45, 75, 105], // Generous thresholds for easy 3-star clear
     objectives: [
       '고도 2m 이상으로 안전하게 이륙하기',
       '제자리에서 3초 동안 호버링(정지비행) 유지',
@@ -114,18 +114,18 @@ export const MISSION_STAGES: MissionStage[] = [
   {
     id: 'tutorial-2',
     type: 'TUTORIAL',
-    title: '제2단계: 방향 전환 & 선회 복귀',
-    subtitle: '빨간색 깜빡이 링을 따라 180도 선회 복귀',
-    description: '빨간색으로 깜빡이는 1번, 2번 마커를 차례로 통과한 후, 기수를 180도 돌려 출발 베이스 방향의 3번 마커로 다시 돌아오세요!',
+    title: '제2단계: 코스 장애물 비행 & 안전 착륙',
+    subtitle: '회전 장애물 회피 및 베이스 패드 착륙',
+    description: '1번, 2번 마커와 회전하는 사이버 장애물을 피해 3번 게이트로 복귀한 후, 노란색 베이스 패드에 부드럽게 착륙하여 미션을 완료하세요!',
     difficulty: '쉬움',
     badgeIcon: 'Compass',
     targetCount: 3,
-    timeLimitSec: 90,
-    starThresholds: [30, 50, 85],
+    timeLimitSec: 120,
+    starThresholds: [50, 80, 110], // Generous thresholds
     objectives: [
-      '빨간색으로 깜빡이는 1번 직진 마커 통과하기',
-      '좌측으로 선회하여 깜빡이는 2번 코너 마커 통과',
-      '★ 기수를 180도 돌려 출발 게이트(3번)로 복귀 통과하기'
+      '빨간색으로 깜빡이는 직진 및 코너 마커 통과',
+      '회전하는 사이버 장애물 2개 안전 회피 및 복귀',
+      '★ 출발 베이스 패드(노란색)에 부드럽게 최종 착륙하기'
     ]
   },
   {
@@ -137,8 +137,8 @@ export const MISSION_STAGES: MissionStage[] = [
     difficulty: '쉬움',
     badgeIcon: 'Coins',
     targetCount: 8,
-    timeLimitSec: 120,
-    starThresholds: [40, 65, 95],
+    timeLimitSec: 150,
+    starThresholds: [65, 100, 135], // Generous thresholds
     objectives: [
       '공원 광장 주변의 반짝이는 황금 코인 8개 수집',
       '장애물 충돌 없이 안전 비행 유지',
@@ -154,8 +154,8 @@ export const MISSION_STAGES: MissionStage[] = [
     difficulty: '보통',
     badgeIcon: 'Building',
     targetCount: 5,
-    timeLimitSec: 100,
-    starThresholds: [40, 65, 95],
+    timeLimitSec: 150,
+    starThresholds: [65, 100, 135], // Generous thresholds
     objectives: [
       '빨간색으로 깜빡이는 1번 중앙광장 네온 아치 관통',
       '알파/감마 빌딩 공중 관통 터널 및 스카이브릿지 통과',
@@ -171,8 +171,8 @@ export const MISSION_STAGES: MissionStage[] = [
     difficulty: '보통',
     badgeIcon: 'HeartPulse',
     targetCount: 2,
-    timeLimitSec: 120,
-    starThresholds: [45, 75, 110],
+    timeLimitSec: 160,
+    starThresholds: [70, 110, 145], // Generous thresholds
     objectives: [
       '옥상의 응급 환자 들것 상공으로 접근하여 견인 연결',
       '환자를 안전하게 매달고 대학병원 옥상으로 비행',
@@ -182,19 +182,38 @@ export const MISSION_STAGES: MissionStage[] = [
   {
     id: 'ai-racing-1',
     type: 'AI_RACING',
-    title: '제6단계: AI 라이벌 그랑프리 서킷 레이스',
-    subtitle: '공정 규격 스포츠 모드(2단) 고정 2바퀴 박진감 대결',
-    description: '아스팔트 트랙, 연석, 관람석이 갖춰진 그랑프리 서킷에서 AI 라이벌 드론과 2바퀴 스피드 대결을 펼치세요! 공정한 대결을 위해 AI와 플레이어 드론 모두 2단 스포츠 모드로 고정됩니다.',
-    difficulty: '보통',
+    title: '제6단계: AI 라이벌 서킷 레이스 [Level 1]',
+    subtitle: '초보자 맞춤 입문 난이도 (2바퀴 스피드 레이스)',
+    description: '살짝 여유 있는 속도로 부드럽게 비행하는 루키 AI 라이벌 드론과 2바퀴 스피드 대결을 펼치세요! 부담 없이 코너링과 추월을 연습할 수 있습니다.',
+    difficulty: '쉬움',
     badgeIcon: 'Trophy',
     targetCount: 2, // 2 laps
-    timeLimitSec: 120,
-    starThresholds: [50, 70, 95],
+    timeLimitSec: 160,
+    starThresholds: [85, 120, 150], // Generous thresholds
     objectives: [
       '★ 2단 스포츠 모드 단일 규격 레이스 완주',
       '서킷 트랙 게이트를 따라 2바퀴 완주',
-      '스마트 AI 라이벌보다 먼저 결승선 통과 (우승)'
-    ]
+      'Level 1 루키 AI 라이벌보다 먼저 결승선 통과'
+    ],
+    aiDifficulty: 'LEVEL_1'
+  },
+  {
+    id: 'ai-racing-2',
+    type: 'AI_RACING',
+    title: '제6단계: AI 라이벌 서킷 레이스 [Level 2]',
+    subtitle: '베테랑 라이벌 정면 승부 (2바퀴 스피드 레이스)',
+    description: '빈틈없는 인코스 코너링과 날카로운 가속을 구사하는 프로 AI 라이벌 드론과의 진검승부! 완벽한 라인을 유지하여 우승을 쟁취하세요.',
+    difficulty: '보통',
+    badgeIcon: 'Trophy',
+    targetCount: 2, // 2 laps
+    timeLimitSec: 140,
+    starThresholds: [70, 100, 130], // Generous thresholds
+    objectives: [
+      '★ 2단 스포츠 모드 단일 규격 레이스 완주',
+      '서킷 트랙 게이트를 따라 2바퀴 완주',
+      'Level 2 프로 AI 라이벌보다 먼저 결승선 통과 (우승)'
+    ],
+    aiDifficulty: 'LEVEL_2'
   },
   {
     id: 'free-flight',
@@ -297,8 +316,5 @@ export function calculateTotalStars(profile: UserPilotProfile): number {
 }
 
 export function getPilotRank(stars: number): { title: string; badge: string; color: string } {
-  if (stars >= 15) return { title: '마스터 에이스 파일럿', badge: '👑', color: 'text-amber-500' };
-  if (stars >= 10) return { title: '베테랑 비행사', badge: '🎖️', color: 'text-indigo-500' };
-  if (stars >= 5)  return { title: '주니어 드론 조종사', badge: '⭐', color: 'text-sky-500' };
-  return { title: '비행 훈련생', badge: '🌱', color: 'text-emerald-500' };
+  return { title: '주니어 조종사', badge: '🛸', color: 'text-cyan-400' };
 }

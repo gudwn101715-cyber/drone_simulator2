@@ -278,6 +278,10 @@ export class DroneWorld {
   // Racing track models
   private raceTrackGroup: THREE.Group | null = null;
 
+  // Stage 2 Dynamic Obstacles & Landing State
+  private stage2Obstacles: { group: THREE.Group; position: THREE.Vector3; radius: number; rotor: THREE.Mesh | THREE.Group }[] = [];
+  private stage2LandingReady: boolean = false;
+
   // AI Racer
   private aiDroneGroup: THREE.Group | null = null;
   private aiProps: THREE.Mesh[] = [];
@@ -363,6 +367,16 @@ export class DroneWorld {
   private redWarningLights: THREE.Mesh[] = [];
   private fountainWater: THREE.Mesh | null = null;
 
+  // Cyber Sky, Moon, Space Beacons & Airships
+  private skyDome: THREE.Mesh | null = null;
+  private starsPoints: THREE.Points | null = null;
+  private cyberMoonGroup: THREE.Group | null = null;
+  private cyberMoonRings: THREE.Mesh[] = [];
+  private cyberMoonSatellites: THREE.Mesh[] = [];
+  private skyBeacons: { mesh: THREE.Mesh; light: THREE.PointLight | null; baseY: number; pulseSpeed: number; baseOpacity: number }[] = [];
+  private skyCruisers: { group: THREE.Group; radius: number; height: number; speed: number; angle: number; engineTrail: THREE.Mesh; strobes: THREE.Mesh[] }[] = [];
+  private floatingDataRelays: { group: THREE.Group; innerRing: THREE.Mesh; outerRing: THREE.Mesh; baseY: number; floatSpeed: number; rotSpeed: number }[] = [];
+
   // Time tracking & 30 FPS Performance Limiter
   private lastTime: number = performance.now();
   private lastRenderTime: number = performance.now();
@@ -377,8 +391,8 @@ export class DroneWorld {
 
     // Scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xdbeafe); // Soft sky blue
-    this.scene.fog = new THREE.FogExp2(0xdbeafe, 0.008);
+    this.scene.background = new THREE.Color(0x020617); // Deep cosmic cyberpunk space
+    this.scene.fog = new THREE.FogExp2(0x060e24, 0.0055);
 
     // Camera with enhanced depth buffer precision (near: 0.4, far: 450) to completely eliminate Z-fighting
     const aspect = container.clientWidth / container.clientHeight;
@@ -396,8 +410,8 @@ export class DroneWorld {
       logarithmicDepthBuffer: true // Absolute solution for Z-fighting across entire depth range
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
-    // Optimized 0.8x resolution scaling to dramatically cut GPU fillrate overhead and eliminate lag
-    this.renderer.setPixelRatio(0.8);
+    // Balanced performance & visual clarity 0.6x resolution scaling
+    this.renderer.setPixelRatio(0.6);
     
     // Shadows: Completely disabled on mobile to avoid shadow map pass overhead
     this.renderer.shadowMap.enabled = false;
@@ -453,21 +467,24 @@ export class DroneWorld {
   }
 
   private setupLighting(isMobileOrTablet: boolean = false) {
-    const ambient = new THREE.AmbientLight(0xffffff, 0.85);
+    // Rich Cyber Ambient Light
+    const ambient = new THREE.AmbientLight(0x60a5fa, 0.85);
     this.scene.add(ambient);
 
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xbbf7d0, 0.65);
+    // Dynamic Hemisphere Light (Sky Cyan / Ground Deep Indigo)
+    const hemiLight = new THREE.HemisphereLight(0x38bdf8, 0x1e1b4b, 0.80);
     this.scene.add(hemiLight);
 
-    const sun = new THREE.DirectionalLight(0xfffbeb, 1.2);
-    sun.position.set(60, 100, 40);
+    // Directional Cyber Moonlight
+    const sun = new THREE.DirectionalLight(0xa5f3fc, 1.45);
+    sun.position.set(80, 140, 60);
     sun.castShadow = !isMobileOrTablet;
     if (sun.castShadow) {
       sun.shadow.mapSize.width = 1024;
       sun.shadow.mapSize.height = 1024;
       sun.shadow.camera.near = 10;
-      sun.shadow.camera.far = 300;
-      const d = 80;
+      sun.shadow.camera.far = 350;
+      const d = 90;
       sun.shadow.camera.left = -d;
       sun.shadow.camera.right = d;
       sun.shadow.camera.top = d;
@@ -475,15 +492,34 @@ export class DroneWorld {
       sun.shadow.bias = -0.0005;
     }
     this.scene.add(sun);
+
+    // Street-Level Cyber Neon Point Lights at Key City Intersections
+    const streetLightsConfig: { x: number; y: number; z: number; color: number; intensity: number; dist: number }[] = [
+      { x: 0, y: 3.5, z: 0, color: 0x00f0ff, intensity: 1.8, dist: 35 },     // Base Pad / Plaza Cyan Glow
+      { x: -50, y: 3.5, z: 30, color: 0xf43f5e, intensity: 1.6, dist: 35 },  // Twin Tower Crossway Magenta Glow
+      { x: 70, y: 3.5, z: -20, color: 0x22c55e, intensity: 1.8, dist: 35 },  // Hospital Emergency Zone Green Glow
+      { x: 35, y: 3.5, z: 40, color: 0xfacc15, intensity: 1.6, dist: 35 },   // Gamma Plaza Gold Glow
+      { x: 0, y: 3.5, z: 80, color: 0x38bdf8, intensity: 1.5, dist: 30 },    // South Runway Blue Glow
+      { x: 0, y: 3.5, z: -80, color: 0xa855f7, intensity: 1.5, dist: 30 }    // North Runway Purple Glow
+    ];
+
+    streetLightsConfig.forEach(cfg => {
+      const pLight = new THREE.PointLight(cfg.color, cfg.intensity, cfg.dist);
+      pLight.position.set(cfg.x, cfg.y, cfg.z);
+      this.scene.add(pLight);
+    });
   }
 
   private buildCityWorld() {
     const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPad|Tablet|ARM/i.test(navigator.userAgent);
 
-    // 1. High-Visibility Solid Matt Terrain (No flickering, 100% stable depth)
+    // 1. Build Spectacular Cyber Sky Dome, Starfield, Holographic Moon, Laser Beacons & Cruisers
+    this.buildCyberSkyAndAtmosphere();
+
+    // 2. High-Tech Luminous Cyber Grid Terrain
     const groundGeo = new THREE.PlaneGeometry(600, 600);
     const groundMat = new THREE.MeshBasicMaterial({ 
-      color: 0x2e7d32, // Eye-safe comfortable natural green
+      color: 0x070c1b, // Dark cyber slate base
       depthWrite: true
     });
     const ground = new THREE.Mesh(groundGeo, groundMat);
@@ -491,48 +527,422 @@ export class DroneWorld {
     ground.position.y = 0;
     this.scene.add(ground);
 
-    // 2. Clear Crossway Roads & Runway (Physically raised, zero Z-fighting)
-    const roadMat = new THREE.MeshBasicMaterial({ 
-      color: 0x1f2937, 
-      polygonOffset: true, 
-      polygonOffsetFactor: -1, 
-      polygonOffsetUnits: -1 
-    });
-    const roadV = new THREE.Mesh(new THREE.PlaneGeometry(24, 400), roadMat);
-    roadV.rotation.x = -Math.PI / 2;
-    roadV.position.set(0, 0.05, 0);
-    this.scene.add(roadV);
+    // Luminous Cyber Grid Matrix across the ground
+    const gridHelper = new THREE.GridHelper(500, 50, 0x00f0ff, 0x1e3a8a);
+    gridHelper.position.y = 0.015;
+    (gridHelper.material as THREE.Material).transparent = true;
+    (gridHelper.material as THREE.Material).opacity = 0.45;
+    this.scene.add(gridHelper);
 
-    const roadH = new THREE.Mesh(new THREE.PlaneGeometry(400, 24), roadMat);
-    roadH.rotation.x = -Math.PI / 2;
-    roadH.position.set(0, 0.05, 0);
-    this.scene.add(roadH);
+    // 3. Clear Crossway Roads & Runway Network with LED Edge Strips
+    this.buildRoadNetworkAndStreets();
 
-    // Yellow center lines (polygon-offset layered)
-    const lineMat = new THREE.MeshBasicMaterial({ 
-      color: 0xfacc15, 
-      polygonOffset: true, 
-      polygonOffsetFactor: -2, 
-      polygonOffsetUnits: -2 
-    });
-    const lineV = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 390), lineMat);
-    lineV.rotation.x = -Math.PI / 2;
-    lineV.position.set(0, 0.08, 0);
-    this.scene.add(lineV);
-
-    const lineH = new THREE.Mesh(new THREE.PlaneGeometry(390, 0.5), lineMat);
-    lineH.rotation.x = -Math.PI / 2;
-    lineH.position.set(0, 0.08, 0);
-    this.scene.add(lineH);
-
-    // 3. Main Base Start / Landing Helipad
+    // 4. Main Base Start / Landing Helipad
     this.baseHelipadMesh = this.buildHelipad(0, 0.10, 0, 7.5, 0xfacc15, 'START / BASE');
 
-    // 4. Low-Poly Optimized Buildings (18 Landmarks)
+    // 5. High-Tech Low-Poly Optimized Buildings (with Corner Neon Trims & Holo-Billboards)
     this.buildBuildings();
 
-    // 5. Park Plaza & Simple Trees
+    // 6. Park Plaza & Bioluminescent Cyber Trees
     this.buildTreesAndPark();
+
+    // 7. Ambient City Life: Sky Balloons, Pedestrians & Flying Cyber Birds
+    this.buildHotAirBalloons();
+    this.buildPedestrians();
+    this.buildAnimalsAndBirds();
+  }
+
+  private buildCyberSkyAndAtmosphere() {
+    // 1. Procedural 360° Cyber Sky Dome
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+
+    if (ctx) {
+      // Cosmic Space Gradient (Top Zenith -> Horizon)
+      const grad = ctx.createLinearGradient(0, 0, 0, 512);
+      grad.addColorStop(0.0, '#020617');   // Dark Space Zenith
+      grad.addColorStop(0.3, '#081432');   // Deep Midnight Blue
+      grad.addColorStop(0.65, '#0e265c');  // Cyber Sapphire Blue
+      grad.addColorStop(0.85, '#0284c7');  // Atmospheric Cyan Glow
+      grad.addColorStop(1.0, '#0f172a');   // Horizon Ground Line
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1024, 512);
+
+      // Flowing Cyber Aurora / Shimmering Nebula Wave Ribbons across the sky
+      const drawAuroraWave = (yCenter: number, colorStart: string, colorEnd: string, height: number) => {
+        const waveGrad = ctx.createLinearGradient(0, yCenter - height, 0, yCenter + height);
+        waveGrad.addColorStop(0.0, 'rgba(0, 0, 0, 0)');
+        waveGrad.addColorStop(0.5, colorStart);
+        waveGrad.addColorStop(1.0, colorEnd);
+        ctx.fillStyle = waveGrad;
+
+        ctx.beginPath();
+        ctx.moveTo(0, yCenter);
+        for (let x = 0; x <= 1024; x += 16) {
+          const wave1 = Math.sin(x * 0.012) * (height * 0.6);
+          const wave2 = Math.cos(x * 0.024) * (height * 0.35);
+          ctx.lineTo(x, yCenter + wave1 + wave2);
+        }
+        ctx.lineTo(1024, 512);
+        ctx.lineTo(0, 512);
+        ctx.closePath();
+        ctx.fill();
+      };
+
+      // Multi-layer Glowing Aurora Ribbons
+      drawAuroraWave(180, 'rgba(0, 240, 255, 0.35)', 'rgba(56, 189, 248, 0.05)', 70);
+      drawAuroraWave(220, 'rgba(236, 72, 153, 0.28)', 'rgba(168, 85, 247, 0.05)', 60);
+      drawAuroraWave(260, 'rgba(59, 130, 246, 0.30)', 'rgba(2, 132, 199, 0.0)', 50);
+
+      // Horizon Cyber Skyline Silhouette (360-degree city towers with illuminated micro window dots)
+      ctx.fillStyle = '#060c1d';
+      const buildingWidths = [18, 24, 14, 30, 20, 28, 16, 22, 34, 18, 26, 15];
+      let curX = 0;
+      let bIdx = 0;
+      while (curX < 1024) {
+        const bw = buildingWidths[bIdx % buildingWidths.length];
+        const bh = 40 + Math.sin(curX * 0.04) * 35 + (bIdx % 5) * 12;
+        const by = 512 - bh;
+        ctx.fillRect(curX, by, bw - 2, bh);
+
+        // Tower spire
+        if (bIdx % 3 === 0) {
+          ctx.fillRect(curX + bw / 2 - 1, by - 12, 2, 12);
+        }
+
+        // Micro illuminated window grid
+        ctx.fillStyle = (bIdx % 2 === 0) ? 'rgba(0, 240, 255, 0.65)' : 'rgba(250, 204, 21, 0.65)';
+        for (let wy = by + 6; wy < 500; wy += 8) {
+          for (let wx = curX + 3; wx < curX + bw - 4; wx += 5) {
+            if (Math.sin(wx * 13 + wy * 7) > -0.2) {
+              ctx.fillRect(wx, wy, 2, 3);
+            }
+          }
+        }
+        ctx.fillStyle = '#060c1d';
+
+        curX += bw;
+        bIdx++;
+      }
+    }
+
+    const skyTex = new THREE.CanvasTexture(canvas);
+    skyTex.wrapS = THREE.RepeatWrapping;
+    skyTex.wrapT = THREE.ClampToEdgeWrapping;
+
+    const skyGeo = new THREE.SphereGeometry(420, 32, 24);
+    const skyMat = new THREE.MeshBasicMaterial({
+      map: skyTex,
+      side: THREE.BackSide,
+      depthWrite: false
+    });
+    this.skyDome = new THREE.Mesh(skyGeo, skyMat);
+    this.scene.add(this.skyDome);
+
+    // 2. 3D Sparkling Cyber Starfield
+    const starCount = 450;
+    const starGeo = new THREE.BufferGeometry();
+    const starPositions = new Float32Array(starCount * 3);
+    const starColors = new Float32Array(starCount * 3);
+
+    const colorPalette = [
+      new THREE.Color(0x00f0ff), // Cyan
+      new THREE.Color(0xffffff), // White
+      new THREE.Color(0xfacc15), // Gold
+      new THREE.Color(0xa855f7), // Purple
+      new THREE.Color(0x38bdf8)  // Light Blue
+    ];
+
+    for (let i = 0; i < starCount; i++) {
+      // Upper hemisphere distribution
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0) * 0.45; // upper sky
+      const r = 390 + Math.random() * 20;
+
+      const sx = r * Math.sin(phi) * Math.cos(theta);
+      const sy = Math.abs(r * Math.cos(phi)) + 30; // strictly high altitude
+      const sz = r * Math.sin(phi) * Math.sin(theta);
+
+      starPositions[i * 3] = sx;
+      starPositions[i * 3 + 1] = sy;
+      starPositions[i * 3 + 2] = sz;
+
+      const starCol = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+      starColors[i * 3] = starCol.r;
+      starColors[i * 3 + 1] = starCol.g;
+      starColors[i * 3 + 2] = starCol.b;
+    }
+
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+
+    const starMat = new THREE.PointsMaterial({
+      size: 1.8,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    this.starsPoints = new THREE.Points(starGeo, starMat);
+    this.scene.add(this.starsPoints);
+
+    // 3. Massive Sci-Fi Holographic Cyber Moon & Orbital Station
+    this.cyberMoonGroup = new THREE.Group();
+    this.cyberMoonGroup.position.set(130, 160, -190);
+
+    // Glowing Lunar Sphere
+    const moonGeo = new THREE.SphereGeometry(22, 24, 24);
+    const moonMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8
+    });
+    const moonMesh = new THREE.Mesh(moonGeo, moonMat);
+    this.cyberMoonGroup.add(moonMesh);
+
+    // Atmospheric Corona Halo
+    const haloGeo = new THREE.RingGeometry(22.5, 34.0, 32);
+    const haloMat = new THREE.MeshBasicMaterial({
+      color: 0x00f0ff,
+      transparent: true,
+      opacity: 0.35,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    const haloMesh = new THREE.Mesh(haloGeo, haloMat);
+    haloMesh.lookAt(0, 0, 0);
+    this.cyberMoonGroup.add(haloMesh);
+
+    // Rotating Holographic Cyber Orbital Rings
+    this.cyberMoonRings = [];
+    this.cyberMoonSatellites = [];
+
+    const ring1 = new THREE.Mesh(
+      new THREE.TorusGeometry(32, 0.4, 8, 48),
+      new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.75 })
+    );
+    ring1.rotation.x = Math.PI / 3;
+    ring1.rotation.y = Math.PI / 6;
+    this.cyberMoonGroup.add(ring1);
+    this.cyberMoonRings.push(ring1);
+
+    const sat1 = new THREE.Mesh(
+      new THREE.BoxGeometry(2.0, 1.2, 1.2),
+      new THREE.MeshBasicMaterial({ color: 0xfacc15 })
+    );
+    sat1.position.set(32, 0, 0);
+    ring1.add(sat1);
+    this.cyberMoonSatellites.push(sat1);
+
+    const ring2 = new THREE.Mesh(
+      new THREE.TorusGeometry(38, 0.3, 8, 48),
+      new THREE.MeshBasicMaterial({ color: 0xec4899, transparent: true, opacity: 0.65 })
+    );
+    ring2.rotation.x = -Math.PI / 4;
+    ring2.rotation.z = Math.PI / 4;
+    this.cyberMoonGroup.add(ring2);
+    this.cyberMoonRings.push(ring2);
+
+    const sat2 = new THREE.Mesh(
+      new THREE.SphereGeometry(1.2, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0x00f0ff })
+    );
+    sat2.position.set(-38, 0, 0);
+    ring2.add(sat2);
+    this.cyberMoonSatellites.push(sat2);
+
+    this.scene.add(this.cyberMoonGroup);
+
+    // 4. Towering Sky Beacon Laser Searchlights
+    this.skyBeacons = [];
+    const beaconConfigs: { x: number; y: number; z: number; color: number; h: number }[] = [
+      { x: -35, y: 32, z: -40, color: 0x00f0ff, h: 170 }, // Alpha Tower Beacon
+      { x: -70, y: 42, z: -20, color: 0xff007f, h: 180 }, // Twin Tower South Beacon
+      { x: -70, y: 38, z: 30, color: 0x38bdf8, h: 170 },  // Twin Tower North Beacon
+      { x: 35, y: 34, z: 0, color: 0xfacc15, h: 175 },   // Commercial Plaza Beacon
+      { x: 70, y: 24, z: -20, color: 0x22c55e, h: 165 }, // Hospital Beacon
+      { x: 0, y: 1.0, z: 120, color: 0x00f0ff, h: 160 }  // Runway South Outer Beacon
+    ];
+
+    beaconConfigs.forEach((cfg, idx) => {
+      const beamGeo = new THREE.CylinderGeometry(0.5, 2.8, cfg.h, 12, 1, true);
+      const beamMat = new THREE.MeshBasicMaterial({
+        color: cfg.color,
+        transparent: true,
+        opacity: 0.32,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+      const beamMesh = new THREE.Mesh(beamGeo, beamMat);
+      beamMesh.position.set(cfg.x, cfg.y + cfg.h / 2, cfg.z);
+      this.scene.add(beamMesh);
+
+      // Base emitter ring
+      const emitterGeo = new THREE.CylinderGeometry(1.6, 2.0, 1.2, 12);
+      const emitterMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 });
+      const emitterMesh = new THREE.Mesh(emitterGeo, emitterMat);
+      emitterMesh.position.set(cfg.x, cfg.y + 0.6, cfg.z);
+      this.scene.add(emitterMesh);
+
+      const pLight = new THREE.PointLight(cfg.color, 1.8, 25);
+      pLight.position.set(cfg.x, cfg.y + 2.0, cfg.z);
+      this.scene.add(pLight);
+
+      this.skyBeacons.push({
+        mesh: beamMesh,
+        light: pLight,
+        baseY: cfg.y,
+        pulseSpeed: 2.0 + idx * 0.5,
+        baseOpacity: 0.32
+      });
+    });
+
+    // 5. Cruising Sci-Fi Heavy Cargo Skycruisers
+    this.skyCruisers = [];
+    const cruiserConfigs = [
+      { radius: 140, height: 75, speed: 0.08, angle: 0, color: 0x00f0ff },
+      { radius: 180, height: 95, speed: -0.06, angle: Math.PI, color: 0xec4899 }
+    ];
+
+    cruiserConfigs.forEach((cfg) => {
+      const cGroup = new THREE.Group();
+      
+      // Main Streamlined Hull (Fuselage)
+      const hullGeo = new THREE.BoxGeometry(7.0, 3.8, 26.0);
+      const hullMat = new THREE.MeshStandardMaterial({
+        color: 0x0f172a,
+        metalness: 0.85,
+        roughness: 0.25
+      });
+      const hullMesh = new THREE.Mesh(hullGeo, hullMat);
+      cGroup.add(hullMesh);
+
+      // Glowing Cockpit Bridge Visor
+      const visorGeo = new THREE.BoxGeometry(4.2, 1.6, 6.0);
+      const visorMat = new THREE.MeshBasicMaterial({ color: cfg.color });
+      const visorMesh = new THREE.Mesh(visorGeo, visorMat);
+      visorMesh.position.set(0, 1.2, -10.5);
+      cGroup.add(visorMesh);
+
+      // Swept-back Heavy Cruiser Wings
+      const wingGeo = new THREE.BoxGeometry(22.0, 0.6, 8.0);
+      const wingMesh = new THREE.Mesh(wingGeo, hullMat);
+      wingMesh.position.set(0, 0.2, 2.0);
+      cGroup.add(wingMesh);
+
+      // Illuminated Deck Strips along Hull Sides
+      [-3.6, 3.6].forEach(wx => {
+        const stripGeo = new THREE.BoxGeometry(0.3, 0.5, 20.0);
+        const stripMat = new THREE.MeshBasicMaterial({ color: cfg.color });
+        const stripMesh = new THREE.Mesh(stripGeo, stripMat);
+        stripMesh.position.set(wx, 0.4, 0);
+        cGroup.add(stripMesh);
+      });
+
+      // Twin Glowing Ion Thruster Engines (Rear Exhaust Flames)
+      [-2.2, 2.2].forEach(ex => {
+        const engGeo = new THREE.CylinderGeometry(1.2, 1.4, 3.5, 12);
+        const engMesh = new THREE.Mesh(engGeo, hullMat);
+        engMesh.rotation.x = Math.PI / 2;
+        engMesh.position.set(ex, 0, 13.5);
+        cGroup.add(engMesh);
+
+        // Ion Flame Cone
+        const flameGeo = new THREE.ConeGeometry(1.1, 7.5, 12);
+        const flameMat = new THREE.MeshBasicMaterial({
+          color: 0x00f0ff,
+          transparent: true,
+          opacity: 0.85,
+          blending: THREE.AdditiveBlending
+        });
+        const flameMesh = new THREE.Mesh(flameGeo, flameMat);
+        flameMesh.rotation.x = -Math.PI / 2;
+        flameMesh.position.set(ex, 0, 18.0);
+        cGroup.add(flameMesh);
+      });
+
+      // Wingtip Navigation LED Strobes (Red Port, Green Starboard)
+      const strobes: THREE.Mesh[] = [];
+      const leftStrobe = new THREE.Mesh(
+        new THREE.SphereGeometry(0.4, 8, 8),
+        new THREE.MeshBasicMaterial({ color: 0xef4444 })
+      );
+      leftStrobe.position.set(-11.0, 0.5, 2.0);
+      cGroup.add(leftStrobe);
+      strobes.push(leftStrobe);
+
+      const rightStrobe = new THREE.Mesh(
+        new THREE.SphereGeometry(0.4, 8, 8),
+        new THREE.MeshBasicMaterial({ color: 0x22c55e })
+      );
+      rightStrobe.position.set(11.0, 0.5, 2.0);
+      cGroup.add(rightStrobe);
+      strobes.push(rightStrobe);
+
+      const initX = Math.cos(cfg.angle) * cfg.radius;
+      const initZ = Math.sin(cfg.angle) * cfg.radius;
+      cGroup.position.set(initX, cfg.height, initZ);
+      this.scene.add(cGroup);
+
+      this.skyCruisers.push({
+        group: cGroup,
+        radius: cfg.radius,
+        height: cfg.height,
+        speed: cfg.speed,
+        angle: cfg.angle,
+        engineTrail: cGroup as any,
+        strobes
+      });
+    });
+
+    // 6. Floating Holographic Data Relays
+    this.floatingDataRelays = [];
+    const relayConfigs: { x: number; y: number; z: number; color: number }[] = [
+      { x: 0, y: 48, z: -50, color: 0x00f0ff },
+      { x: -55, y: 55, z: 60, color: 0xec4899 },
+      { x: 60, y: 52, z: 20, color: 0xfacc15 }
+    ];
+
+    relayConfigs.forEach((cfg, idx) => {
+      const rGroup = new THREE.Group();
+      rGroup.position.set(cfg.x, cfg.y, cfg.z);
+
+      // Floating Energy Core
+      const coreGeo = new THREE.OctahedronGeometry(1.4, 0);
+      const coreMat = new THREE.MeshBasicMaterial({ color: cfg.color });
+      const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+      rGroup.add(coreMesh);
+
+      // Inner Rotating Ring
+      const innerRing = new THREE.Mesh(
+        new THREE.TorusGeometry(3.0, 0.12, 8, 24),
+        new THREE.MeshBasicMaterial({ color: cfg.color, transparent: true, opacity: 0.8 })
+      );
+      rGroup.add(innerRing);
+
+      // Outer Counter-Rotating Ring
+      const outerRing = new THREE.Mesh(
+        new THREE.TorusGeometry(4.2, 0.08, 8, 24),
+        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 })
+      );
+      rGroup.add(outerRing);
+
+      this.scene.add(rGroup);
+
+      this.floatingDataRelays.push({
+        group: rGroup,
+        innerRing,
+        outerRing,
+        baseY: cfg.y,
+        floatSpeed: 1.5 + idx * 0.3,
+        rotSpeed: 1.0 + idx * 0.4
+      });
+    });
   }
 
   private buildRoadNetworkAndStreets() {
@@ -602,11 +1012,13 @@ export class DroneWorld {
       });
     });
 
-    // 3. Sidewalks & Curbstones
-    const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0xcbd5e1 }); // Clean concrete paver
-    const curbMat = new THREE.MeshLambertMaterial({ color: 0x64748b });
+    // 3. Sidewalks & Curbstones with Glowing Cyber LED Strips
+    const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0x334155 }); // Dark Cyber Concrete
+    const curbMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+    const cyanLedMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+    const magentaLedMat = new THREE.MeshBasicMaterial({ color: 0xec4899 });
 
-    // Main Boulevard Left & Right Sidewalks
+    // Main Boulevard Left & Right Sidewalks + Glowing Cyan LED Strip
     [-13.5, 13.5].forEach(swX => {
       const swGeo = new THREE.BoxGeometry(4.5, 0.18, 220);
       const sw = new THREE.Mesh(swGeo, sidewalkMat);
@@ -617,11 +1029,18 @@ export class DroneWorld {
       // Curb edge
       const curbGeo = new THREE.BoxGeometry(0.3, 0.22, 220);
       const curb = new THREE.Mesh(curbGeo, curbMat);
-      curb.position.set(swX > 0 ? swX - 2.25 : swX + 2.25, 0.11, 0);
+      const curbX = swX > 0 ? swX - 2.25 : swX + 2.25;
+      curb.position.set(curbX, 0.11, 0);
       roadGroup.add(curb);
+
+      // Continuous Glowing Cyan LED Strip along Boulevard Curb
+      const ledGeo = new THREE.BoxGeometry(0.12, 0.06, 218);
+      const ledMesh = new THREE.Mesh(ledGeo, cyanLedMat);
+      ledMesh.position.set(curbX, 0.23, 0);
+      roadGroup.add(ledMesh);
     });
 
-    // Crossway Sidewalks (North and South of crossways)
+    // Crossway Sidewalks + Glowing Magenta LED Strips
     crosswayZs.forEach(cz => {
       [-10.2, 10.2].forEach(offZ => {
         const cSwGeo = new THREE.BoxGeometry(160, 0.18, 4.0);
@@ -629,6 +1048,12 @@ export class DroneWorld {
         cSw.position.set(0, 0.09, cz + offZ);
         cSw.receiveShadow = true;
         roadGroup.add(cSw);
+
+        // Glowing Magenta LED Strip along Crossway Edge
+        const cLedGeo = new THREE.BoxGeometry(158, 0.06, 0.12);
+        const cLedMesh = new THREE.Mesh(cLedGeo, magentaLedMat);
+        cLedMesh.position.set(0, 0.20, cz + (offZ > 0 ? offZ - 1.9 : offZ + 1.9));
+        roadGroup.add(cLedMesh);
       });
     });
 
@@ -1478,6 +1903,25 @@ export class DroneWorld {
         bGroup.add(rPad);
       }
 
+      // Cyber Glowing Corner LED Edges (All 4 vertical corners of high-tech buildings)
+      const neonColorChoices = [0x00f0ff, 0xec4899, 0x38bdf8, 0xfacc15, 0xa855f7];
+      const neonCol = neonColorChoices[Math.abs(Math.floor(spec.x * 7 + spec.z * 13)) % neonColorChoices.length];
+      const cornerLedMat = new THREE.MeshBasicMaterial({ color: neonCol });
+      
+      const halfW = spec.w / 2;
+      const halfD = spec.d / 2;
+      [
+        { cx: -halfW, cz: -halfD },
+        { cx: halfW, cz: -halfD },
+        { cx: -halfW, cz: halfD },
+        { cx: halfW, cz: halfD }
+      ].forEach(c => {
+        const cLedGeo = new THREE.BoxGeometry(0.18, spec.h, 0.18);
+        const cLedMesh = new THREE.Mesh(cLedGeo, cornerLedMat);
+        cLedMesh.position.set(c.cx, 0, c.cz);
+        bGroup.add(cLedMesh);
+      });
+
       this.scene.add(bGroup);
 
       // Register collision box
@@ -1492,11 +1936,11 @@ export class DroneWorld {
 
   private addBuildingWindows(group: THREE.Group, w: number, h: number, d: number) {
     const winMat = new THREE.MeshBasicMaterial({ 
-      color: 0xfef08a,
+      color: 0x38bdf8,
       polygonOffset: true,
       polygonOffsetFactor: -1,
       polygonOffsetUnits: -1
-    }); // Warm glowing window with zero Z-fighting
+    }); // Cyber glowing cyan windows with zero Z-fighting
     const rows = Math.floor(h / 6);
     const cols = Math.floor(w / 5);
 
@@ -2117,6 +2561,58 @@ export class DroneWorld {
     if (this.fountainWater) {
       this.fountainWater.rotation.z += dt * 0.5;
     }
+
+    // 7. Cyber Moon Orbital Rings & Satellite Revolution
+    if (this.cyberMoonRings.length > 0) {
+      this.cyberMoonRings[0].rotation.z += dt * 0.25;
+      if (this.cyberMoonRings[1]) {
+        this.cyberMoonRings[1].rotation.z -= dt * 0.20;
+      }
+    }
+
+    // 8. Towering Sky Beacon Laser Searchlights Pulsing & Beam Sway
+    this.skyBeacons.forEach((beacon) => {
+      const pulse = Math.sin(time * beacon.pulseSpeed);
+      const targetOpacity = beacon.baseOpacity * (0.8 + 0.3 * pulse);
+      (beacon.mesh.material as THREE.MeshBasicMaterial).opacity = targetOpacity;
+      if (beacon.light) {
+        beacon.light.intensity = 1.4 + 0.6 * pulse;
+      }
+    });
+
+    // 9. Heavy Sci-Fi Cargo Skycruisers Cruising with Banking Roll & Strobe Blinks
+    const strobeBlink = Math.sin(time * 6.0) > 0.3;
+    this.skyCruisers.forEach((cruiser) => {
+      cruiser.angle += cruiser.speed * dt;
+      const cx = Math.cos(cruiser.angle) * cruiser.radius;
+      const cz = Math.sin(cruiser.angle) * cruiser.radius;
+      const cy = cruiser.height + Math.sin(time * 0.8 + cruiser.radius) * 1.5;
+
+      cruiser.group.position.set(cx, cy, cz);
+      
+      // Face flight direction and bank realistically into turns
+      if (cruiser.speed > 0) {
+        cruiser.group.rotation.y = -cruiser.angle + Math.PI / 2;
+        cruiser.group.rotation.z = -0.15; // Inward bank
+      } else {
+        cruiser.group.rotation.y = -cruiser.angle - Math.PI / 2;
+        cruiser.group.rotation.z = 0.15; // Inward bank
+      }
+
+      // Blink navigation strobes
+      cruiser.strobes.forEach((strobe) => {
+        strobe.visible = strobeBlink;
+      });
+    });
+
+    // 10. Floating Holographic Data Relays (Gentle Levitating Bob and Double Ring Counter-Rotation)
+    this.floatingDataRelays.forEach((relay) => {
+      relay.group.position.y = relay.baseY + Math.sin(time * relay.floatSpeed) * 1.8;
+      relay.innerRing.rotation.x += dt * relay.rotSpeed;
+      relay.innerRing.rotation.y += dt * relay.rotSpeed * 0.7;
+      relay.outerRing.rotation.y -= dt * relay.rotSpeed * 0.8;
+      relay.outerRing.rotation.z += dt * relay.rotSpeed * 0.5;
+    });
   }
 
   private buildDustRing() {
@@ -2926,7 +3422,7 @@ export class DroneWorld {
 
     // Stage 6: Strictly lock speed gear to 2 (Sport Mode) for both AI and Player
     // Also remove the yellow landing pad specifically for Stage 6 race grid
-    const isStage6 = stage.type === 'AI_RACING' || stage.id === 'ai-racing-1' || stage.id === 'stage-6';
+    const isStage6 = stage.type === 'AI_RACING';
     if (isStage6) {
       this.speedGear = 2;
     }
@@ -2998,6 +3494,13 @@ export class DroneWorld {
     this.aiRacerState = null;
     this.raceActive = false;
     this.raceFinished = false;
+
+    // Clear Stage 2 Dynamic Obstacles
+    this.stage2Obstacles.forEach(obs => {
+      this.scene.remove(obs.group);
+    });
+    this.stage2Obstacles = [];
+    this.stage2LandingReady = false;
   }
 
   private spawnCoins() {
@@ -3593,6 +4096,88 @@ export class DroneWorld {
         this.scene.add(rGroup);
         this.ringMeshes.push(rGroup);
       });
+
+      // Spawn 2 High-Visibility Dynamic Obstacles for Stage 2
+      this.stage2Obstacles = [];
+      this.stage2LandingReady = false;
+
+      // Obstacle 1: Mid-turn Cyber Laser Barricade (between Ring 1 & Ring 2 at [-7.5, 3.2, -22.5])
+      const obs1Group = new THREE.Group();
+      obs1Group.position.set(-7.5, 0, -22.5);
+
+      // Warning Pillar Post
+      const pillar1Geo = new THREE.CylinderGeometry(0.35, 0.45, 6.4, 16);
+      const pillar1Mat = new THREE.MeshStandardMaterial({
+        color: 0xf59e0b, // Amber Warning
+        roughness: 0.3,
+        metalness: 0.6
+      });
+      const pillar1 = new THREE.Mesh(pillar1Geo, pillar1Mat);
+      pillar1.position.y = 3.2;
+      obs1Group.add(pillar1);
+
+      // Rotating Laser Cross Wings
+      const rotor1Group = new THREE.Group();
+      rotor1Group.position.set(0, 3.2, 0);
+
+      const wing1Geo = new THREE.BoxGeometry(4.4, 0.22, 0.22);
+      const wing1Mat = new THREE.MeshBasicMaterial({ color: 0xff3b30 });
+      const wing1A = new THREE.Mesh(wing1Geo, wing1Mat);
+      rotor1Group.add(wing1A);
+
+      const wing1B = new THREE.Mesh(wing1Geo, wing1Mat);
+      wing1B.rotation.y = Math.PI / 2;
+      rotor1Group.add(wing1B);
+
+      // Warning Flasher at Top of Obstacle
+      const light1 = new THREE.PointLight(0xff3b30, 2.5, 8);
+      light1.position.set(0, 6.5, 0);
+      obs1Group.add(light1);
+
+      obs1Group.add(rotor1Group);
+      this.scene.add(obs1Group);
+      this.stage2Obstacles.push({
+        group: obs1Group,
+        position: new THREE.Vector3(-7.5, 3.2, -22.5),
+        radius: 2.3,
+        rotor: rotor1Group
+      });
+
+      // Obstacle 2: Return Approach Cyber Barricade (between Ring 2 & Ring 3 at [-8.0, 3.0, -14.0])
+      const obs2Group = new THREE.Group();
+      obs2Group.position.set(-8.0, 0, -14.0);
+
+      const pillar2Geo = new THREE.CylinderGeometry(0.35, 0.45, 6.0, 16);
+      const pillar2Mat = new THREE.MeshStandardMaterial({
+        color: 0xef4444, // Red Hazard
+        roughness: 0.3,
+        metalness: 0.7
+      });
+      const pillar2 = new THREE.Mesh(pillar2Geo, pillar2Mat);
+      pillar2.position.y = 3.0;
+      obs2Group.add(pillar2);
+
+      const rotor2Group = new THREE.Group();
+      rotor2Group.position.set(0, 3.0, 0);
+
+      const wing2Geo = new THREE.BoxGeometry(4.6, 0.25, 0.25);
+      const wing2Mat = new THREE.MeshBasicMaterial({ color: 0xfacc15 }); // Neon Yellow
+      const wing2 = new THREE.Mesh(wing2Geo, wing2Mat);
+      rotor2Group.add(wing2);
+
+      const light2 = new THREE.PointLight(0xfacc15, 2.5, 8);
+      light2.position.set(0, 6.1, 0);
+      obs2Group.add(light2);
+
+      obs2Group.add(rotor2Group);
+      this.scene.add(obs2Group);
+      this.stage2Obstacles.push({
+        group: obs2Group,
+        position: new THREE.Vector3(-8.0, 3.0, -14.0),
+        radius: 2.4,
+        rotor: rotor2Group
+      });
+
       return;
     }
 
@@ -4186,7 +4771,11 @@ export class DroneWorld {
               this.callbacks.onRingPassed(ring.id, this.rings[nextIdx].id);
             } else {
               // All rings in the circuit passed!
-              if (this.currentStage?.type === 'AI_RACING' || this.currentStage?.id === 'ai-racing-1' || this.currentStage?.id === 'stage-6') {
+              if (this.currentStage?.id === 'tutorial-2') {
+                // Stage 2: Enter Final Landing Phase onto Yellow Base Pad!
+                this.stage2LandingReady = true;
+                this.callbacks.onRingPassed(ring.id, 4); // Notify UI that landing step is now active
+              } else if (this.currentStage?.type === 'AI_RACING' || this.currentStage?.id === 'ai-racing-1' || this.currentStage?.id === 'stage-6') {
                 const finishedLap = this.currentLap;
                 if (this.currentLap < this.totalRaceLaps) {
                   this.currentLap++;
@@ -4218,6 +4807,39 @@ export class DroneWorld {
           }
         }
       });
+    }
+
+    // 3-B. Stage 2 Dynamic Obstacles Animation & Collision Detection
+    if (this.stage2Obstacles.length > 0) {
+      this.stage2Obstacles.forEach(obs => {
+        obs.rotor.rotation.y += dt * 1.8;
+
+        const dist = this.position.distanceTo(obs.position);
+        if (dist < obs.radius) {
+          this.spawnSparks(this.position, 0xf97316);
+          const pushDir = this.position.clone().sub(obs.position).normalize();
+          pushDir.y = Math.max(pushDir.y, 0.4);
+          this.velocity.addScaledVector(pushDir, 5.2);
+          this.cameraShakeTrauma = 0.5;
+          this.callbacks.onCrash(18);
+        }
+      });
+    }
+
+    // 3-C. Stage 2 Final Landing Check
+    if (this.currentStage?.id === 'tutorial-2' && this.stage2LandingReady) {
+      activeTargetPos = new THREE.Vector3(0, 0.35, 0);
+      guidanceColor = 0x10b981;
+
+      const horizDist = Math.hypot(this.position.x, this.position.z);
+      const isLowAltitude = this.position.y <= 0.55;
+      const isSlowSpeed = this.velocity.length() < 2.5;
+
+      if (horizDist < 2.0 && isLowAltitude && (this.isGrounded || isSlowSpeed)) {
+        this.stage2LandingReady = false;
+        this.spawnSparks(new THREE.Vector3(0, 0.35, 0), 0x10b981);
+        this.callbacks.onRingPassed(3, 0); // Complete Stage 2!
+      }
     }
 
     // 4. Rescue Mission
@@ -4461,13 +5083,15 @@ export class DroneWorld {
 
     const dir = toWp.clone().normalize();
 
-    // Balanced & Competitive AI Racer Dynamics (Sport Mode standard ~39 - 47.5 km/h)
+    // Balanced & Competitive AI Racer Dynamics based on Level 1 / Level 2 difficulty
+    const isLevel1 = this.currentStage?.aiDifficulty === 'LEVEL_1';
     const distToPlayer = currentPos.distanceTo(this.position);
     
-    // Fine-tuned Speed Parameters for satisfying, competitive rivalry
-    const baseAiSpeed = 10.8;             // ~38.9 km/h (standard cruise speed)
-    const sprintAiSpeed = 13.2;           // ~47.5 km/h (sprint/catchup when chasing player)
-    const rubberBandCatchupSpeed = 8.8;   // ~31.7 km/h (gentle relief if AI is ahead by >22m)
+    // Level 1: Beginner-friendly rookie AI (~28 - 35 km/h, gentle cornering, generous catchup)
+    // Level 2: Veteran pro rival AI (~39 - 47.5 km/h, sharp cornering and aggressive chase)
+    const baseAiSpeed = isLevel1 ? 8.2 : 10.8;
+    const sprintAiSpeed = isLevel1 ? 9.8 : 13.2;
+    const rubberBandCatchupSpeed = isLevel1 ? 6.5 : 8.8;
 
     // Smooth aerodynamic cornering lookahead
     let cornerFactor = 1.0;
@@ -4476,8 +5100,9 @@ export class DroneWorld {
     if (nextWp) {
       const nextDir = nextWp.clone().sub(targetWp).normalize();
       const dotProd = THREE.MathUtils.clamp(dir.dot(nextDir), -1, 1);
-      // Smooth cosine speed curve: maintains high momentum through bends
-      cornerFactor = THREE.MathUtils.lerp(0.72, 1.0, (dotProd + 1) * 0.5);
+      // Smooth cosine speed curve: maintains momentum through bends (Level 1 slows down slightly more for realism)
+      const minCornerLerp = isLevel1 ? 0.60 : 0.72;
+      cornerFactor = THREE.MathUtils.lerp(minCornerLerp, 1.0, (dotProd + 1) * 0.5);
     }
 
     let targetSpeed = baseAiSpeed * cornerFactor;
@@ -4489,14 +5114,15 @@ export class DroneWorld {
     if (playerIsAhead) {
       // Player is ahead -> AI drone gives exciting chase with slight boost
       targetSpeed = sprintAiSpeed * cornerFactor;
-    } else if (distToPlayer > 22 && this.aiRacerState.lap >= this.currentLap) {
-      // AI is ahead by >22m -> Gentle rubber-banding so player can catch back up
+    } else if (distToPlayer > (isLevel1 ? 16 : 22) && this.aiRacerState.lap >= this.currentLap) {
+      // AI is ahead -> Gentle rubber-banding so player can catch back up
       targetSpeed = rubberBandCatchupSpeed * cornerFactor;
     }
 
-    // Initial motor throttle spool-up curve over first 1.2 seconds of flight
-    const launchRamp = Math.min(1.0, Math.max(0, (timeSinceStart - 0.4) / 1.2));
-    targetSpeed *= THREE.MathUtils.lerp(0.35, 1.0, launchRamp);
+    // Initial motor throttle spool-up curve over first seconds of flight
+    const launchDuration = isLevel1 ? 1.6 : 1.2;
+    const launchRamp = Math.min(1.0, Math.max(0, (timeSinceStart - 0.4) / launchDuration));
+    targetSpeed *= THREE.MathUtils.lerp(0.30, 1.0, launchRamp);
 
     this.aiRacerState.speed = THREE.MathUtils.lerp(this.aiRacerState.speed, targetSpeed, 3.2 * dt);
     currentPos.addScaledVector(dir, this.aiRacerState.speed * dt);

@@ -6,7 +6,7 @@ interface SettingsModalProps {
   profile: UserPilotProfile;
   onUpdateSettings: (updated: Partial<UserPilotProfile>) => void;
   onResetSaveData: () => void;
-  onResetStars: () => void;
+  onResetProgressAndStars: () => void;
   onClose: () => void;
 }
 
@@ -14,7 +14,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   profile,
   onUpdateSettings,
   onResetSaveData,
-  onResetStars,
+  onResetProgressAndStars,
   onClose
 }) => {
   const [showStarResetPrompt, setShowStarResetPrompt] = useState(false);
@@ -26,8 +26,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setErrorMessage('');
     setSuccessMessage('');
     if (passwordInput.trim() === '10315') {
-      onResetStars();
-      setSuccessMessage('별 수집 기록이 성공적으로 초기화되었습니다!');
+      onResetProgressAndStars();
+      setSuccessMessage('별 수집 및 스테이지 완료 기록이 모두 깨끗하게 초기화되었습니다!');
       setPasswordInput('');
       setTimeout(() => {
         setShowStarResetPrompt(false);
@@ -120,7 +120,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           </div>
 
-          {/* 4. Reset Stars Menu (Password Protected: 10315) */}
+          {/* 4. Reset Stars & Stage Progress Menu (Password Protected: 10315) */}
           <div className="bg-yellow-50/90 p-4 rounded-2xl border-2 border-yellow-300 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -128,8 +128,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <Star className="w-4 h-4 fill-yellow-950 text-yellow-950" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-slate-900">별 수집 기록 초기화</h4>
-                  <p className="text-[11px] text-slate-600 font-bold">비밀번호 인증 후 미션 획득 별점만 초기화</p>
+                  <h4 className="text-sm font-black text-slate-900">별점 & 스테이지 완료 기록 초기화</h4>
+                  <p className="text-[11px] text-slate-600 font-bold">비밀번호 인증 후 모든 미션의 별점 및 완료 기록을 함께 초기화</p>
                 </div>
               </div>
               <button
@@ -142,7 +142,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 className="px-3 py-1.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-yellow-950 text-xs font-black border border-white shadow transition-all cursor-pointer flex items-center gap-1"
               >
                 <KeyRound className="w-3.5 h-3.5" />
-                <span>{showStarResetPrompt ? '닫기' : '초기화 메뉴'}</span>
+                <span>{showStarResetPrompt ? '닫기' : '기록 초기화'}</span>
               </button>
             </div>
 
@@ -150,7 +150,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {showStarResetPrompt && (
               <div className="mt-3 pt-3 border-t border-yellow-200/80 space-y-2 animate-fadeIn">
                 <p className="text-xs text-yellow-950 font-bold">
-                  별 수집 데이터를 초기화하려면 비밀번호를 입력하세요.
+                  별점과 스테이지 완료 기록을 한 번에 초기화하려면 비밀번호를 입력하세요.
                 </p>
                 <div className="flex items-center gap-2">
                   <input
