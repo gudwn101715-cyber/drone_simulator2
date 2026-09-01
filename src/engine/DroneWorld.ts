@@ -377,11 +377,8 @@ export class DroneWorld {
   private skyCruisers: { group: THREE.Group; radius: number; height: number; speed: number; angle: number; engineTrail: THREE.Mesh; strobes: THREE.Mesh[] }[] = [];
   private floatingDataRelays: { group: THREE.Group; innerRing: THREE.Mesh; outerRing: THREE.Mesh; baseY: number; floatSpeed: number; rotSpeed: number }[] = [];
 
-  // Time tracking & 30 FPS Performance Limiter
+  // Time tracking & 60 FPS Render Loop
   private lastTime: number = performance.now();
-  private lastRenderTime: number = performance.now();
-  private readonly targetFps: number = 30;
-  private readonly fpsInterval: number = 1000 / 30; // ~33.33ms per frame
   private hoverTimeTracker: number = 0;
 
   constructor(container: HTMLElement, skin: DroneSkin, callbacks: WorldCallbacks) {
@@ -394,32 +391,31 @@ export class DroneWorld {
     this.scene.background = new THREE.Color(0x020617); // Deep cosmic cyberpunk space
     this.scene.fog = new THREE.FogExp2(0x060e24, 0.0055);
 
-    // Camera with enhanced depth buffer precision (near: 0.4, far: 450) to completely eliminate Z-fighting
+    // Camera with balanced depth range (near: 0.45, far: 380) for clean depth resolution without Z-fighting
     const aspect = container.clientWidth / container.clientHeight;
-    this.camera = new THREE.PerspectiveCamera(65, aspect, 0.4, 450);
+    this.camera = new THREE.PerspectiveCamera(65, aspect, 0.45, 380);
     this.camera.position.set(0, 3, 6);
 
-    // Optimized WebGLRenderer with high precision and logarithmic depth buffer to permanently fix Z-fighting and mesh tearing
-    const isMobileOrTablet = typeof navigator !== 'undefined' && /Mobi|Android|iPad|Tablet|ARM/i.test(navigator.userAgent);
-    
+    // Optimized WebGLRenderer for Tablet Performance:
+    // - 0.7x Resolution Scaling for ultra-smooth 60 FPS
+    // - logarithmicDepthBuffer disabled to eliminate heavy per-pixel shader calculations
+    // - shadowMap disabled to save additional render pass
     this.renderer = new THREE.WebGLRenderer({ 
-      antialias: true, // Smooth geometry edges and remove pixel crawl shimmer
+      antialias: false, 
       alpha: false, 
       powerPreference: 'high-performance',
-      precision: 'highp', // Standard 32-bit float precision prevents vertex jitter and surface tearing
-      logarithmicDepthBuffer: true // Absolute solution for Z-fighting across entire depth range
+      precision: 'mediump',
+      logarithmicDepthBuffer: false
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
-    // Balanced performance & visual clarity 0.6x resolution scaling
-    this.renderer.setPixelRatio(0.6);
+    this.renderer.setPixelRatio(0.7); // 0.7x tablet scale requested
     
-    // Shadows: Completely disabled on mobile to avoid shadow map pass overhead
     this.renderer.shadowMap.enabled = false;
     this.renderer.autoClear = true;
     container.appendChild(this.renderer.domElement);
 
-    // Lighting
-    this.setupLighting(isMobileOrTablet);
+    // Lighting (Shadows disabled for maximum tablet fillrate)
+    this.setupLighting(true);
 
     // Build World
     this.buildCityWorld();
@@ -4288,21 +4284,15 @@ export class DroneWorld {
     }
   }
 
-  // Main Loop (Strict 30 FPS Limiter to eliminate lag and maximize GPU efficiency)
+  // Main Loop (Silky Smooth 60 FPS for Tablet Hardware)
   private animate = () => {
     this.animationFrameId = requestAnimationFrame(this.animate);
     const now = performance.now();
-    const elapsed = now - this.lastRenderTime;
-
-    // Enforce 30 FPS (~33.33ms per frame)
-    if (elapsed < this.fpsInterval) {
-      return;
-    }
-
-    // Keep consistent cadence and calculate delta time
-    this.lastRenderTime = now - (elapsed % this.fpsInterval);
-    const dt = Math.min(elapsed / 1000, 0.1); // cap dt to avoid physics leaps
+    const elapsed = now - this.lastTime;
     this.lastTime = now;
+
+    // Smooth delta time capped at 50ms (20fps floor) to prevent physics leaps
+    const dt = Math.min(elapsed / 1000, 0.05);
 
     this.updatePhysics(dt);
     this.updateMission(dt);
@@ -5465,6 +5455,7 @@ export class DroneWorld {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
+    this.renderer.setPixelRatio(0.7);
   };
 
   public destroy() {

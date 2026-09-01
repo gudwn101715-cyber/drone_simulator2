@@ -32,6 +32,7 @@ class SoundController {
   private bgmIntervalId: number | null = null;
   private bgmGainNode: GainNode | null = null;
   private bgmMasterVolume: number = 0.22;
+  private cachedSnareNoiseBuffer: AudioBuffer | null = null;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -91,6 +92,14 @@ class SoundController {
       }
       if (this.ctx && this.ctx.state === 'suspended') {
         this.ctx.resume().catch(() => {});
+      }
+      if (this.ctx && !this.cachedSnareNoiseBuffer) {
+        const bufferLength = Math.floor(this.ctx.sampleRate * 0.15);
+        this.cachedSnareNoiseBuffer = this.ctx.createBuffer(1, bufferLength, this.ctx.sampleRate);
+        const data = this.cachedSnareNoiseBuffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.25));
+        }
       }
     } catch {
       // ignore
@@ -441,25 +450,23 @@ class SoundController {
             snareOsc.start(now);
             snareOsc.stop(now + 0.16);
 
-            // Noise splash
-            const noiseBuf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * 0.12), this.ctx.sampleRate);
-            const data = noiseBuf.getChannelData(0);
-            for (let i = 0; i < data.length; i++) {
-              data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.25));
-            }
-            const noiseSrc = this.ctx.createBufferSource();
-            noiseSrc.buffer = noiseBuf;
-            const noiseFilter = this.ctx.createBiquadFilter();
-            noiseFilter.type = 'highpass';
-            noiseFilter.frequency.setValueAtTime(1200, now);
-            const noiseGain = this.ctx.createGain();
-            noiseGain.gain.setValueAtTime(0.18, now);
-            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+            // Reusable Noise splash (Zero GC allocation)
+            if (this.cachedSnareNoiseBuffer) {
+              const noiseSrc = this.ctx.createBufferSource();
+              noiseSrc.buffer = this.cachedSnareNoiseBuffer;
+              const noiseFilter = this.ctx.createBiquadFilter();
+              noiseFilter.type = 'highpass';
+              noiseFilter.frequency.setValueAtTime(1200, now);
+              const noiseGain = this.ctx.createGain();
+              noiseGain.gain.setValueAtTime(0.18, now);
+              noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
-            noiseSrc.connect(noiseFilter);
-            noiseFilter.connect(noiseGain);
-            noiseGain.connect(masterGain);
-            noiseSrc.start(now);
+              noiseSrc.connect(noiseFilter);
+              noiseFilter.connect(noiseGain);
+              noiseGain.connect(masterGain);
+              noiseSrc.start(now);
+              noiseSrc.stop(now + 0.13);
+            }
           }
 
           // 3. Fast Trap Hi-Hat Roll (16th notes & rapid triplets on steps 6, 14)
@@ -644,25 +651,23 @@ class SoundController {
             snareOsc.start(now);
             snareOsc.stop(now + 0.14);
 
-            // Noise snap
-            const noiseBuf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * 0.10), this.ctx.sampleRate);
-            const data = noiseBuf.getChannelData(0);
-            for (let i = 0; i < data.length; i++) {
-              data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.22));
-            }
-            const noiseSrc = this.ctx.createBufferSource();
-            noiseSrc.buffer = noiseBuf;
-            const noiseFilter = this.ctx.createBiquadFilter();
-            noiseFilter.type = 'highpass';
-            noiseFilter.frequency.setValueAtTime(isMainSnare ? 1600 : 2500, now);
-            const noiseGain = this.ctx.createGain();
-            noiseGain.gain.setValueAtTime(isMainSnare ? 0.20 : 0.06, now);
-            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + (isMainSnare ? 0.11 : 0.06));
+            // Reusable Noise snap (Zero GC allocation)
+            if (this.cachedSnareNoiseBuffer) {
+              const noiseSrc = this.ctx.createBufferSource();
+              noiseSrc.buffer = this.cachedSnareNoiseBuffer;
+              const noiseFilter = this.ctx.createBiquadFilter();
+              noiseFilter.type = 'highpass';
+              noiseFilter.frequency.setValueAtTime(isMainSnare ? 1600 : 2500, now);
+              const noiseGain = this.ctx.createGain();
+              noiseGain.gain.setValueAtTime(isMainSnare ? 0.20 : 0.06, now);
+              noiseGain.gain.exponentialRampToValueAtTime(0.001, now + (isMainSnare ? 0.11 : 0.06));
 
-            noiseSrc.connect(noiseFilter);
-            noiseFilter.connect(noiseGain);
-            noiseGain.connect(masterGain);
-            noiseSrc.start(now);
+              noiseSrc.connect(noiseFilter);
+              noiseFilter.connect(noiseGain);
+              noiseGain.connect(masterGain);
+              noiseSrc.start(now);
+              noiseSrc.stop(now + (isMainSnare ? 0.12 : 0.07));
+            }
           }
 
           // 3. Ultra-fast Cyber 16th Hi-Hats / Shakers
