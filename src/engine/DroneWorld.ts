@@ -377,23 +377,23 @@ export class DroneWorld {
     this.scene.background = new THREE.Color(0xdbeafe); // Soft sky blue
     this.scene.fog = new THREE.FogExp2(0xdbeafe, 0.008);
 
-    // Camera with enhanced depth buffer precision (near: 0.25, far: 450) to completely eliminate Z-fighting
+    // Camera with enhanced depth buffer precision (near: 0.4, far: 450) to completely eliminate Z-fighting
     const aspect = container.clientWidth / container.clientHeight;
-    this.camera = new THREE.PerspectiveCamera(65, aspect, 0.25, 450);
+    this.camera = new THREE.PerspectiveCamera(65, aspect, 0.4, 450);
     this.camera.position.set(0, 3, 6);
 
-    // Extreme Low-Spec Tablet & Mobile Optimization (Target: Helio G85 / Mali-G52 GPU)
+    // Optimized WebGLRenderer with high precision and logarithmic depth buffer to permanently fix Z-fighting and mesh tearing
     const isMobileOrTablet = typeof navigator !== 'undefined' && /Mobi|Android|iPad|Tablet|ARM/i.test(navigator.userAgent);
     
     this.renderer = new THREE.WebGLRenderer({ 
-      antialias: false, // Turn off MSAA on mobile to save ~40% GPU rasterization bandwidth
+      antialias: true, // Smooth geometry edges and remove pixel crawl shimmer
       alpha: false, 
       powerPreference: 'high-performance',
-      precision: 'mediump' // Medium precision float operations for Mali mobile GPU
+      precision: 'highp', // Standard 32-bit float precision prevents vertex jitter and surface tearing
+      logarithmicDepthBuffer: true // Absolute solution for Z-fighting across entire depth range
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
-    // On Helio G85 / low-spec tablets, lock DPR to 0.75 for buttery smooth 60 FPS without GPU fillrate bottleneck
-    this.renderer.setPixelRatio(isMobileOrTablet ? 0.75 : 1.2);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     
     // Shadows: Completely disabled on mobile to avoid shadow map pass overhead
     this.renderer.shadowMap.enabled = false;
@@ -487,7 +487,7 @@ export class DroneWorld {
     ground.position.y = 0;
     this.scene.add(ground);
 
-    // 2. Clear Crossway Roads & Runway (Solid polygon-offset asphalt, zero Z-fighting)
+    // 2. Clear Crossway Roads & Runway (Physically raised, zero Z-fighting)
     const roadMat = new THREE.MeshBasicMaterial({ 
       color: 0x1f2937, 
       polygonOffset: true, 
@@ -496,12 +496,12 @@ export class DroneWorld {
     });
     const roadV = new THREE.Mesh(new THREE.PlaneGeometry(24, 400), roadMat);
     roadV.rotation.x = -Math.PI / 2;
-    roadV.position.set(0, 0.02, 0);
+    roadV.position.set(0, 0.05, 0);
     this.scene.add(roadV);
 
     const roadH = new THREE.Mesh(new THREE.PlaneGeometry(400, 24), roadMat);
     roadH.rotation.x = -Math.PI / 2;
-    roadH.position.set(0, 0.02, 0);
+    roadH.position.set(0, 0.05, 0);
     this.scene.add(roadH);
 
     // Yellow center lines (polygon-offset layered)
@@ -513,16 +513,16 @@ export class DroneWorld {
     });
     const lineV = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 390), lineMat);
     lineV.rotation.x = -Math.PI / 2;
-    lineV.position.set(0, 0.03, 0);
+    lineV.position.set(0, 0.08, 0);
     this.scene.add(lineV);
 
     const lineH = new THREE.Mesh(new THREE.PlaneGeometry(390, 0.5), lineMat);
     lineH.rotation.x = -Math.PI / 2;
-    lineH.position.set(0, 0.03, 0);
+    lineH.position.set(0, 0.08, 0);
     this.scene.add(lineH);
 
     // 3. Main Base Start / Landing Helipad
-    this.baseHelipadMesh = this.buildHelipad(0, 0.04, 0, 7.5, 0xfacc15, 'START / BASE');
+    this.baseHelipadMesh = this.buildHelipad(0, 0.10, 0, 7.5, 0xfacc15, 'START / BASE');
 
     // 4. Low-Poly Optimized Buildings (18 Landmarks)
     this.buildBuildings();
@@ -762,7 +762,7 @@ export class DroneWorld {
     });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = -Math.PI / 2;
-    ring.position.y = 0.01;
+    ring.position.y = 0.02;
     padGroup.add(ring);
 
     // Letter 'H'
@@ -774,17 +774,17 @@ export class DroneWorld {
     });
     const hBar1 = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 3.2), hBarMat);
     hBar1.rotation.x = -Math.PI / 2;
-    hBar1.position.set(-1.1, 0.02, 0);
+    hBar1.position.set(-1.1, 0.04, 0);
     padGroup.add(hBar1);
 
     const hBar2 = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 3.2), hBarMat);
     hBar2.rotation.x = -Math.PI / 2;
-    hBar2.position.set(1.1, 0.02, 0);
+    hBar2.position.set(1.1, 0.04, 0);
     padGroup.add(hBar2);
 
     const hBarMid = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.6), hBarMat);
     hBarMid.rotation.x = -Math.PI / 2;
-    hBarMid.position.set(0, 0.02, 0);
+    hBarMid.position.set(0, 0.04, 0);
     padGroup.add(hBarMid);
 
     this.scene.add(padGroup);
@@ -1502,13 +1502,13 @@ export class DroneWorld {
         const x = -w / 2 + (c + 1) * (w / (cols + 1));
         // Front face
         const wMesh1 = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2.2), winMat);
-        wMesh1.position.set(x, y, d / 2 + 0.08);
+        wMesh1.position.set(x, y, d / 2 + 0.15);
         group.add(wMesh1);
 
         // Back face
         const wMesh2 = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2.2), winMat);
         wMesh2.rotation.y = Math.PI;
-        wMesh2.position.set(x, y, -d / 2 - 0.08);
+        wMesh2.position.set(x, y, -d / 2 - 0.15);
         group.add(wMesh2);
       }
     }
