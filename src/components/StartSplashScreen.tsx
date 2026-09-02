@@ -2,6 +2,7 @@ import React from 'react';
 import { UserPilotProfile } from '../types';
 import { calculateTotalStars, getPilotRank } from '../utils/storage';
 import { soundManager } from '../utils/audio';
+import { requestFullscreen } from '../utils/fullscreen';
 import { 
   Play, 
   ChevronRight,
@@ -21,6 +22,8 @@ export const StartSplashScreen: React.FC<StartSplashScreenProps> = ({
   const rank = getPilotRank(totalStars);
 
   const handleStartGame = () => {
+    // Request full screen immersive mode on user tap (hides clock, battery & navigation bar)
+    requestFullscreen().catch(() => {});
     soundManager.playCoin();
     soundManager.speakGuide('프로브 드론 시뮬레이터에 오신 것을 환영해! 비행을 시작하자!');
     onStart();

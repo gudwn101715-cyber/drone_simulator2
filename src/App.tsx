@@ -33,6 +33,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { HelpManualModal } from './components/HelpManualModal';
 import { CountdownOverlay } from './components/CountdownOverlay';
 import { StartSplashScreen } from './components/StartSplashScreen';
+import { requestFullscreen } from './utils/fullscreen';
 
 export default function App() {
   // App Title / Splash Screen State
@@ -170,6 +171,23 @@ export default function App() {
       }
     }
   }, [currentStage, profile.soundEnabled, hasStartedApp]);
+
+  // Automatically enter fullscreen on any first user touch/interaction
+  useEffect(() => {
+    const handleInitialUserInteraction = () => {
+      requestFullscreen().catch(() => {});
+    };
+
+    window.addEventListener('click', handleInitialUserInteraction, { once: true });
+    window.addEventListener('touchstart', handleInitialUserInteraction, { once: true });
+    window.addEventListener('pointerdown', handleInitialUserInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('click', handleInitialUserInteraction);
+      window.removeEventListener('touchstart', handleInitialUserInteraction);
+      window.removeEventListener('pointerdown', handleInitialUserInteraction);
+    };
+  }, []);
 
   // Clean up sounds completely when app is closed / unmounted
   useEffect(() => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { HelpCircle, X, Gamepad2, Keyboard, Compass, ShieldCheck, HeartPulse, Trophy } from 'lucide-react';
+import { HelpCircle, X, Gamepad2, Keyboard, Compass, ShieldCheck, HeartPulse, Trophy, Smartphone } from 'lucide-react';
 
 interface HelpManualModalProps {
   onClose: () => void;
@@ -129,6 +129,18 @@ export const HelpManualModal: React.FC<HelpManualModalProps> = ({ onClose }) => 
                 코너에서 고도를 적절히 낮추고 링 게이트를 통과하며 AI 드론보다 먼저 2바퀴를 완주하세요.
               </p>
             </div>
+          </div>
+
+          {/* Tablet & Mobile Fullscreen Tip */}
+          <div className="bg-cyan-50/90 p-3.5 rounded-2xl border-2 border-cyan-200 shadow-sm">
+            <div className="flex items-center gap-2 mb-1 text-cyan-950 font-black text-xs">
+              <Smartphone className="w-4 h-4 text-cyan-600" />
+              <span>태블릿 몰입형 전체화면 (상단바 / 홈버튼 자동 숨김)</span>
+            </div>
+            <p className="text-[11px] text-cyan-900 leading-relaxed font-medium">
+              화면을 터치하여 비행을 시작하면 자동으로 상단 시계/배터리 및 하단 내비게이션 바가 숨겨집니다.<br />
+              브라우저 메뉴에서 <strong>[홈 화면에 추가]</strong> 또는 <strong>[앱 설치]</strong>를 선택하면 완벽한 단독 풀스크린 앱으로 즐길 수 있습니다.
+            </p>
           </div>
         </div>
 
