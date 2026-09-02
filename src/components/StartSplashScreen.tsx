@@ -25,7 +25,7 @@ export const StartSplashScreen: React.FC<StartSplashScreenProps> = ({
     // Request full screen immersive mode on user tap (hides clock, battery & navigation bar)
     requestFullscreen().catch(() => {});
     soundManager.playCoin();
-    soundManager.speakGuide('프로브 드론 시뮬레이터에 오신 것을 환영해! 비행을 시작하자!');
+    soundManager.speakGuide('프로브 드론 시뮬레이터에 온 걸 환영해! 신나게 날아보자!');
     onStart();
   };
 
@@ -73,7 +73,7 @@ export const StartSplashScreen: React.FC<StartSplashScreenProps> = ({
         <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/25 shadow-md mb-6 sm:mb-8">
           <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
           <span className="text-xs sm:text-sm font-black text-white tracking-wider">
-            드론 시뮬레이터 (SIMULATOR)
+            신나는 드론 비행 시뮬레이터 🚀
           </span>
         </div>
 
@@ -85,14 +85,14 @@ export const StartSplashScreen: React.FC<StartSplashScreenProps> = ({
         >
           <span className="inline-flex items-center justify-center gap-2.5">
             <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-current text-white transition-transform group-hover:scale-110" />
-            <span className="tracking-wide">시작하기</span>
+            <span className="tracking-wide">비행 시작하기</span>
             <ChevronRight className="w-5 h-5 text-cyan-200 group-hover:translate-x-1 transition-transform" />
           </span>
         </button>
 
         {/* Short Guide Subtitle */}
         <p className="mt-5 text-sm text-sky-100/90 font-bold tracking-wide text-center">
-          3D 프로브 드론 비행
+          🎮 재미있는 3D 드론 조종 교실
         </p>
       </div>
 

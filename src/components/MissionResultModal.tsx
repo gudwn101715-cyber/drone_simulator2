@@ -45,18 +45,18 @@ export const MissionResultModal: React.FC<MissionResultModalProps> = ({
             ? 'text-rose-700 bg-rose-50 border-rose-200'
             : 'text-blue-600 bg-blue-50 border-blue-200'
         }`}>
-          {playerLostRace ? '2ND PLACE FINISH' : 'MISSION COMPLETE!'}
+          {playerLostRace ? '🥈 2등 완주! 아쉬워요!' : '🎉 미션 대성공! 참 잘했어요!'}
         </span>
         <h2 className="text-lg sm:text-xl font-black text-slate-900 mt-1.5 mb-0.5">
-          {playerLostRace ? '2위 완주 (AI 라이벌 승리)' : isAiRace ? '1위 우승! AI 라이벌 격파! 🏆' : '미션 성공 완료!'}
+          {playerLostRace ? '2등으로 골인! (로봇 드론 승리)' : isAiRace ? '🏆 1등 챔피언! 로봇 드론을 이겼어요!' : '🌟 미션을 멋지게 성공했어요!'}
         </h2>
         <p className="text-xs text-slate-600 font-medium mb-3">
           {playerLostRace ? (
-            <span>AI 라이벌이 먼저 결승선을 통과했습니다. 완주 보상으로 <strong className="text-amber-600">별 1개</strong>가 지급되었습니다. 다시 도전하여 AI를 꺾고 추가 별을 획득해보세요!</span>
+            <span>로봇 친구가 조금 더 빨랐어요! 열심히 달린 보상으로 <strong className="text-amber-600">별 1개</strong>를 받았어요. 다시 도전해서 1등을 노려봐요!</span>
           ) : isAiRace ? (
-            <span>AI 라이벌과의 치열한 접전 끝에 당당히 <strong className="text-blue-600">1위로 결승선</strong>을 통과했습니다!</span>
+            <span>로봇 드론과의 박진감 넘치는 달리기 시합에서 <strong className="text-blue-600">당당하게 1등</strong>으로 결승선을 통과했어요! 대단해요!</span>
           ) : (
-            <span><strong className="text-blue-600">[{stage.title}]</strong>을(를) 멋지게 완수하였습니다.</span>
+            <span><strong className="text-blue-600">[{stage.title}]</strong> 미션을 완벽하게 완료했어요!</span>
           )}
         </p>
 

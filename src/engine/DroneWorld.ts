@@ -387,6 +387,23 @@ export class DroneWorld {
   private skyCruisers: { group: THREE.Group; radius: number; height: number; speed: number; angle: number; engineTrail: THREE.Mesh; strobes: THREE.Mesh[] }[] = [];
   private floatingDataRelays: { group: THREE.Group; innerRing: THREE.Mesh; outerRing: THREE.Mesh; baseY: number; floatSpeed: number; rotSpeed: number }[] = [];
 
+  // Instanced Cyber City Elements (Zero-lag single draw-call instances)
+  private instancedStreetPylons: THREE.InstancedMesh | null = null;
+  private instancedPylonLamps: THREE.InstancedMesh | null = null;
+  private instancedSkyCruisers: THREE.InstancedMesh | null = null;
+  private skyCruiserFlightPaths: { radius: number; height: number; speed: number; angle: number; tilt: number; dir: number }[] = [];
+  private instancedDataCubes: THREE.InstancedMesh | null = null;
+  private dataCubeConfigs: { origin: THREE.Vector3; floatSpeed: number; rotSpeed: number; radius: number; phase: number }[] = [];
+  private instancedMegacityTowers: THREE.InstancedMesh | null = null;
+  private instancedMegacityBeacons: THREE.InstancedMesh | null = null;
+
+  // Scratch math objects for zero-allocation InstancedMesh transforms
+  private _instMatrix = new THREE.Matrix4();
+  private _instPos = new THREE.Vector3();
+  private _instQuat = new THREE.Quaternion();
+  private _instScale = new THREE.Vector3(1, 1, 1);
+  private _instEuler = new THREE.Euler();
+
   // Time tracking & 60 FPS Render Loop
   private lastTime: number = performance.now();
   private hoverTimeTracker: number = 0;
@@ -524,6 +541,9 @@ export class DroneWorld {
     this.buildHotAirBalloons();
     this.buildPedestrians();
     this.buildAnimalsAndBirds();
+
+    // 8. Instanced Cyber City Atmosphere (Zero-Lag 1-Draw-Call Instanced Systems)
+    this.buildCyberInstancedElements();
   }
 
   private buildCyberSkyAndAtmosphere() {
@@ -1786,6 +1806,181 @@ export class DroneWorld {
     };
   }
 
+  private buildCyberInstancedElements() {
+    // 1. Instanced Cyber Energy Pylons & Neon Street Light Columns (Zero-Lag 1-Draw-Call Instancing)
+    const pylonPositions: { x: number; z: number }[] = [];
+    
+    // Main boulevard light columns (West and East curbs)
+    const boulevardZs = [-95, -75, -55, -35, -15, 10, 35, 55, 75, 95];
+    boulevardZs.forEach(bz => {
+      pylonPositions.push({ x: -16.2, z: bz });
+      pylonPositions.push({ x: 16.2, z: bz });
+    });
+
+    // Crossway streets light columns
+    const crosswayZs = [30, -20, -60];
+    const crosswayXs = [-70, -50, -30, 30, 50, 70];
+    crosswayZs.forEach(cz => {
+      crosswayXs.forEach(cx => {
+        pylonPositions.push({ x: cx, z: cz + 10.8 });
+        pylonPositions.push({ x: cx, z: cz - 10.8 });
+      });
+    });
+
+    const pylonCount = pylonPositions.length;
+    const pylonPillarGeo = new THREE.CylinderGeometry(0.18, 0.32, 5.4, 6);
+    const pylonPillarMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+    this.instancedStreetPylons = new THREE.InstancedMesh(pylonPillarGeo, pylonPillarMat, pylonCount);
+
+    const pylonLampGeo = new THREE.BoxGeometry(0.75, 0.22, 0.75);
+    const pylonLampMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+    this.instancedPylonLamps = new THREE.InstancedMesh(pylonLampGeo, pylonLampMat, pylonCount);
+
+    const dummyMatrix = new THREE.Matrix4();
+    const dummyPos = new THREE.Vector3();
+    const dummyQuat = new THREE.Quaternion();
+    const dummyScale = new THREE.Vector3(1, 1, 1);
+
+    pylonPositions.forEach((pos, idx) => {
+      // Base pillar
+      dummyPos.set(pos.x, 2.7, pos.z);
+      dummyMatrix.compose(dummyPos, dummyQuat, dummyScale);
+      this.instancedStreetPylons!.setMatrixAt(idx, dummyMatrix);
+
+      // Neon Top emitter
+      dummyPos.set(pos.x, 5.45, pos.z);
+      dummyMatrix.compose(dummyPos, dummyQuat, dummyScale);
+      this.instancedPylonLamps!.setMatrixAt(idx, dummyMatrix);
+    });
+
+    this.instancedStreetPylons.instanceMatrix.needsUpdate = true;
+    this.instancedPylonLamps.instanceMatrix.needsUpdate = true;
+    this.scene.add(this.instancedStreetPylons);
+    this.scene.add(this.instancedPylonLamps);
+
+    // 2. Instanced Autonomous Cyber Sky Cruisers / Air Traffic Patrols (1 Single Draw Call for 16 High-Tech Flying Crafts)
+    const cruiserCount = 16;
+    const cruiserGeo = new THREE.ConeGeometry(0.85, 3.4, 5);
+    cruiserGeo.rotateX(Math.PI / 2);
+    const cruiserMat = new THREE.MeshLambertMaterial({ color: 0x0284c7 });
+    this.instancedSkyCruisers = new THREE.InstancedMesh(cruiserGeo, cruiserMat, cruiserCount);
+
+    this.skyCruiserFlightPaths = [
+      // Orbit lane 1: Inner lower patrol
+      { radius: 50, height: 36, speed: 0.16, angle: 0.0, tilt: -0.15, dir: 1 },
+      { radius: 50, height: 38, speed: 0.16, angle: Math.PI * 0.5, tilt: -0.15, dir: 1 },
+      { radius: 50, height: 36, speed: 0.16, angle: Math.PI, tilt: -0.15, dir: 1 },
+      { radius: 50, height: 38, speed: 0.16, angle: Math.PI * 1.5, tilt: -0.15, dir: 1 },
+
+      // Orbit lane 2: Mid-altitude counter-orbit
+      { radius: 80, height: 50, speed: -0.12, angle: 0.2, tilt: 0.14, dir: -1 },
+      { radius: 80, height: 52, speed: -0.12, angle: 0.2 + Math.PI * 0.5, tilt: 0.14, dir: -1 },
+      { radius: 80, height: 50, speed: -0.12, angle: 0.2 + Math.PI, tilt: 0.14, dir: -1 },
+      { radius: 80, height: 52, speed: -0.12, angle: 0.2 + Math.PI * 1.5, tilt: 0.14, dir: -1 },
+
+      // Orbit lane 3: High sky highway
+      { radius: 115, height: 68, speed: 0.09, angle: 0.4, tilt: -0.12, dir: 1 },
+      { radius: 115, height: 70, speed: 0.09, angle: 0.4 + Math.PI * 0.5, tilt: -0.12, dir: 1 },
+      { radius: 115, height: 68, speed: 0.09, angle: 0.4 + Math.PI, tilt: -0.12, dir: 1 },
+      { radius: 115, height: 70, speed: 0.09, angle: 0.4 + Math.PI * 1.5, tilt: -0.12, dir: 1 },
+
+      // Orbit lane 4: Stratospheric heavy transport
+      { radius: 155, height: 86, speed: -0.07, angle: 0.6, tilt: 0.10, dir: -1 },
+      { radius: 155, height: 88, speed: -0.07, angle: 0.6 + Math.PI * 0.5, tilt: 0.10, dir: -1 },
+      { radius: 155, height: 86, speed: -0.07, angle: 0.6 + Math.PI, tilt: 0.10, dir: -1 },
+      { radius: 155, height: 88, speed: -0.07, angle: 0.6 + Math.PI * 1.5, tilt: 0.10, dir: -1 },
+    ];
+
+    this.scene.add(this.instancedSkyCruisers);
+
+    // 3. Instanced Floating Hologram Data Nodes / Quantum Relays (1 Single Draw Call for 24 Floating Tech Crystals)
+    const dataCubeCount = 24;
+    const cubeGeo = new THREE.OctahedronGeometry(1.1, 0);
+    const cubeMat = new THREE.MeshBasicMaterial({ 
+      color: 0xd946ef,
+      transparent: true,
+      opacity: 0.85
+    });
+    this.instancedDataCubes = new THREE.InstancedMesh(cubeGeo, cubeMat, dataCubeCount);
+
+    this.dataCubeConfigs = [];
+    const relayOrigins = [
+      { x: -30, y: 22, z: -40 },
+      { x: 30, y: 24, z: -40 },
+      { x: -35, y: 32, z: 20 },
+      { x: 35, y: 30, z: 20 },
+      { x: 0, y: 18, z: -60 },
+      { x: 0, y: 28, z: -60 },
+      { x: -18, y: 14, z: 0 },
+      { x: 18, y: 14, z: 0 },
+      { x: -60, y: 26, z: -80 },
+      { x: 60, y: 26, z: -80 },
+      { x: -50, y: 38, z: 60 },
+      { x: 50, y: 38, z: 60 },
+      { x: -25, y: 44, z: -70 },
+      { x: 25, y: 44, z: -70 },
+      { x: -75, y: 20, z: 0 },
+      { x: 75, y: 20, z: 0 },
+      { x: 0, y: 40, z: 45 },
+      { x: 0, y: 55, z: -30 },
+      { x: -40, y: 16, z: -15 },
+      { x: 40, y: 16, z: -15 },
+      { x: -15, y: 25, z: 75 },
+      { x: 15, y: 25, z: 75 },
+      { x: -65, y: 48, z: 30 },
+      { x: 65, y: 48, z: 30 }
+    ];
+
+    relayOrigins.forEach((orig, idx) => {
+      this.dataCubeConfigs.push({
+        origin: new THREE.Vector3(orig.x, orig.y, orig.z),
+        floatSpeed: 1.2 + (idx % 4) * 0.3,
+        rotSpeed: 0.8 + (idx % 3) * 0.4,
+        radius: 0.5 + (idx % 2) * 0.3,
+        phase: idx * 0.6
+      });
+    });
+
+    this.scene.add(this.instancedDataCubes);
+
+    // 4. Instanced Horizon Megacity Skyline Towers & Spires (Surrounding Perimeter, 0 Per-frame CPU Overhead, 2 Draw Calls)
+    const towerCount = 48;
+    const towerGeo = new THREE.BoxGeometry(1, 1, 1);
+    const towerMat = new THREE.MeshLambertMaterial({ color: 0x060f22 });
+    this.instancedMegacityTowers = new THREE.InstancedMesh(towerGeo, towerMat, towerCount);
+
+    const beaconGeo = new THREE.BoxGeometry(1, 1, 1);
+    const beaconMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    this.instancedMegacityBeacons = new THREE.InstancedMesh(beaconGeo, beaconMat, towerCount);
+
+    for (let i = 0; i < towerCount; i++) {
+      const angle = (i / towerCount) * Math.PI * 2 + (i % 3) * 0.04;
+      const dist = 205 + (i % 6) * 18;
+      const tx = Math.cos(angle) * dist;
+      const tz = Math.sin(angle) * dist;
+      const th = 60 + (i % 7) * 16 + (i % 3) * 22;
+      const tw = 16 + (i % 4) * 6;
+      const td = 16 + ((i + 2) % 4) * 6;
+
+      // Tower body
+      dummyPos.set(tx, th / 2, tz);
+      dummyScale.set(tw, th, td);
+      dummyMatrix.compose(dummyPos, dummyQuat, dummyScale);
+      this.instancedMegacityTowers.setMatrixAt(i, dummyMatrix);
+
+      // Top beacon
+      dummyPos.set(tx, th + 0.6, tz);
+      dummyScale.set(tw * 0.35, 1.2, td * 0.35);
+      dummyMatrix.compose(dummyPos, dummyQuat, dummyScale);
+      this.instancedMegacityBeacons.setMatrixAt(i, dummyMatrix);
+    }
+
+    this.instancedMegacityTowers.instanceMatrix.needsUpdate = true;
+    this.instancedMegacityBeacons.instanceMatrix.needsUpdate = true;
+    this.scene.add(this.instancedMegacityTowers);
+    this.scene.add(this.instancedMegacityBeacons);
+  }
+
   private updateEnvironment(dt: number) {
     const time = performance.now() * 0.001;
 
@@ -1938,6 +2133,39 @@ export class DroneWorld {
       relay.outerRing.rotation.y -= dt * relay.rotSpeed * 0.8;
       relay.outerRing.rotation.z += dt * relay.rotSpeed * 0.5;
     });
+
+    // 11. Instanced Autonomous Sky Cruisers Orbit Animation (1 Single Draw Call update)
+    if (this.instancedSkyCruisers && this.skyCruiserFlightPaths.length > 0) {
+      this.skyCruiserFlightPaths.forEach((path, i) => {
+        path.angle += path.speed * dt;
+        const cx = Math.cos(path.angle) * path.radius;
+        const cz = Math.sin(path.angle) * path.radius;
+        const cy = path.height + Math.sin(time * 0.8 + path.radius) * 1.2;
+
+        this._instPos.set(cx, cy, cz);
+        const yaw = path.dir > 0 ? -path.angle + Math.PI / 2 : -path.angle - Math.PI / 2;
+        this._instEuler.set(0, yaw, path.tilt, 'YXZ');
+        this._instQuat.setFromEuler(this._instEuler);
+        this._instScale.set(1, 1, 1);
+        this._instMatrix.compose(this._instPos, this._instQuat, this._instScale);
+        this.instancedSkyCruisers!.setMatrixAt(i, this._instMatrix);
+      });
+      this.instancedSkyCruisers.instanceMatrix.needsUpdate = true;
+    }
+
+    // 12. Instanced Floating Hologram Data Cubes Animation (1 Single Draw Call update)
+    if (this.instancedDataCubes && this.dataCubeConfigs.length > 0) {
+      this.dataCubeConfigs.forEach((cfg, i) => {
+        const floatY = cfg.origin.y + Math.sin(time * cfg.floatSpeed + cfg.phase) * 0.9;
+        this._instPos.set(cfg.origin.x, floatY, cfg.origin.z);
+        this._instEuler.set(time * cfg.rotSpeed, time * cfg.rotSpeed * 0.8, time * cfg.rotSpeed * 0.5);
+        this._instQuat.setFromEuler(this._instEuler);
+        this._instScale.set(1, 1, 1);
+        this._instMatrix.compose(this._instPos, this._instQuat, this._instScale);
+        this.instancedDataCubes!.setMatrixAt(i, this._instMatrix);
+      });
+      this.instancedDataCubes.instanceMatrix.needsUpdate = true;
+    }
   }
 
   private buildDustRing() {
@@ -4720,6 +4948,32 @@ export class DroneWorld {
   public destroy() {
     cancelAnimationFrame(this.animationFrameId);
     window.removeEventListener('resize', this.onWindowResize);
+
+    if (this.instancedStreetPylons) {
+      this.instancedStreetPylons.geometry.dispose();
+      this.instancedStreetPylons.dispose();
+    }
+    if (this.instancedPylonLamps) {
+      this.instancedPylonLamps.geometry.dispose();
+      this.instancedPylonLamps.dispose();
+    }
+    if (this.instancedSkyCruisers) {
+      this.instancedSkyCruisers.geometry.dispose();
+      this.instancedSkyCruisers.dispose();
+    }
+    if (this.instancedDataCubes) {
+      this.instancedDataCubes.geometry.dispose();
+      this.instancedDataCubes.dispose();
+    }
+    if (this.instancedMegacityTowers) {
+      this.instancedMegacityTowers.geometry.dispose();
+      this.instancedMegacityTowers.dispose();
+    }
+    if (this.instancedMegacityBeacons) {
+      this.instancedMegacityBeacons.geometry.dispose();
+      this.instancedMegacityBeacons.dispose();
+    }
+
     if (this.renderer.domElement.parentNode) {
       this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
     }

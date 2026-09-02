@@ -97,30 +97,30 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
   const isAiRace = stage.type === 'AI_RACING';
 
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-2 font-sans select-none z-10">
-      {/* Top Cockpit Header Bar - Slim & Compact for Tablets */}
-      <div className="flex items-center justify-between gap-1.5 w-full">
+    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-2.5 sm:p-3 font-sans select-none z-10">
+      {/* Top Cockpit Header Bar - Comfortable & Responsive for Tablets */}
+      <div className="flex items-center justify-between gap-2 w-full">
         {/* Left: Mission Exit & Objective Tracker */}
-        <div className="pointer-events-auto flex items-center gap-1.5">
+        <div className="pointer-events-auto flex items-center gap-2">
           {/* Back/Exit Button */}
           <button
             id="hud-exit-mission"
             onClick={onExitMission}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 text-white font-black text-[11px] border border-white/40 shadow-sm transition-transform active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/85 hover:bg-slate-900 text-white font-black text-xs sm:text-sm border border-white/40 shadow-md transition-transform active:scale-95 cursor-pointer"
             title="미션 나가기"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-4 h-4" />
             <span className="hidden sm:inline">나가기</span>
           </button>
 
           {/* Stage Info & Target Pill */}
-          <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-xl border border-white shadow-xs max-w-[200px] sm:max-w-xs">
-            <span className="text-[11px] font-black text-slate-800 truncate">
+          <div className="flex items-center gap-2.5 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white shadow-md max-w-[220px] sm:max-w-md">
+            <span className="text-xs sm:text-sm font-black text-slate-800 truncate">
               {stage.title}
             </span>
 
             {/* Dynamic Objective Tracker */}
-            <div className="text-[11px] font-bold">
+            <div className="text-xs sm:text-sm font-bold shrink-0">
               {stage.type === 'COIN_HUNT' && (
                 <span className="text-amber-600 font-black">
                   {missionData.coinsCollected}/{missionData.totalCoins} 코인
@@ -154,27 +154,27 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
 
         {/* Center: Stopwatch */}
         {stage.timeLimitSec > 0 && (
-          <div className="pointer-events-auto bg-yellow-400 px-2.5 py-0.5 rounded-xl border border-white shadow-xs flex items-center gap-1">
-            <span className="text-[9px] text-yellow-950 font-black">시간</span>
-            <span className="text-xs font-black font-mono text-slate-900">
+          <div className="pointer-events-auto bg-yellow-400 px-3 py-1 rounded-xl border border-white shadow-md flex items-center gap-1.5">
+            <span className="text-[10px] sm:text-xs text-yellow-950 font-black">시간</span>
+            <span className="text-xs sm:text-sm font-black font-mono text-slate-900">
               {formatTime(elapsedSec)}
             </span>
           </div>
         )}
 
         {/* Right: Flight Controls (Speed Gear Multiplier, Reset, Sound, Settings) */}
-        <div className="pointer-events-auto flex items-center gap-1 bg-white/90 backdrop-blur-md p-1 rounded-xl border border-white shadow-xs">
+        <div className="pointer-events-auto flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-xl border border-white shadow-md">
           {/* Speed Gear Multiplier (1단 / 2단 / 3단) */}
           {isAiRace ? (
-            <div className="px-2 py-0.5 bg-amber-100 rounded text-[10px] font-black text-amber-900 border border-amber-300">
+            <div className="px-2.5 py-1 bg-amber-100 rounded-lg text-xs font-black text-amber-900 border border-amber-300">
               2단 SPORT 고정
             </div>
           ) : (
-            <div className="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
               <button
                 id="hud-gear-1-btn"
                 onClick={() => onChangeSpeedGear(1)}
-                className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
+                className={`px-2 py-1 rounded-md text-xs font-black transition-all cursor-pointer ${
                   speedGear === 1 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-200'
                 }`}
                 title="1단: 순항"
@@ -184,7 +184,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
               <button
                 id="hud-gear-2-btn"
                 onClick={() => onChangeSpeedGear(2)}
-                className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
+                className={`px-2 py-1 rounded-md text-xs font-black transition-all cursor-pointer ${
                   speedGear === 2 ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-200'
                 }`}
                 title="2단: 스포츠"
@@ -194,7 +194,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
               <button
                 id="hud-gear-3-btn"
                 onClick={() => onChangeSpeedGear(3)}
-                className={`px-1.5 py-0.5 rounded text-[10px] font-black transition-all cursor-pointer ${
+                className={`px-2 py-1 rounded-md text-xs font-black transition-all cursor-pointer ${
                   speedGear === 3 ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-200'
                 }`}
                 title="3단: 터보"
@@ -208,10 +208,10 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
           <button
             id="hud-reset-drone"
             onClick={onResetDrone}
-            className="p-1 sm:px-1.5 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-black text-[10px] border border-white shadow-xs transition-all cursor-pointer flex items-center gap-0.5"
+            className="p-1.5 sm:px-2.5 py-1 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-black text-xs border border-white shadow-xs transition-all cursor-pointer flex items-center gap-1"
             title="드론 위치 리셋"
           >
-            <RotateCcw className="w-3 h-3" />
+            <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">리셋</span>
           </button>
 
@@ -219,30 +219,30 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
           <button
             id="hud-camera-toggle"
             onClick={onCycleCamera}
-            className="p-1 rounded-lg bg-white hover:bg-blue-50 text-blue-900 border border-slate-200 shadow-xs transition-all cursor-pointer"
+            className="p-1.5 rounded-lg bg-white hover:bg-blue-50 text-blue-900 border border-slate-200 shadow-xs transition-all cursor-pointer"
             title="카메라 시점 전환"
           >
-            <Camera className="w-3 h-3 text-blue-600" />
+            <Camera className="w-4 h-4 text-blue-600" />
           </button>
 
           {/* Sound Toggle */}
           <button
             id="hud-sound-toggle"
             onClick={onToggleSound}
-            className="p-1 rounded-lg bg-white hover:bg-slate-50 text-blue-900 border border-slate-200 shadow-xs transition-all cursor-pointer"
+            className="p-1.5 rounded-lg bg-white hover:bg-slate-50 text-blue-900 border border-slate-200 shadow-xs transition-all cursor-pointer"
             title="사운드"
           >
-            {soundEnabled ? <Volume2 className="w-3 h-3 text-blue-600" /> : <VolumeX className="w-3 h-3 text-slate-400" />}
+            {soundEnabled ? <Volume2 className="w-4 h-4 text-blue-600" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
           </button>
 
           {/* Settings Button */}
           <button
             id="hud-open-settings"
             onClick={onOpenSettings}
-            className="p-1 rounded-lg bg-white hover:bg-slate-50 text-blue-900 border border-slate-200 shadow-xs transition-all cursor-pointer"
+            className="p-1.5 rounded-lg bg-white hover:bg-slate-50 text-blue-900 border border-slate-200 shadow-xs transition-all cursor-pointer"
             title="설정"
           >
-            <Settings className="w-3 h-3" />
+            <Settings className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -264,18 +264,18 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
         </div>
       )}
 
-      {/* Center Instrument Avionics Strip (Ultra Compact & Unobtrusive) */}
-      <div className="self-center flex items-center gap-4 bg-slate-900/75 backdrop-blur-sm px-3 py-1 rounded-full border border-white/30 shadow-md pointer-events-none mb-0.5 text-white">
+      {/* Center Instrument Avionics Strip (Ultra Clear & Readable) */}
+      <div className="self-center flex items-center gap-5 bg-slate-900/80 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/40 shadow-lg pointer-events-none mb-1 text-white">
         {/* Speedometer */}
-        <div className="flex items-center gap-1">
-          <Gauge className="w-3 h-3 text-yellow-300" />
-          <span className="text-xs font-black font-mono">{telemetry.speedKmh} <span className="text-[9px] text-slate-300 font-normal">km/h</span></span>
+        <div className="flex items-center gap-1.5">
+          <Gauge className="w-4 h-4 text-yellow-300" />
+          <span className="text-sm font-black font-mono">{telemetry.speedKmh} <span className="text-[10px] text-slate-300 font-normal">km/h</span></span>
         </div>
 
         {/* Altimeter */}
-        <div className="flex items-center gap-1">
-          <ArrowUp className="w-3 h-3 text-emerald-300" />
-          <span className="text-xs font-black font-mono text-emerald-300">{telemetry.altitudeM} <span className="text-[9px] text-slate-300 font-normal">m</span></span>
+        <div className="flex items-center gap-1.5">
+          <ArrowUp className="w-4 h-4 text-emerald-300" />
+          <span className="text-sm font-black font-mono text-emerald-300">{telemetry.altitudeM} <span className="text-[10px] text-slate-300 font-normal">m</span></span>
         </div>
       </div>
     </div>

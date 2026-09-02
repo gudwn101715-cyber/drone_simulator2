@@ -62,6 +62,8 @@ export interface MissionStage {
   timeLimitSec: number;
   starThresholds: [number, number, number]; // [3 stars max time, 2 stars max time, 1 star max time]
   objectives: string[];
+  flightTheory?: string;
+  educationTip?: string;
   aiDifficulty?: AiDifficulty;
 }
 

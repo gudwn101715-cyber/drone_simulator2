@@ -28,8 +28,8 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
 
   // Dynamic radius based on element size
   const getRadius = () => {
-    if (!baseRef.current) return 56;
-    return Math.min(baseRef.current.clientWidth / 2 - 14, 64);
+    if (!baseRef.current) return 60;
+    return Math.min(baseRef.current.clientWidth / 2 - 16, 72);
   };
 
   const handlePointer = useCallback((clientX: number, clientY: number) => {
@@ -108,61 +108,61 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
         onPointerMove={handleMove}
         onPointerUp={handleEnd}
         onPointerCancel={handleEnd}
-        className={`relative w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 rounded-full border-4 border-white/70 bg-white/30 backdrop-blur-lg shadow-2xl flex items-center justify-center cursor-pointer transition-all ${
+        className={`relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 rounded-full border-4 border-white/80 bg-white/35 backdrop-blur-lg shadow-2xl flex items-center justify-center cursor-pointer transition-all ${
           isDragging 
-            ? 'border-white bg-white/45 ring-4 ring-white/50 scale-102' 
-            : 'hover:border-white hover:bg-white/40 active:scale-98'
+            ? 'border-white bg-white/50 ring-4 ring-white/60 scale-102' 
+            : 'hover:border-white hover:bg-white/45 active:scale-98'
         }`}
       >
         {/* Subtle crosshair & inner guide circles */}
         <div className="absolute inset-x-0 top-1/2 h-[2px] bg-white/40 pointer-events-none" />
         <div className="absolute inset-y-0 left-1/2 w-[2px] bg-white/40 pointer-events-none" />
-        <div className="absolute w-16 h-16 sm:w-24 sm:h-24 rounded-full border-2 border-dashed border-white/40 pointer-events-none" />
+        <div className="absolute w-20 h-20 sm:w-28 sm:h-28 rounded-full border-2 border-dashed border-white/45 pointer-events-none" />
 
         {/* Direction Guides / Korean labels */}
         {isLeft ? (
           <>
-            <div className="absolute top-1.5 sm:top-2 flex flex-col items-center pointer-events-none drop-shadow">
-              <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-300 stroke-[3]" />
-              <span className="text-[8px] sm:text-[9px] font-black text-white">상승</span>
+            <div className="absolute top-2 sm:top-2.5 flex flex-col items-center pointer-events-none drop-shadow">
+              <ChevronUp className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-emerald-300 stroke-[3]" />
+              <span className="text-[9px] sm:text-[10px] font-black text-white">상승</span>
             </div>
-            <div className="absolute bottom-1.5 sm:bottom-2 flex flex-col items-center pointer-events-none drop-shadow">
-              <span className="text-[8px] sm:text-[9px] font-black text-white">하강</span>
-              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-300 stroke-[3]" />
+            <div className="absolute bottom-2 sm:bottom-2.5 flex flex-col items-center pointer-events-none drop-shadow">
+              <span className="text-[9px] sm:text-[10px] font-black text-white">하강</span>
+              <ChevronDown className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-rose-300 stroke-[3]" />
             </div>
-            <div className="absolute left-1.5 sm:left-2 flex items-center gap-0.5 pointer-events-none drop-shadow">
-              <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-300 stroke-[3]" />
-              <span className="text-[8px] sm:text-[9px] font-black text-white">좌회전</span>
+            <div className="absolute left-2 sm:left-2.5 flex items-center gap-0.5 pointer-events-none drop-shadow">
+              <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-300 stroke-[3]" />
+              <span className="text-[9px] sm:text-[10px] font-black text-white">좌회전</span>
             </div>
-            <div className="absolute right-1.5 sm:right-2 flex items-center gap-0.5 pointer-events-none drop-shadow">
-              <span className="text-[8px] sm:text-[9px] font-black text-white">우회전</span>
-              <RotateCw className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-300 stroke-[3]" />
+            <div className="absolute right-2 sm:right-2.5 flex items-center gap-0.5 pointer-events-none drop-shadow">
+              <span className="text-[9px] sm:text-[10px] font-black text-white">우회전</span>
+              <RotateCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-300 stroke-[3]" />
             </div>
           </>
         ) : (
           <>
-            <div className="absolute top-1.5 sm:top-2 flex flex-col items-center pointer-events-none drop-shadow">
-              <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-300 stroke-[3]" />
-              <span className="text-[8px] sm:text-[9px] font-black text-white">전진</span>
+            <div className="absolute top-2 sm:top-2.5 flex flex-col items-center pointer-events-none drop-shadow">
+              <ChevronUp className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-emerald-300 stroke-[3]" />
+              <span className="text-[9px] sm:text-[10px] font-black text-white">전진</span>
             </div>
-            <div className="absolute bottom-1.5 sm:bottom-2 flex flex-col items-center pointer-events-none drop-shadow">
-              <span className="text-[8px] sm:text-[9px] font-black text-white">후진</span>
-              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 stroke-[3]" />
+            <div className="absolute bottom-2 sm:bottom-2.5 flex flex-col items-center pointer-events-none drop-shadow">
+              <span className="text-[9px] sm:text-[10px] font-black text-white">후진</span>
+              <ChevronDown className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-amber-300 stroke-[3]" />
             </div>
-            <div className="absolute left-1.5 sm:left-2 flex items-center gap-0.5 pointer-events-none drop-shadow">
-              <ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-300 stroke-[3]" />
-              <span className="text-[8px] sm:text-[9px] font-black text-white">좌이동</span>
+            <div className="absolute left-2 sm:left-2.5 flex items-center gap-0.5 pointer-events-none drop-shadow">
+              <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-300 stroke-[3]" />
+              <span className="text-[9px] sm:text-[10px] font-black text-white">좌이동</span>
             </div>
-            <div className="absolute right-1.5 sm:right-2 flex items-center gap-0.5 pointer-events-none drop-shadow">
-              <span className="text-[8px] sm:text-[9px] font-black text-white">우이동</span>
-              <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-300 stroke-[3]" />
+            <div className="absolute right-2 sm:right-2.5 flex items-center gap-0.5 pointer-events-none drop-shadow">
+              <span className="text-[9px] sm:text-[10px] font-black text-white">우이동</span>
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-300 stroke-[3]" />
             </div>
           </>
         )}
 
         {/* Draggable Thumb Stick Knob */}
         <div
-          className={`absolute w-12 h-12 sm:w-16 sm:h-16 rounded-full shadow-2xl flex items-center justify-center transition-transform pointer-events-none border-4 border-white ${
+          className={`absolute w-14 h-14 sm:w-18 sm:h-18 rounded-full shadow-2xl flex items-center justify-center transition-transform pointer-events-none border-4 border-white ${
             isLeft
               ? isDragging
                 ? 'bg-blue-600 shadow-blue-500/70 scale-105'
@@ -175,15 +175,15 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
             transform: `translate(${stickPos.x}px, ${stickPos.y}px)`
           }}
         >
-          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white shadow-md flex items-center justify-center">
-            <div className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${isLeft ? 'bg-blue-600' : 'bg-orange-500'}`} />
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white shadow-md flex items-center justify-center">
+            <div className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${isLeft ? 'bg-blue-600' : 'bg-orange-500'}`} />
           </div>
         </div>
       </div>
 
       {/* Mode 2 Label Pill Below */}
-      <div className="mt-1.5 bg-white/90 backdrop-blur-md px-2.5 sm:px-3 py-0.5 rounded-full border border-white shadow-sm flex items-center gap-1">
-        <span className="text-[9px] sm:text-[10px] font-black text-blue-950 uppercase">{title}</span>
+      <div className="mt-2 bg-white/95 backdrop-blur-md px-3 sm:px-3.5 py-0.5 sm:py-1 rounded-full border border-white shadow-md flex items-center gap-1">
+        <span className="text-[10px] sm:text-[11px] font-black text-blue-950 uppercase">{title}</span>
       </div>
     </div>
   );

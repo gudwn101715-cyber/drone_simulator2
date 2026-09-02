@@ -97,103 +97,115 @@ export const MISSION_STAGES: MissionStage[] = [
   {
     id: 'tutorial-1',
     type: 'TUTORIAL',
-    title: '제1단계: 기본 이착륙 & 호버링',
-    subtitle: '드론의 첫 비행 시작하기',
-    description: '왼쪽 조이스틱을 올려 드론을 3m 고도로 이륙시키고 3초간 제자리에 멈춘 뒤(호버링), 노란색 패드에 부드럽게 착륙해보세요!',
+    title: '제1단계: 기본 이착륙 & 제자리 멈추기',
+    subtitle: '하늘로 슝! 멈추기 & 사뿐 착륙',
+    description: '왼쪽 조이스틱을 살짝 올려 하늘로 날아오른 뒤, 공중에서 3초 동안 얌전히 멈춰 서 있다가(호버링) 노란색 착륙장에 사뿐히 내려앉아 보세요!',
     difficulty: '쉬움',
     badgeIcon: 'Sparkles',
     targetCount: 3,
     timeLimitSec: 120,
     starThresholds: [45, 75, 105], // Generous thresholds for easy 3-star clear
+    flightTheory: '날개 바람(양력)과 지구가 당기는 힘(중력)',
+    educationTip: '선풍기 바람을 아래로 쏘면 손이 위로 밀려나는 것처럼, 드론 날개 4개가 쌩쌩 돌며 바람을 아래로 밀어내서 위로 떠올라요! 날개 힘과 지구가 당기는 힘이 똑같아지면 공중에 마법처럼 딱 멈춘답니다.',
     objectives: [
-      '고도 2m 이상으로 안전하게 이륙하기',
-      '제자리에서 3초 동안 호버링(정지비행) 유지',
-      '노란색 베이스 패드에 부드럽게 착륙하기'
+      '하늘로 높이 2m 이상 사뿐히 날아오르기',
+      '공중에 가만히 3초 동안 멈춰 있기 (호버링)',
+      '노란색 착륙장에 부드럽게 사뿐 착륙하기'
     ]
   },
   {
     id: 'tutorial-2',
     type: 'TUTORIAL',
     title: '제2단계: 코스 장애물 비행 & 안전 착륙',
-    subtitle: '회전 장애물 회피 및 베이스 패드 착륙',
-    description: '1번, 2번 마커와 회전하는 사이버 장애물을 피해 3번 게이트로 복귀한 후, 노란색 베이스 패드에 부드럽게 착륙하여 미션을 완료하세요!',
+    subtitle: '깜빡이는 마커 따라가기 & 빙글 장애물 피하기',
+    description: '빨간색으로 깜빡이는 마커 길을 따라가며 빙글빙글 도는 장애물을 쏙 피한 뒤, 출발했던 노란색 착륙장에 얌전하게 착륙해 보세요!',
     difficulty: '쉬움',
     badgeIcon: 'Compass',
     targetCount: 3,
     timeLimitSec: 120,
     starThresholds: [50, 80, 110], // Generous thresholds
+    flightTheory: '몸을 앞으로 기울이면 전진해요! (피치 조종)',
+    educationTip: '우리가 앞으로 달릴 때 몸을 앞으로 살짝 숙이는 것처럼, 드론도 뒷날개를 더 세게 돌려 앞을 숙이면 앞으로 슝 나아가요! 멈출 때는 뒤로 살짝 기울여 브레이크를 밟아요.',
     objectives: [
-      '빨간색으로 깜빡이는 직진 및 코너 마커 통과',
-      '회전하는 사이버 장애물 2개 안전 회피 및 복귀',
-      '★ 출발 베이스 패드(노란색)에 부드럽게 최종 착륙하기'
+      '빨간색으로 깜빡이는 길안내 마커 통과하기',
+      '빙글빙글 도는 장애물 2개 안전하게 피하기',
+      '★ 출발했던 노란색 착륙장에 안전하게 착륙하기'
     ]
   },
   {
     id: 'coin-hunt-1',
     type: 'COIN_HUNT',
-    title: '제3단계: 공원 황금 코인 사냥',
-    subtitle: '반짝이는 진짜 황금 코인 8개 수집',
-    description: '공원 광장 주변에 흩어져 있는 눈부시게 반짝이는 황금빛 코인 8개를 부드러운 코너링과 고도 조절로 신속하게 수집하세요!',
+    title: '제3단계: 황금 동전 먹기',
+    subtitle: '반짝이는 황금 동전 8개 냠냠 모으기',
+    description: '공원에 흩어져 있는 눈부신 황금 동전 8개를 쏙쏙 찾아 먹어보세요! 높이를 잘 맞추고 살살 조종하면 금방 모을 수 있어요.',
     difficulty: '쉬움',
     badgeIcon: 'Coins',
     targetCount: 8,
     timeLimitSec: 150,
     starThresholds: [65, 100, 135], // Generous thresholds
+    flightTheory: '높이를 일정하게 맞추고 살살 조종하기',
+    educationTip: '스틱을 너무 팍팍 꺾으면 드론이 휘청거려요! 높이(왼쪽 스틱)를 알맞게 맞춘 다음, 오른쪽 스틱을 톡톡 살짝 건드리듯 조종하면 훨씬 부드럽고 정확하게 동전을 먹을 수 있어요.',
     objectives: [
-      '공원 광장 주변의 반짝이는 황금 코인 8개 수집',
-      '장애물 충돌 없이 안전 비행 유지',
-      '빠른 랩타임으로 골드 스타 달성'
+      '공원에 있는 반짝이는 황금 동전 8개 모두 먹기',
+      '건물이나 나무에 부딪히지 않고 안전하게 비행하기',
+      '빠르게 완료해서 반짝이는 별 3개(★★★) 받기'
     ]
   },
   {
     id: 'ring-race-1',
     type: 'RING_RACE',
-    title: '제4단계: 초고층 빌딩 관통 터널 비행',
-    subtitle: '빨간색 깜빡이는 건물 통로와 스카이브릿지 관통 코스',
-    description: '내가 통과해야 하는 건물 통로에 강렬한 빨간색 깜빡임 효과와 유도 빔이 표시됩니다. 링 없이 빌딩 중앙에 뚫린 관통 터널과 스카이브릿지를 멋지게 꿰뚫고 통과하세요!',
+    title: '제4단계: 초고층 빌딩 관통 비행',
+    subtitle: '빨간 불빛 터널과 구름다리 쏙 꿰뚫기',
+    description: '빨간색으로 깜빡이는 빌딩 한가운데 터널과 높은 구름다리를 멋지게 통과해 보세요! 레이저 불빛이 통과할 길을 친절하게 알려준답니다.',
     difficulty: '보통',
     badgeIcon: 'Building',
     targetCount: 5,
     timeLimitSec: 150,
     starThresholds: [65, 100, 135], // Generous thresholds
+    flightTheory: '드론 머리 방향을 터널 가운데로 똑바로 맞추기',
+    educationTip: '좁은 터널을 지날 때는 시선을 터널 한가운데 출구에 딱 맞추고, 드론 머리를 똑바로 정렬해야 벽에 부딪히지 않고 쏙 빠져나갈 수 있어요!',
     objectives: [
-      '빨간색으로 깜빡이는 1번 중앙광장 네온 아치 관통',
-      '알파/감마 빌딩 공중 관통 터널 및 스카이브릿지 통과',
-      '피니시 네온 게이트를 통과하여 미션 완료'
+      '빨간색으로 깜빡이는 1번 네온 아치 관통하기',
+      '빌딩 속 뚫린 비밀 터널과 높은 구름다리 통과하기',
+      '마지막 피니시 골인 게이트를 통과하여 완주하기'
     ]
   },
   {
     id: 'rescue-mission-1',
     type: 'RESCUE',
-    title: '제5단계: 응급 환자 구조 & 병원 수술실 이송',
-    subtitle: '옥상 조난 환자 구조 및 24시 병원 헬리패드 착륙',
-    description: '건물 옥상에 쓰러져 있는 응급 환자 들것을 자석 견인선으로 연결한 뒤, 24시 대학병원 옥상 헬리패드로 이송하세요! 대기 중인 의료진이 환자를 신속히 수술실로 이송합니다.',
+    title: '제5단계: 응급 환자 구조 & 응급실 긴급 이송',
+    subtitle: '옥상 아픈 환자 헬리패드로 안전 배달',
+    description: '빌딩 옥상에 있는 아픈 환자의 들것에 자석 줄을 찰칵 연결한 뒤, 24시 병원 옥상 헬리패드로 안전하게 싣고 날아가세요! 의사 선생님들이 기다리고 있어요.',
     difficulty: '보통',
     badgeIcon: 'HeartPulse',
     targetCount: 2,
     timeLimitSec: 160,
     starThresholds: [70, 110, 145], // Generous thresholds
+    flightTheory: '무거운 짐을 들었을 때는 미리미리 브레이크!',
+    educationTip: '가방이 무거울 때 갑자기 멈추기 힘든 것처럼, 무거운 들것을 매달면 드론이 멈추는 데 시간이 더 걸려요. 착륙장 근처에 오면 미리 속도를 줄여야 안전하게 내릴 수 있어요!',
     objectives: [
-      '옥상의 응급 환자 들것 상공으로 접근하여 견인 연결',
-      '환자를 안전하게 매달고 대학병원 옥상으로 비행',
-      '병원 헬리패드에 착륙하여 대기 중인 의료진에게 인계'
+      '옥상에 있는 환자 들것 위로 날아가 자석 줄 연결하기',
+      '환자가 떨어지지 않게 조심조심 병원 옥상으로 날아가기',
+      '병원 헬리패드 착륙장에 무사히 착륙하여 구조 완료하기'
     ]
   },
   {
     id: 'ai-racing-1',
     type: 'AI_RACING',
     title: '제6단계: AI 라이벌 서킷 레이스 [Level 1]',
-    subtitle: '초보자 맞춤 입문 난이도 (2바퀴 스피드 레이스)',
-    description: '살짝 여유 있는 속도로 부드럽게 비행하는 루키 AI 라이벌 드론과 2바퀴 스피드 대결을 펼치세요! 부담 없이 코너링과 추월을 연습할 수 있습니다.',
+    subtitle: '로봇 친구와 2바퀴 달리기 시합 (초보자용)',
+    description: '여유롭게 나는 친절한 AI 로봇 드론과 함께 2바퀴 달리기 시합을 해요! 트랙 게이트를 따라 쌩쌩 날아보세요.',
     difficulty: '쉬움',
     badgeIcon: 'Trophy',
     targetCount: 2, // 2 laps
     timeLimitSec: 160,
     starThresholds: [85, 120, 150], // Generous thresholds
+    flightTheory: '왼쪽/오른쪽으로 몸 돌리기 (요 회전 원리)',
+    educationTip: '드론의 날개 4개는 2개씩 서로 반대 방향으로 돌아요! 한쪽 날개를 더 빠르게 돌리면 회전하는 힘이 생겨서 드론이 제자리에서 뱅글 돌 수 있답니다.',
     objectives: [
-      '★ 2단 스포츠 모드 단일 규격 레이스 완주',
-      '서킷 트랙 게이트를 따라 2바퀴 완주',
-      'Level 1 루키 AI 라이벌보다 먼저 결승선 통과'
+      '★ 2단 스포츠 스피드로 신나게 달리기',
+      '동그란 레이싱 게이트를 따라 트랙 2바퀴 돌기',
+      '귀여운 루키 로봇 드론보다 먼저 결승선에 도착하기'
     ],
     aiDifficulty: 'LEVEL_1'
   },
@@ -201,17 +213,19 @@ export const MISSION_STAGES: MissionStage[] = [
     id: 'ai-racing-2',
     type: 'AI_RACING',
     title: '제6단계: AI 라이벌 서킷 레이스 [Level 2]',
-    subtitle: '베테랑 라이벌 정면 승부 (2바퀴 스피드 레이스)',
-    description: '빈틈없는 인코스 코너링과 날카로운 가속을 구사하는 프로 AI 라이벌 드론과의 진검승부! 완벽한 라인을 유지하여 우승을 쟁취하세요.',
+    subtitle: '빠른 에이스 로봇 드론과 2바퀴 챔피언 대결',
+    description: '실력이 뛰어난 에이스 로봇 드론과의 박진감 넘치는 2바퀴 스피드 대결! 코너를 날카롭게 돌아 멋지게 1등으로 들어와 보세요!',
     difficulty: '보통',
     badgeIcon: 'Trophy',
     targetCount: 2, // 2 laps
     timeLimitSec: 140,
     starThresholds: [70, 100, 130], // Generous thresholds
+    flightTheory: '커브를 돌 때 밖으로 튕겨 나가지 않는 방법 (원심력)',
+    educationTip: '자전거를 타고 코너를 돌 때 안쪽으로 몸을 기울이는 것처럼, 드론도 코너를 돌 때 몸을 살짝 기울여주면 밖으로 밀려나지 않고 훨씬 빠르게 슝 돌 수 있어요!',
     objectives: [
-      '★ 2단 스포츠 모드 단일 규격 레이스 완주',
-      '서킷 트랙 게이트를 따라 2바퀴 완주',
-      'Level 2 프로 AI 라이벌보다 먼저 결승선 통과 (우승)'
+      '★ 2단 스포츠 스피드로 신나게 달리기',
+      '동그란 레이싱 게이트를 따라 트랙 2바퀴 돌기',
+      '날쌘 프로 로봇 드론을 제치고 멋지게 우승(1등)하기'
     ],
     aiDifficulty: 'LEVEL_2'
   },
@@ -219,17 +233,19 @@ export const MISSION_STAGES: MissionStage[] = [
     id: 'free-flight',
     type: 'FREE_FLIGHT',
     title: '자유 비행 & 장애물 놀이터',
-    subtitle: '시간 제한 없는 자유 연습',
-    description: '시간 제한이나 미션 부담 없이 3D 로우폴리 빌리지 전체를 자유롭게 탐험하며 비행 감각을 마음껏 훈련해보세요.',
+    subtitle: '신나는 3D 미래도시 마음껏 날아다니기',
+    description: '시간제한 없이 내 마음대로 높은 빌딩 사이도 날고, 공원도 구경하고, 카메라 시점도 바꿔보며 신나게 놀아보세요!',
     difficulty: '쉬움',
     badgeIcon: 'Plane',
     targetCount: 0,
     timeLimitSec: 0,
     starThresholds: [0, 0, 0],
+    flightTheory: '위험할 땐 손을 놓으면 스스로 균형을 잡아요!',
+    educationTip: '비행하다가 방향을 잃거나 어지러울 때는 조이스틱에서 손을 떼세요! 드론이 스스로 수평을 잡고 안전하게 멈춘답니다.',
     objectives: [
-      '마음껏 3D 월드 탐험하기',
-      '비행 보조 모드 On/Off 전환 시험',
-      '다양한 카메라 뷰(1인칭 FPV 등) 체험'
+      '미래 도시 하늘을 마음껏 날아다니며 구경하기',
+      '1단, 2단, 3단 속도 버튼을 눌러 속도 조절해보기',
+      '카메라 버튼을 눌러 조종석 시점(1인칭) 체험해보기'
     ]
   }
 ];

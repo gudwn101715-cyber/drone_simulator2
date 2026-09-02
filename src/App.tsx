@@ -775,14 +775,14 @@ export default function App() {
             onExitMission={handleExitMission}
           />
 
-          {/* Tutorial Step Overlay Guide (for tutorial-1) */}
-          {currentStage.type === 'TUTORIAL' && currentStage.id === 'tutorial-1' && (
-            <TutorialGuideOverlay
-              step={tutorialStep}
-              telemetry={telemetry}
-              onStepComplete={handleTutorialStepComplete}
-            />
-          )}
+          {/* Real-time Interactive Mission Guide Overlay & Praise Notifications (All Stages) */}
+          <TutorialGuideOverlay
+            stage={currentStage}
+            step={tutorialStep}
+            telemetry={telemetry}
+            missionData={missionData}
+            onStepComplete={handleTutorialStepComplete}
+          />
 
           {/* Countdown Overlay (3, 2, 1, START!) */}
           <CountdownOverlay count={countdown} />
@@ -795,7 +795,7 @@ export default function App() {
               <button
                 id="hud-auto-takeoff-land-btn"
                 onClick={handleAutoTakeoffLanding}
-                className={`px-3 py-1.5 rounded-xl font-black text-xs sm:text-sm border-2 border-white shadow-xl transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 ${
+                className={`px-3.5 py-2 sm:px-4.5 sm:py-2.5 rounded-2xl font-black text-xs sm:text-sm border-2 border-white shadow-xl transition-all cursor-pointer flex items-center gap-2 active:scale-95 ${
                   telemetry.autoFlightState === 'TAKEOFF'
                     ? 'bg-emerald-500 text-white animate-pulse shadow-emerald-500/50'
                     : telemetry.autoFlightState === 'LANDING'
@@ -812,23 +812,23 @@ export default function App() {
               >
                 {telemetry.autoFlightState === 'TAKEOFF' ? (
                   <>
-                    <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
                     <span>이륙 중 (2.8m)...</span>
                   </>
                 ) : telemetry.autoFlightState === 'LANDING' ? (
                   <>
-                    <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
                     <span>착륙 중...</span>
                   </>
                 ) : (telemetry.isGrounded || telemetry.altitudeM < 0.45) ? (
                   <>
                     <span className="text-base sm:text-lg">🛫</span>
-                    <span>자동 이륙</span>
+                    <span>원터치 자동 이륙</span>
                   </>
                 ) : (
                   <>
                     <span className="text-base sm:text-lg">🛬</span>
-                    <span>자동 착륙</span>
+                    <span>원터치 자동 착륙</span>
                   </>
                 )}
               </button>

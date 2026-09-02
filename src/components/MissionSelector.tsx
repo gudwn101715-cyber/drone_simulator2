@@ -28,7 +28,10 @@ import {
   ChevronRight,
   Home,
   Compass,
-  Check
+  Check,
+  GraduationCap,
+  Lightbulb,
+  BookOpen
 } from 'lucide-react';
 
 interface MissionSelectorProps {
@@ -132,9 +135,13 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
               <div>
                 <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none flex items-center gap-1.5">
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 font-bold">
-                    ROADMAP
+                    비행 훈련 로드맵
                   </span>
+                  <span>드론 파일럿 미션</span>
                 </h1>
+                <p className="text-[10px] sm:text-xs text-slate-400 font-medium hidden sm:block">
+                  신나는 미션을 하나씩 클리어하고 멋진 드론 마스터가 되어보세요!
+                </p>
                 <p className="text-[10px] sm:text-xs text-sky-300/70 font-medium">
                   {profile.pilotName} • 비행 로드맵
                 </p>
@@ -380,8 +387,8 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Mission Briefing & Launch HUD Panel */}
-          <div className="w-full lg:w-[360px] bg-gradient-to-b from-slate-900/95 to-slate-950/98 backdrop-blur-2xl rounded-3xl border border-cyan-500/30 p-5 shadow-2xl flex flex-col justify-between">
+          {/* Right Column: Mission Briefing & Launch HUD Panel (Enlarged & Comfortable) */}
+          <div className="w-full lg:w-[380px] xl:w-[410px] bg-gradient-to-b from-slate-900/95 to-slate-950/98 backdrop-blur-2xl rounded-3xl border-2 border-cyan-500/40 p-5 sm:p-6 shadow-2xl flex flex-col justify-between shrink-0">
             <div>
               {/* Briefing Top Header */}
               <div className="flex items-center justify-between gap-2 mb-3">
@@ -412,16 +419,16 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                   className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 hover:from-cyan-300 hover:via-blue-400 hover:to-indigo-500 text-white font-black text-sm sm:text-base shadow-[0_0_25px_rgba(6,182,212,0.6)] transition-all transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Play className="w-5 h-5 fill-current text-white animate-pulse" />
-                  <span>출격하기 (START MISSION)</span>
+                  <span>🚀 출격하기 (START!)</span>
                   <ChevronRight className="w-4 h-4 text-cyan-200" />
                 </button>
 
                 <div className="flex items-center justify-between text-[11px] mt-2.5 px-1">
-                  <span className="text-slate-400 font-bold">내 최고 기록</span>
+                  <span className="text-slate-400 font-bold">🏆 내 최고 기록</span>
                   <span className="font-mono font-black text-cyan-300">
                     {activeProgress.bestTimeSec !== null 
                       ? `${activeProgress.bestTimeSec.toFixed(1)} 초 (${activeProgress.stars}성)` 
-                      : '도전 기록 없음'}
+                      : '아직 도전 안 함'}
                   </span>
                 </div>
               </div>
@@ -431,10 +438,10 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
               </p>
 
               {/* Mission Objectives Checklist */}
-              <div className="mb-4">
+              <div className="mb-3.5">
                 <h4 className="text-xs font-black text-slate-200 mb-2 flex items-center gap-1.5">
                   <Target className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>미션 수행 목표</span>
+                  <span>🎯 미션 성공 목표</span>
                 </h4>
                 <div className="space-y-1.5">
                   {activeStage.objectives.map((obj, i) => (
@@ -445,6 +452,24 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                   ))}
                 </div>
               </div>
+
+              {/* Educational Flight Science & Aerodynamic Principles Card */}
+              {activeStage.educationTip && (
+                <div className="mb-3.5 p-3 rounded-2xl bg-gradient-to-br from-indigo-950/70 via-slate-900 to-sky-950/70 border border-indigo-500/30 shadow-md">
+                  <div className="flex items-center gap-1.5 text-indigo-300 text-xs font-black mb-1.5">
+                    <GraduationCap className="w-4 h-4 text-cyan-400" />
+                    <span>💡 드론 비행 꿀팁 & 과학 상식</span>
+                  </div>
+                  {activeStage.flightTheory && (
+                    <div className="inline-block px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 text-[10px] font-black mb-1.5">
+                      ✨ {activeStage.flightTheory}
+                    </div>
+                  )}
+                  <p className="text-[11px] text-slate-300 leading-relaxed font-normal">
+                    {activeStage.educationTip}
+                  </p>
+                </div>
+              )}
 
               {/* Relaxed Star Evaluation Thresholds */}
               {activeStage.type !== 'FREE_FLIGHT' && (
