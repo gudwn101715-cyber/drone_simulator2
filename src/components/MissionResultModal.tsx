@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import confetti from 'canvas-confetti';
+import React from 'react';
 import { MissionStage } from '../types';
 import { Star, Trophy, RotateCcw, ArrowRight, Home, Sparkles } from 'lucide-react';
 
@@ -28,21 +27,6 @@ export const MissionResultModal: React.FC<MissionResultModalProps> = ({
 }) => {
   const isAiRace = stage.type === 'AI_RACING' || stage.id === 'ai-racing-1';
   const playerLostRace = isAiRace && racePlayerWon === false;
-
-  useEffect(() => {
-    // Fire confetti for celebration (only if won or non-race)
-    if (!playerLostRace) {
-      try {
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-      } catch {
-        // ignore
-      }
-    }
-  }, [playerLostRace]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-sky-950/60 backdrop-blur-md animate-fadeIn">

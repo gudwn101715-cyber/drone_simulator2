@@ -383,6 +383,29 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
               <p className="text-xs text-cyan-200/90 font-bold mb-3">
                 {activeStage.subtitle}
               </p>
+
+              {/* Top High-Visibility Launch Action Section */}
+              <div className="mb-4 p-3 rounded-2xl bg-cyan-950/40 border border-cyan-500/40 shadow-lg">
+                <button
+                  id={`btn-launch-roadmap-${activeStage.id}`}
+                  onClick={() => onSelectStage(activeStage)}
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 hover:from-cyan-300 hover:via-blue-400 hover:to-indigo-500 text-white font-black text-sm sm:text-base shadow-[0_0_25px_rgba(6,182,212,0.6)] transition-all transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Play className="w-5 h-5 fill-current text-white animate-pulse" />
+                  <span>출격하기 (START MISSION)</span>
+                  <ChevronRight className="w-4 h-4 text-cyan-200" />
+                </button>
+
+                <div className="flex items-center justify-between text-[11px] mt-2.5 px-1">
+                  <span className="text-slate-400 font-bold">내 최고 기록</span>
+                  <span className="font-mono font-black text-cyan-300">
+                    {activeProgress.bestTimeSec !== null 
+                      ? `${activeProgress.bestTimeSec.toFixed(1)} 초 (${activeProgress.stars}성)` 
+                      : '도전 기록 없음'}
+                  </span>
+                </div>
+              </div>
+
               <p className="text-xs text-slate-300 leading-relaxed mb-4 p-3 rounded-2xl bg-slate-800/60 border border-slate-700/60">
                 {activeStage.description}
               </p>
@@ -405,7 +428,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
 
               {/* Relaxed Star Evaluation Thresholds */}
               {activeStage.type !== 'FREE_FLIGHT' && (
-                <div className="mb-4 p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/50">
+                <div className="p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/50">
                   <div className="text-[11px] font-black text-slate-300 mb-1.5 flex items-center justify-between">
                     <span className="flex items-center gap-1 text-amber-400">
                       <Star className="w-3.5 h-3.5 fill-amber-400" />
@@ -426,28 +449,6 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Bottom Launch Button & Record */}
-            <div className="pt-3 border-t border-slate-800">
-              <div className="flex items-center justify-between text-xs mb-3">
-                <span className="text-slate-400 font-bold">내 최고 기록</span>
-                <span className="font-mono font-black text-cyan-300">
-                  {activeProgress.bestTimeSec !== null 
-                    ? `${activeProgress.bestTimeSec.toFixed(1)} 초 (${activeProgress.stars}성)` 
-                    : '도전 기록 없음'}
-                </span>
-              </div>
-
-              <button
-                id={`btn-launch-roadmap-${activeStage.id}`}
-                onClick={() => onSelectStage(activeStage)}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 hover:from-cyan-300 hover:via-blue-400 hover:to-indigo-500 text-white font-black text-sm sm:text-base shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-all transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
-              >
-                <Play className="w-4 h-4 fill-current text-white" />
-                <span>출격하기 (START MISSION)</span>
-                <ChevronRight className="w-4 h-4 text-cyan-200" />
-              </button>
             </div>
           </div>
         </div>

@@ -317,6 +317,16 @@ export class DroneWorld {
   private _tempCamTarget = new THREE.Vector3();
   private _tempRotMat4 = new THREE.Matrix4();
   private _tempOrbPos = new THREE.Vector3();
+  private _scratchAiPos = new THREE.Vector3();
+  private _scratchToWp = new THREE.Vector3();
+  private _scratchDir = new THREE.Vector3();
+  private _scratchNextDir = new THREE.Vector3();
+  private _scratchTargetPos = new THREE.Vector3();
+  private _scratchCoinPos = new THREE.Vector3();
+  private _scratchRingPos = new THREE.Vector3();
+  private _scratchPatientPos = new THREE.Vector3();
+  private _scratchHospitalPos = new THREE.Vector3();
+  private _scratchPushDir = new THREE.Vector3();
 
   // Quest Path Caching state
   private cachedQuestCurve: THREE.CatmullRomCurve3 | null = null;
@@ -493,18 +503,11 @@ export class DroneWorld {
     ground.position.y = 0;
     this.scene.add(ground);
 
-    // Luminous Cyber Grid Matrix across the ground (Ultra-lightweight)
-    const gridHelper = new THREE.GridHelper(400, 25, 0x00f0ff, 0x1e3a8a);
-    gridHelper.position.y = 0.015;
-    (gridHelper.material as THREE.Material).transparent = true;
-    (gridHelper.material as THREE.Material).opacity = 0.45;
-    this.scene.add(gridHelper);
-
     // 3. Clear Crossway Roads & Runway Network with LED Edge Strips
     this.buildRoadNetworkAndStreets();
 
     // 4. Main Base Start / Landing Helipad
-    this.baseHelipadMesh = this.buildHelipad(0, 0.10, 0, 7.5, 0xfacc15, 'START / BASE');
+    this.baseHelipadMesh = this.buildHelipad(0, 0.12, 0, 7.5, 0xfacc15, 'START / BASE');
 
     // 5. High-Tech Low-Poly Optimized Buildings (with Corner Neon Trims & Holo-Billboards)
     this.buildBuildings();
@@ -635,11 +638,11 @@ export class DroneWorld {
     const roadGroup = new THREE.Group();
     const roadMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
 
-    // 1. Main Central Boulevard
+    // 1. Main Central Boulevard (Clean height above ground)
     const mainRoadGeo = new THREE.PlaneGeometry(22, 220);
     const mainRoad = new THREE.Mesh(mainRoadGeo, roadMat);
     mainRoad.rotation.x = -Math.PI / 2;
-    mainRoad.position.set(0, 0.02, 0);
+    mainRoad.position.set(0, 0.04, 0);
     roadGroup.add(mainRoad);
 
     // Center Yellow Lines
@@ -648,7 +651,7 @@ export class DroneWorld {
       const yLineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
       const yLine = new THREE.Mesh(yLineGeo, yLineMat);
       yLine.rotation.x = -Math.PI / 2;
-      yLine.position.set(offX, 0.025, 0);
+      yLine.position.set(offX, 0.06, 0);
       roadGroup.add(yLine);
     });
 
@@ -658,14 +661,14 @@ export class DroneWorld {
       const crossRoadGeo = new THREE.PlaneGeometry(160, 16);
       const crossRoad = new THREE.Mesh(crossRoadGeo, roadMat);
       crossRoad.rotation.x = -Math.PI / 2;
-      crossRoad.position.set(0, 0.022, cz);
+      crossRoad.position.set(0, 0.045, cz);
       roadGroup.add(crossRoad);
 
       const cYLineGeo = new THREE.PlaneGeometry(156, 0.3);
       const cYLineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
       const cYLine = new THREE.Mesh(cYLineGeo, cYLineMat);
       cYLine.rotation.x = -Math.PI / 2;
-      cYLine.position.set(0, 0.026, cz);
+      cYLine.position.set(0, 0.065, cz);
       roadGroup.add(cYLine);
     });
 
@@ -711,10 +714,7 @@ export class DroneWorld {
     // Outer circle
     const circleGeo = new THREE.CircleGeometry(size / 2, 32);
     const circleMat = new THREE.MeshBasicMaterial({ 
-      color,
-      polygonOffset: true,
-      polygonOffsetFactor: -1,
-      polygonOffsetUnits: -1
+      color
     });
     const circle = new THREE.Mesh(circleGeo, circleMat);
     circle.rotation.x = -Math.PI / 2;
@@ -724,36 +724,30 @@ export class DroneWorld {
     const ringGeo = new THREE.RingGeometry(size / 2 - 0.5, size / 2, 32);
     const ringMat = new THREE.MeshBasicMaterial({ 
       color: 0xffffff, 
-      side: THREE.DoubleSide,
-      polygonOffset: true,
-      polygonOffsetFactor: -2,
-      polygonOffsetUnits: -2
+      side: THREE.DoubleSide
     });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = -Math.PI / 2;
-    ring.position.y = 0.02;
+    ring.position.y = 0.03;
     padGroup.add(ring);
 
     // Letter 'H'
     const hBarMat = new THREE.MeshBasicMaterial({ 
-      color: 0xffffff,
-      polygonOffset: true,
-      polygonOffsetFactor: -3,
-      polygonOffsetUnits: -3
+      color: 0xffffff
     });
     const hBar1 = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 3.2), hBarMat);
     hBar1.rotation.x = -Math.PI / 2;
-    hBar1.position.set(-1.1, 0.04, 0);
+    hBar1.position.set(-1.1, 0.05, 0);
     padGroup.add(hBar1);
 
     const hBar2 = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 3.2), hBarMat);
     hBar2.rotation.x = -Math.PI / 2;
-    hBar2.position.set(1.1, 0.04, 0);
+    hBar2.position.set(1.1, 0.05, 0);
     padGroup.add(hBar2);
 
     const hBarMid = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.6), hBarMat);
     hBarMid.rotation.x = -Math.PI / 2;
-    hBarMid.position.set(0, 0.04, 0);
+    hBarMid.position.set(0, 0.05, 0);
     padGroup.add(hBarMid);
 
     this.scene.add(padGroup);
@@ -846,10 +840,6 @@ export class DroneWorld {
     this.guidanceBeaconBeam.position.y = 30;
     this.guidanceBeaconBeam.renderOrder = 9997;
     this.guidanceBeaconGroup.add(this.guidanceBeaconBeam);
-
-    // Local Point Light
-    this.guidanceBeaconLight = new THREE.PointLight(0xff0033, 2.5, 20);
-    this.guidanceBeaconGroup.add(this.guidanceBeaconLight);
 
     this.guidanceBeaconGroup.visible = false;
     this.scene.add(this.guidanceBeaconGroup);
@@ -1216,9 +1206,6 @@ export class DroneWorld {
       trim.position.y = spec.h / 2 + 0.4;
       bGroup.add(trim);
 
-      // Windows
-      this.addBuildingWindows(bGroup, spec.w, spec.h, spec.d);
-
       // Special structures
       if (spec.isHospital) {
         this.hospitalMesh = bGroup;
@@ -1284,10 +1271,6 @@ export class DroneWorld {
         const orSign = new THREE.Mesh(orSignGeo, orSignMat);
         orSign.position.set(0, 1.2, 2.35);
         orBuilding.add(orSign);
-
-        const orLight = new THREE.PointLight(0x22c55e, 1.5, 8);
-        orLight.position.set(0, 1.2, 3.0);
-        orBuilding.add(orLight);
 
         bGroup.add(orBuilding);
         this.hospitalORGroup = orBuilding;
@@ -1468,37 +1451,15 @@ export class DroneWorld {
     });
   }
 
-  private addBuildingWindows(group: THREE.Group, w: number, h: number, d: number) {
-    // Highly optimized window facade bands (2 draw calls total per building instead of 100 individual meshes)
-    const winMat = new THREE.MeshBasicMaterial({ 
-      color: 0x38bdf8,
-      polygonOffset: true,
-      polygonOffsetFactor: -1,
-      polygonOffsetUnits: -1
-    });
-
-    const bandGeo = new THREE.PlaneGeometry(w * 0.8, h * 0.6);
-    // Front face band
-    const wMesh1 = new THREE.Mesh(bandGeo, winMat);
-    wMesh1.position.set(0, 0, d / 2 + 0.05);
-    group.add(wMesh1);
-
-    // Back face band
-    const wMesh2 = new THREE.Mesh(bandGeo, winMat);
-    wMesh2.rotation.y = Math.PI;
-    wMesh2.position.set(0, 0, -d / 2 - 0.05);
-    group.add(wMesh2);
-  }
-
   private buildTreesAndPark() {
     const parkGroup = new THREE.Group();
 
-    // 1. Central Park Plaza Zone
+    // 1. Central Park Plaza Zone (Clean height above ground)
     const plazaPaveGeo = new THREE.PlaneGeometry(28, 28);
     const plazaPaveMat = new THREE.MeshLambertMaterial({ color: 0xe2e8f0 });
     const plazaPave = new THREE.Mesh(plazaPaveGeo, plazaPaveMat);
     plazaPave.rotation.x = -Math.PI / 2;
-    plazaPave.position.set(0, 0.025, -60);
+    plazaPave.position.set(0, 0.05, -60);
     parkGroup.add(plazaPave);
 
     // Center Fountain
@@ -1799,15 +1760,17 @@ export class DroneWorld {
       b.group.rotation.z = Math.sin(time * 0.5 + b.phase) * 0.03;
     });
 
-    // 2. Pedestrians Walking Animation
+    // 2. Pedestrians Walking Animation (Optimized: full limb kinematics when near ground, lightweight when flying high)
+    const isCloseToGround = this.position.y < 12;
     this.animatedPedestrians.forEach(p => {
       p.walkPhase += dt * p.speed * 3.5;
-      const swing = Math.sin(p.walkPhase) * 0.45;
-
-      p.leftLeg.rotation.x = swing;
-      p.rightLeg.rotation.x = -swing;
-      p.leftArm.rotation.x = -swing * 0.8;
-      p.rightArm.rotation.x = swing * 0.8;
+      if (isCloseToGround) {
+        const swing = Math.sin(p.walkPhase) * 0.45;
+        p.leftLeg.rotation.x = swing;
+        p.rightLeg.rotation.x = -swing;
+        p.leftArm.rotation.x = -swing * 0.8;
+        p.rightArm.rotation.x = swing * 0.8;
+      }
 
       if (p.isX) {
         p.group.position.x += p.dir * p.speed * dt;
@@ -1853,15 +1816,17 @@ export class DroneWorld {
     // 4. Park Dog Trotting and Wagging Tail
     if (this.parkDog) {
       const dog = this.parkDog;
-      dog.walkPhase += dt * dog.speed * 5.0;
-      dog.tail.rotation.y = Math.sin(time * 12) * 0.6; // Energetic tail wag
-      dog.head.rotation.y = Math.sin(time * 3) * 0.15;
+      if (isCloseToGround) {
+        dog.walkPhase += dt * dog.speed * 5.0;
+        dog.tail.rotation.y = Math.sin(time * 12) * 0.6; // Energetic tail wag
+        dog.head.rotation.y = Math.sin(time * 3) * 0.15;
 
-      const legSwing = Math.sin(dog.walkPhase) * 0.4;
-      dog.legs[0].rotation.x = legSwing;
-      dog.legs[1].rotation.x = -legSwing;
-      dog.legs[2].rotation.x = -legSwing;
-      dog.legs[3].rotation.x = legSwing;
+        const legSwing = Math.sin(dog.walkPhase) * 0.4;
+        dog.legs[0].rotation.x = legSwing;
+        dog.legs[1].rotation.x = -legSwing;
+        dog.legs[2].rotation.x = -legSwing;
+        dog.legs[3].rotation.x = legSwing;
+      }
 
       dog.group.position.x += dog.dir * dog.speed * dt;
       if (dog.group.position.x > dog.maxX) {
@@ -2106,11 +2071,6 @@ export class DroneWorld {
       const ledMesh = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), new THREE.MeshBasicMaterial({ color: ledColorHex }));
       ledMesh.position.set(x, -0.06, z);
       this.droneModelHolder.add(ledMesh);
-
-      const light = new THREE.PointLight(ledColorHex, 0.6, 4);
-      light.position.set(x, -0.06, z);
-      this.droneModelHolder.add(light);
-      this.ledLights.push(light);
     });
 
     // Landing skids
@@ -2227,10 +2187,9 @@ export class DroneWorld {
       // Arm navigation LEDs
       const isFront = (i === 0 || i === 5 || i === 1);
       const ledColorHex = isFront ? 0xef4444 : 0xfbbf24;
-      const light = new THREE.PointLight(ledColorHex, 0.6, 4);
-      light.position.set(x, -0.08, z);
-      this.droneModelHolder.add(light);
-      this.ledLights.push(light);
+      const ledMesh = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), new THREE.MeshBasicMaterial({ color: ledColorHex }));
+      ledMesh.position.set(x, -0.08, z);
+      this.droneModelHolder.add(ledMesh);
     }
 
     // Heavy Rescue Triangular Base Skids
@@ -2324,10 +2283,9 @@ export class DroneWorld {
       this.propMeshes.push(blade);
 
       const ledColorHex = mp.z > 0 ? 0xfacc15 : 0xef4444;
-      const light = new THREE.PointLight(ledColorHex, 0.7, 4);
-      light.position.set(mp.x, -0.06, mp.z);
-      this.droneModelHolder.add(light);
-      this.ledLights.push(light);
+      const ledMesh = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), new THREE.MeshBasicMaterial({ color: ledColorHex }));
+      ledMesh.position.set(mp.x, -0.06, mp.z);
+      this.droneModelHolder.add(ledMesh);
     });
 
     // Low-profile racing skids
@@ -2425,10 +2383,9 @@ export class DroneWorld {
       this.droneModelHolder.add(btmPropGroup);
       this.propMeshes.push(btmBlade);
 
-      const light = new THREE.PointLight(0x10b981, 0.6, 4);
-      light.position.set(x, 0, z);
-      this.droneModelHolder.add(light);
-      this.ledLights.push(light);
+      const ledMesh = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), new THREE.MeshBasicMaterial({ color: 0x10b981 }));
+      ledMesh.position.set(x, 0, z);
+      this.droneModelHolder.add(ledMesh);
     });
 
     // 4 Wide Expedition Shock-Absorbing Landing Feet
@@ -2510,11 +2467,6 @@ export class DroneWorld {
       plasmaDisc.position.set(jx, 0.02, -0.63);
       this.droneModelHolder.add(plasmaDisc);
       this.jetFlameMeshes.push(plasmaDisc);
-
-      const jetLight = new THREE.PointLight(0x00f0ff, 1.2, 5);
-      jetLight.position.set(jx, 0.02, -0.7);
-      this.droneModelHolder.add(jetLight);
-      this.ledLights.push(jetLight);
     });
 
     // 4 Enclosed Turbine Ducts & Propellers
@@ -2621,10 +2573,9 @@ export class DroneWorld {
       this.droneModelHolder.add(propGroup);
       this.propMeshes.push(blade);
 
-      const light = new THREE.PointLight(0x06b6d4, 0.5, 3.5);
-      light.position.set(x, -0.05, z);
-      this.droneModelHolder.add(light);
-      this.ledLights.push(light);
+      const ledMesh = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), new THREE.MeshBasicMaterial({ color: 0x06b6d4 }));
+      ledMesh.position.set(x, -0.05, z);
+      this.droneModelHolder.add(ledMesh);
     });
 
     // Integrated low drag stealth skids
@@ -3012,11 +2963,6 @@ export class DroneWorld {
         beacon.position.y = 23;
         portalGroup.add(beacon);
 
-        // 6. Tunnel Entrance Point Light for local environment illumination
-        const pLight = new THREE.PointLight(isActive ? 0xff0033 : 0x00f0ff, isActive ? 3.0 : 0.3, 15);
-        pLight.position.set(0, 0, 1.0);
-        portalGroup.add(pLight);
-
         this.scene.add(portalGroup);
         this.ringMeshes.push(portalGroup);
       });
@@ -3382,9 +3328,6 @@ export class DroneWorld {
         const passDisk = new THREE.Mesh(passDiskGeo, passDiskMat);
         rGroup.add(passDisk);
 
-        const beaconLight = new THREE.PointLight(isActive ? 0x38bdf8 : 0x475569, isActive ? 2.0 : 0.4, 10);
-        rGroup.add(beaconLight);
-
         this.scene.add(rGroup);
         this.ringMeshes.push(rGroup);
       });
@@ -3419,10 +3362,10 @@ export class DroneWorld {
       wing1B.rotation.y = Math.PI / 2;
       rotor1Group.add(wing1B);
 
-      // Warning Flasher at Top of Obstacle
-      const light1 = new THREE.PointLight(0xff3b30, 2.5, 8);
-      light1.position.set(0, 6.5, 0);
-      obs1Group.add(light1);
+      // Warning Beacon Cap
+      const cap1 = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff3b30 }));
+      cap1.position.set(0, 6.5, 0);
+      obs1Group.add(cap1);
 
       obs1Group.add(rotor1Group);
       this.scene.add(obs1Group);
@@ -3453,9 +3396,9 @@ export class DroneWorld {
       const wing2 = new THREE.Mesh(wing2Geo, wing2Mat);
       rotor2Group.add(wing2);
 
-      const light2 = new THREE.PointLight(0xfacc15, 2.5, 8);
-      light2.position.set(0, 6.1, 0);
-      obs2Group.add(light2);
+      const cap2 = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+      cap2.position.set(0, 6.1, 0);
+      obs2Group.add(cap2);
 
       obs2Group.add(rotor2Group);
       this.scene.add(obs2Group);
@@ -3917,9 +3860,9 @@ export class DroneWorld {
     if (this.currentStage.id === 'tutorial-1') {
       const targetHoverY = 3.0;
       if (this.hoverTimeTracker < 3.0) {
-        activeTargetPos = new THREE.Vector3(0, targetHoverY, 0);
+        activeTargetPos = this._scratchTargetPos.set(0, targetHoverY, 0);
       } else {
-        activeTargetPos = new THREE.Vector3(0, 0.35, 0); // Landing target
+        activeTargetPos = this._scratchTargetPos.set(0, 0.35, 0); // Landing target
         guidanceColor = 0x10b981;
       }
     }
@@ -3929,14 +3872,14 @@ export class DroneWorld {
       let nearestDist = Infinity;
       this.coins.forEach((coin, idx) => {
         if (!coin.collected) {
-          const coinPos = new THREE.Vector3(...coin.position);
+          const coinPos = this._scratchCoinPos.set(coin.position[0], coin.position[1], coin.position[2]);
           if (this.coinMeshes[idx]) {
             this.coinMeshes[idx].rotation.z += 2.5 * dt;
           }
           const d = this.position.distanceTo(coinPos);
           if (d < nearestDist) {
             nearestDist = d;
-            activeTargetPos = coinPos;
+            activeTargetPos = this._scratchTargetPos.copy(coinPos);
           }
           if (d < 2.0) {
             coin.collected = true;
@@ -3966,14 +3909,17 @@ export class DroneWorld {
       const activeIdx = this.rings.findIndex(r => r.active && !r.passed);
 
       if (activeIdx !== -1 && this.rings[activeIdx]) {
-        activeTargetPos = new THREE.Vector3(...this.rings[activeIdx].position);
+        activeTargetPos = this._scratchTargetPos.set(
+          this.rings[activeIdx].position[0],
+          this.rings[activeIdx].position[1],
+          this.rings[activeIdx].position[2]
+        );
         guidanceColor = activeIdx === this.rings.length - 1 ? 0xfacc15 : 0xff0033;
       }
 
       // High-Intensity Red Blinking Strobe on active target gate across all missions including AI Race
       const isBlinkRed = Math.sin(performance.now() * 0.015) > -0.2;
       const blinkColorHex = isBlinkRed ? 0xff0033 : 0x7f0015;
-      const blinkIntensity = isBlinkRed ? 3.2 : 0.35;
 
       this.ringMeshes.forEach((meshGroup, idx) => {
         const ringData = this.rings[idx];
@@ -3984,18 +3930,12 @@ export class DroneWorld {
           meshGroup.traverse((child) => {
             if ((child as THREE.Mesh).isMesh) {
               const m = (child as THREE.Mesh).material;
-              if (m) {
-                if ('color' in m) {
-                  (m as THREE.MeshBasicMaterial).color.setHex(blinkColorHex);
-                  if ((m as THREE.MeshBasicMaterial).transparent) {
-                    (m as THREE.MeshBasicMaterial).opacity = isBlinkRed ? 0.85 : 0.3;
-                  }
+              if (m && 'color' in m) {
+                (m as THREE.MeshBasicMaterial).color.setHex(blinkColorHex);
+                if ((m as THREE.MeshBasicMaterial).transparent) {
+                  (m as THREE.MeshBasicMaterial).opacity = isBlinkRed ? 0.85 : 0.3;
                 }
               }
-            } else if ((child as THREE.PointLight).isPointLight) {
-              const pl = child as THREE.PointLight;
-              pl.color.setHex(0xff0033);
-              pl.intensity = isBlinkRed ? 3.5 : 0.5;
             }
           });
         } else if (ringData.passed) {
@@ -4006,9 +3946,6 @@ export class DroneWorld {
               if (m && 'color' in m) {
                 (m as THREE.MeshBasicMaterial).color.setHex(0x10b981);
               }
-            } else if ((child as THREE.PointLight).isPointLight) {
-              (child as THREE.PointLight).color.setHex(0x10b981);
-              (child as THREE.PointLight).intensity = 1.0;
             }
           });
         } else {
@@ -4019,8 +3956,6 @@ export class DroneWorld {
               if (m && 'color' in m) {
                 (m as THREE.MeshBasicMaterial).color.setHex(0x334155);
               }
-            } else if ((child as THREE.PointLight).isPointLight) {
-              (child as THREE.PointLight).intensity = 0.2;
             }
           });
         }
@@ -4029,7 +3964,7 @@ export class DroneWorld {
       // Check Passage through active tunnel / ring
       this.rings.forEach(ring => {
         if (ring.active && !ring.passed) {
-          const ringPos = new THREE.Vector3(...ring.position);
+          const ringPos = this._scratchRingPos.set(ring.position[0], ring.position[1], ring.position[2]);
           if (this.position.distanceTo(ringPos) < ring.radius + 1.0) {
             ring.passed = true;
             ring.active = false;
@@ -4087,7 +4022,7 @@ export class DroneWorld {
         const dist = this.position.distanceTo(obs.position);
         if (dist < obs.radius) {
           this.spawnSparks(this.position, 0xf97316);
-          const pushDir = this.position.clone().sub(obs.position).normalize();
+          const pushDir = this._scratchPushDir.copy(this.position).sub(obs.position).normalize();
           pushDir.y = Math.max(pushDir.y, 0.4);
           this.velocity.addScaledVector(pushDir, 5.2);
           this.cameraShakeTrauma = 0.5;
@@ -4098,7 +4033,7 @@ export class DroneWorld {
 
     // 3-C. Stage 2 Final Landing Check
     if (this.currentStage?.id === 'tutorial-2' && this.stage2LandingReady) {
-      activeTargetPos = new THREE.Vector3(0, 0.35, 0);
+      activeTargetPos = this._scratchTargetPos.set(0, 0.35, 0);
       guidanceColor = 0x10b981;
 
       const horizDist = Math.hypot(this.position.x, this.position.z);
@@ -4107,22 +4042,30 @@ export class DroneWorld {
 
       if (horizDist < 2.0 && isLowAltitude && (this.isGrounded || isSlowSpeed)) {
         this.stage2LandingReady = false;
-        this.spawnSparks(new THREE.Vector3(0, 0.35, 0), 0x10b981);
+        this.spawnSparks(activeTargetPos, 0x10b981);
         this.callbacks.onRingPassed(3, 0); // Complete Stage 2!
       }
     }
 
     // 4. Rescue Mission
     if (this.currentStage.type === 'RESCUE' && this.rescueTarget) {
-      const patientPos = new THREE.Vector3(...this.rescueTarget.patientPosition);
-      const hospitalPos = new THREE.Vector3(...this.rescueTarget.hospitalPosition);
+      const patientPos = this._scratchPatientPos.set(
+        this.rescueTarget.patientPosition[0],
+        this.rescueTarget.patientPosition[1],
+        this.rescueTarget.patientPosition[2]
+      );
+      const hospitalPos = this._scratchHospitalPos.set(
+        this.rescueTarget.hospitalPosition[0],
+        this.rescueTarget.hospitalPosition[1],
+        this.rescueTarget.hospitalPosition[2]
+      );
 
       // Active Target Guidance: Point to Patient (Red) before pickup; Point to Hospital Helipad (Green) when carrying!
       if (!this.rescueTarget.pickedUp) {
-        activeTargetPos = patientPos;
+        activeTargetPos = this._scratchTargetPos.copy(patientPos);
         guidanceColor = 0xff0033;
       } else if (!this.rescueTarget.delivered) {
-        activeTargetPos = hospitalPos;
+        activeTargetPos = this._scratchTargetPos.copy(hospitalPos);
         guidanceColor = 0x10b981;
       }
 
@@ -4325,13 +4268,13 @@ export class DroneWorld {
     const targetWp = this.raceWaypoints[this.aiRacerState.currentWaypointIdx];
     if (!targetWp) return;
 
-    const currentPos = new THREE.Vector3(
+    const currentPos = this._scratchAiPos.set(
       this.aiRacerState.position.x,
       this.aiRacerState.position.y,
       this.aiRacerState.position.z
     );
 
-    const toWp = targetWp.clone().sub(currentPos);
+    const toWp = this._scratchToWp.copy(targetWp).sub(currentPos);
     const dist = toWp.length();
 
     // Advance to next waypoint cleanly (tighter threshold in high altitude tunnel corridors)
@@ -4351,7 +4294,7 @@ export class DroneWorld {
       }
     }
 
-    const dir = toWp.clone().normalize();
+    const dir = this._scratchDir.copy(toWp).normalize();
 
     // Balanced & Competitive AI Racer Dynamics based on Level 1 / Level 2 difficulty
     const isLevel1 = this.currentStage?.aiDifficulty === 'LEVEL_1';
@@ -4368,7 +4311,7 @@ export class DroneWorld {
     const nextWpIdx = (this.aiRacerState.currentWaypointIdx + 1) % this.raceWaypoints.length;
     const nextWp = this.raceWaypoints[nextWpIdx];
     if (nextWp) {
-      const nextDir = nextWp.clone().sub(targetWp).normalize();
+      const nextDir = this._scratchNextDir.copy(nextWp).sub(targetWp).normalize();
       const dotProd = THREE.MathUtils.clamp(dir.dot(nextDir), -1, 1);
       // Smooth cosine speed curve: maintains momentum through bends (Level 1 slows down slightly more for realism)
       const minCornerLerp = isLevel1 ? 0.60 : 0.72;

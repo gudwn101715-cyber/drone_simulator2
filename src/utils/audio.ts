@@ -179,8 +179,9 @@ class SoundController {
   }
 
   /**
-   * 1. Lobby BGM: Bright, Cheerful & Uplifting Arcade Groove
-   * 120 BPM upbeat groove with bouncy marimba/rhodes chords, cheerful melodies, warm slap bass & acoustic style drum groove
+   * 1. Lobby BGM: Sophisticated Cyber-Chill Lounge & Ambient Synthwave (108 BPM)
+   * A stylish, mature, atmospheric hangar lounge vibe featuring deep warm sub-bass,
+   * lush filtered poly-synth pads, crisp lo-fi/cyber rimshots, and ambient analog tape melodies.
    */
   public playLobbyBgm() {
     if (!this.enabled || this.currentBgmType === 'LOBBY') return;
@@ -194,169 +195,219 @@ class SoundController {
       const masterGain = this.getBgmGain();
       if (!masterGain) return;
       masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
-      masterGain.gain.setValueAtTime(this.enabled ? 0.32 : 0, this.ctx.currentTime);
+      masterGain.gain.setValueAtTime(this.enabled ? 0.30 : 0, this.ctx.currentTime);
 
-      // 120 BPM -> 1 beat = 0.5s, 8th note = 0.25s, 1 bar (4 beats) = 2.0s
-      // Bright Pop Chord Progression: Cmaj7 -> G/B -> Am7 -> Fmaj7
-      const chordProgression = [
-        // Cmaj7
-        { root: 130.81, notes: [261.63, 329.63, 392.0, 493.88, 523.25] },
-        // G (with B in bass)
-        { root: 123.47, notes: [246.94, 293.66, 392.0, 493.88, 587.33] },
-        // Am7
-        { root: 110.0, notes: [220.0, 261.63, 329.63, 392.0, 523.25] },
-        // Fmaj7
-        { root: 87.31, notes: [174.61, 261.63, 329.63, 349.23, 440.0] }
+      // 108 BPM Cyber Chillout Lounge tempo
+      // 1 beat = 0.5555s, 16th note = 0.1388s, 1 bar (4 beats) = 2.222s
+      const stepTime = 0.1388;
+      let step = 0;
+
+      // Sophisticated, cinematic Neo-Tokyo chord progression (Fm9 -> Dbmaj7 -> Bbm9 -> Eb/G)
+      const chillChords = [
+        // Fm9 (Root F2: 87.31)
+        { root: 87.31, padNotes: [174.61, 261.63, 311.13, 349.23, 392.0] },
+        // Dbmaj7 (Root Db2: 69.30)
+        { root: 69.30, padNotes: [138.59, 207.65, 261.63, 311.13, 329.63] },
+        // Bbm9 (Root Bb1: 58.27)
+        { root: 58.27, padNotes: [116.54, 174.61, 233.08, 277.18, 349.23] },
+        // Eb/G (Root Eb2: 77.78)
+        { root: 77.78, padNotes: [155.56, 196.00, 233.08, 311.13, 392.0] }
       ];
 
-      // Cheerful Melody Hooks (played alternately)
-      const melodyPatterns = [
-        [523.25, 0, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25], // C -> D -> E -> G -> E -> D -> C
-        [659.25, 783.99, 880.0, 0, 783.99, 659.25, 587.33, 659.25],
-        [880.0, 0, 783.99, 659.25, 587.33, 523.25, 440.0, 523.25],
-        [659.25, 587.33, 523.25, 0, 587.33, 659.25, 783.99, 1046.5]
+      // Smooth atmospheric synth lead lines (Cyber Lounge melodic fragments)
+      const leadMelodies = [
+        // Bar 0: [F5, G5, Ab5, C6]
+        { 0: 698.46, 4: 783.99, 8: 830.61, 12: 1046.50 },
+        // Bar 1: [Eb6, C6, Ab5, F5]
+        { 0: 1244.51, 4: 1046.50, 8: 830.61, 12: 698.46 },
+        // Bar 2: [Db5, F5, Ab5, Bb5]
+        { 0: 554.37, 4: 698.46, 8: 830.61, 12: 932.33 },
+        // Bar 3: [G5, Bb5, C6, Eb6]
+        { 0: 783.99, 4: 932.33, 8: 1046.50, 14: 1244.51 }
       ];
 
-      let barIdx = 0;
-      let stepInLoop = 0;
-
-      const playLobbyBeat = () => {
+      const playLobbyStep = () => {
         if (this.currentBgmType !== 'LOBBY' || !this.ctx || this.ctx.state === 'closed' || !this.enabled) return;
 
         try {
           const now = this.ctx.currentTime;
-          const currentBar = Math.floor(stepInLoop / 8) % chordProgression.length;
-          const stepInBar = stepInLoop % 8; // 8th notes (0.25s each)
-          stepInLoop++;
+          const barIdx = Math.floor(step / 16) % chillChords.length;
+          const stepInBar = step % 16;
+          step++;
 
-          const chord = chordProgression[currentBar];
-          const melody = melodyPatterns[currentBar];
+          const chord = chillChords[barIdx];
+          const melodyBar = leadMelodies[barIdx];
 
-          // 1. Kick Drum on Beats 1 & 3 (steps 0, 4)
-          if (stepInBar === 0 || stepInBar === 4) {
+          // 1. Deep Subdued Lo-Fi Chill Kick (Beats 1 & 3: steps 0, 8 + ghost step 14)
+          const isKick = stepInBar === 0 || stepInBar === 8 || (barIdx === 3 && stepInBar === 14);
+          if (isKick) {
             const kickOsc = this.ctx.createOscillator();
             const kickGain = this.ctx.createGain();
             kickOsc.type = 'sine';
-            kickOsc.frequency.setValueAtTime(120, now);
-            kickOsc.frequency.exponentialRampToValueAtTime(45, now + 0.1);
+            kickOsc.frequency.setValueAtTime(130, now);
+            kickOsc.frequency.exponentialRampToValueAtTime(38, now + 0.12);
 
-            kickGain.gain.setValueAtTime(0.24, now);
-            kickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+            kickGain.gain.setValueAtTime(0.28, now);
+            kickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
 
             kickOsc.connect(kickGain);
             kickGain.connect(masterGain);
             kickOsc.start(now);
-            kickOsc.stop(now + 0.15);
+            kickOsc.stop(now + 0.20);
           }
 
-          // 2. Snappy Finger-Snap / Rimshot on Beats 2 & 4 (steps 2, 6)
-          if (stepInBar === 2 || stepInBar === 6) {
-            const snapOsc = this.ctx.createOscillator();
-            const snapGain = this.ctx.createGain();
-            snapOsc.type = 'triangle';
-            snapOsc.frequency.setValueAtTime(800, now);
-            snapOsc.frequency.exponentialRampToValueAtTime(250, now + 0.04);
+          // 2. Smooth Lo-Fi Cyber Rimshot / Cross-Stick (Beats 2 & 4: steps 4, 12)
+          if (stepInBar === 4 || stepInBar === 12) {
+            const rimOsc = this.ctx.createOscillator();
+            const rimGain = this.ctx.createGain();
+            const rimFilter = this.ctx.createBiquadFilter();
 
-            snapGain.gain.setValueAtTime(0.14, now);
-            snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+            rimFilter.type = 'bandpass';
+            rimFilter.frequency.setValueAtTime(1800, now);
+            rimFilter.Q.setValueAtTime(4.0, now);
 
-            snapOsc.connect(snapGain);
-            snapGain.connect(masterGain);
-            snapOsc.start(now);
-            snapOsc.stop(now + 0.07);
+            rimOsc.type = 'triangle';
+            rimOsc.frequency.setValueAtTime(420, now);
+            rimOsc.frequency.exponentialRampToValueAtTime(160, now + 0.05);
+
+            rimGain.gain.setValueAtTime(0.16, now);
+            rimGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+            rimOsc.connect(rimFilter);
+            rimFilter.connect(rimGain);
+            rimGain.connect(masterGain);
+
+            rimOsc.start(now);
+            rimOsc.stop(now + 0.08);
+
+            // Subtle vinyl noise splash on rimshot
+            if (this.cachedSnareNoiseBuffer) {
+              const noiseSrc = this.ctx.createBufferSource();
+              noiseSrc.buffer = this.cachedSnareNoiseBuffer;
+              const noiseFilter = this.ctx.createBiquadFilter();
+              noiseFilter.type = 'highpass';
+              noiseFilter.frequency.setValueAtTime(3500, now);
+              const noiseGain = this.ctx.createGain();
+              noiseGain.gain.setValueAtTime(0.06, now);
+              noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+              noiseSrc.connect(noiseFilter);
+              noiseFilter.connect(noiseGain);
+              noiseGain.connect(masterGain);
+              noiseSrc.start(now);
+              noiseSrc.stop(now + 0.07);
+            }
           }
 
-          // 3. Light Shaker / Hi-Hat on every 8th note
-          const hatOsc = this.ctx.createOscillator();
-          const hatGain = this.ctx.createGain();
-          const hatFilter = this.ctx.createBiquadFilter();
-          hatFilter.type = 'highpass';
-          hatFilter.frequency.setValueAtTime(7000, now);
+          // 3. Relaxed Brushed Shaker / Hi-Hat (Every 8th note: even steps)
+          if (stepInBar % 2 === 0) {
+            const hatOsc = this.ctx.createOscillator();
+            const hatGain = this.ctx.createGain();
+            const hatFilter = this.ctx.createBiquadFilter();
+            hatFilter.type = 'highpass';
+            hatFilter.frequency.setValueAtTime(8000, now);
 
-          hatOsc.type = 'square';
-          hatOsc.frequency.setValueAtTime(9000, now);
-          hatGain.gain.setValueAtTime(stepInBar % 2 === 0 ? 0.03 : 0.018, now);
-          hatGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+            hatOsc.type = 'square';
+            hatOsc.frequency.setValueAtTime(10000, now);
 
-          hatOsc.connect(hatFilter);
-          hatFilter.connect(hatGain);
-          hatGain.connect(masterGain);
-          hatOsc.start(now);
-          hatOsc.stop(now + 0.04);
+            const isAccent = stepInBar === 2 || stepInBar === 6 || stepInBar === 10 || stepInBar === 14;
+            hatGain.gain.setValueAtTime(isAccent ? 0.035 : 0.015, now);
+            hatGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
 
-          // 4. Bouncy Electric Bass Groove (steps 0, 3, 4, 6)
-          if (stepInBar === 0 || stepInBar === 3 || stepInBar === 4 || stepInBar === 6) {
+            hatOsc.connect(hatFilter);
+            hatFilter.connect(hatGain);
+            hatGain.connect(masterGain);
+            hatOsc.start(now);
+            hatOsc.stop(now + 0.04);
+          }
+
+          // 4. Warm Analog Sub Bass (Smooth Sine/Triangle glide on steps 0, 3, 6, 10)
+          if (stepInBar === 0 || stepInBar === 3 || stepInBar === 6 || stepInBar === 10) {
             const bassOsc = this.ctx.createOscillator();
             const bassGain = this.ctx.createGain();
             const bassFilter = this.ctx.createBiquadFilter();
 
             bassFilter.type = 'lowpass';
-            bassFilter.frequency.setValueAtTime(450, now);
+            bassFilter.frequency.setValueAtTime(320, now);
 
             bassOsc.type = 'triangle';
-            const noteOffset = stepInBar === 3 ? 1.25 : (stepInBar === 6 ? 1.5 : 1.0);
-            bassOsc.frequency.setValueAtTime(chord.root * noteOffset, now);
+            const pitchMultiplier = stepInBar === 6 ? 1.5 : (stepInBar === 10 ? 1.25 : 1.0);
+            bassOsc.frequency.setValueAtTime(chord.root * pitchMultiplier, now);
 
-            bassGain.gain.setValueAtTime(0.18, now);
-            bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+            bassGain.gain.setValueAtTime(0.22, now);
+            bassGain.gain.exponentialRampToValueAtTime(0.01, now + stepTime * 2.8);
 
             bassOsc.connect(bassFilter);
             bassFilter.connect(bassGain);
             bassGain.connect(masterGain);
+
             bassOsc.start(now);
-            bassOsc.stop(now + 0.24);
+            bassOsc.stop(now + stepTime * 2.9);
           }
 
-          // 5. Warm Rhodes / Keyboard Stabs (Offbeat Syncopation: steps 1, 3, 5, 7)
-          if (stepInBar % 2 === 1) {
-            chord.notes.slice(0, 3).forEach((freq, idx) => {
+          // 5. Lush Ambient Poly-Synth Pad (Triggered at step 0 of each bar, sustained)
+          if (stepInBar === 0) {
+            chord.padNotes.forEach((freq, idx) => {
               if (!this.ctx || this.ctx.state === 'closed') return;
-              const keyOsc = this.ctx.createOscillator();
-              const keyGain = this.ctx.createGain();
-              keyOsc.type = 'sine';
-              keyOsc.frequency.setValueAtTime(freq, now);
+              const padOsc = this.ctx.createOscillator();
+              const padGain = this.ctx.createGain();
+              const padFilter = this.ctx.createBiquadFilter();
 
-              keyGain.gain.setValueAtTime(0.06, now);
-              keyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+              padFilter.type = 'lowpass';
+              padFilter.frequency.setValueAtTime(650, now);
+              padFilter.frequency.exponentialRampToValueAtTime(1100, now + 1.0);
+              padFilter.frequency.exponentialRampToValueAtTime(600, now + stepTime * 15.5);
 
-              keyOsc.connect(keyGain);
-              keyGain.connect(masterGain);
-              keyOsc.start(now);
-              keyOsc.stop(now + 0.2);
+              padOsc.type = 'sawtooth';
+              padOsc.frequency.setValueAtTime(freq, now);
+              padOsc.detune.setValueAtTime((idx - 2) * 9, now); // Gentle organic chorus detune
+
+              padGain.gain.setValueAtTime(0.001, now);
+              padGain.gain.linearRampToValueAtTime(0.045, now + 0.35);
+              padGain.gain.exponentialRampToValueAtTime(0.001, now + stepTime * 15.8);
+
+              padOsc.connect(padFilter);
+              padFilter.connect(padGain);
+              padGain.connect(masterGain);
+
+              padOsc.start(now);
+              padOsc.stop(now + stepTime * 16.0);
             });
           }
 
-          // 6. Cheerful Bell / Marimba Melody Lead
-          const melodyFreq = melody[stepInBar];
-          if (melodyFreq > 0) {
-            const bellOsc = this.ctx.createOscillator();
-            const bellGain = this.ctx.createGain();
-            const bellFilter = this.ctx.createBiquadFilter();
+          // 6. Atmospheric Ambient Flight Lead (Warm Sine with soft filtered decay)
+          const melodyFreq = melodyBar[stepInBar as keyof typeof melodyBar];
+          if (melodyFreq) {
+            const leadOsc = this.ctx.createOscillator();
+            const leadGain = this.ctx.createGain();
+            const leadFilter = this.ctx.createBiquadFilter();
 
-            bellFilter.type = 'bandpass';
-            bellFilter.frequency.setValueAtTime(1500, now);
-            bellFilter.Q.setValueAtTime(1.5, now);
+            leadFilter.type = 'lowpass';
+            leadFilter.frequency.setValueAtTime(1400, now);
+            leadFilter.Q.setValueAtTime(1.8, now);
 
-            bellOsc.type = 'triangle';
-            bellOsc.frequency.setValueAtTime(melodyFreq, now);
+            leadOsc.type = 'sine';
+            leadOsc.frequency.setValueAtTime(melodyFreq, now);
 
-            bellGain.gain.setValueAtTime(0.10, now);
-            bellGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+            leadGain.gain.setValueAtTime(0.001, now);
+            leadGain.gain.linearRampToValueAtTime(0.08, now + 0.04);
+            leadGain.gain.exponentialRampToValueAtTime(0.0001, now + stepTime * 3.5);
 
-            bellOsc.connect(bellFilter);
-            bellFilter.connect(bellGain);
-            bellGain.connect(masterGain);
-            bellOsc.start(now);
-            bellOsc.stop(now + 0.3);
+            leadOsc.connect(leadFilter);
+            leadFilter.connect(leadGain);
+            leadGain.connect(masterGain);
+
+            leadOsc.start(now);
+            leadOsc.stop(now + stepTime * 3.8);
           }
         } catch {
           // ignore
         }
       };
 
-      // Play immediately and schedule at 120 BPM 8th notes (~250ms)
-      playLobbyBeat();
-      this.bgmIntervalId = window.setInterval(playLobbyBeat, 248);
+      // Play immediately and schedule at 108 BPM (~138.8ms per 16th step)
+      playLobbyStep();
+      this.bgmIntervalId = window.setInterval(playLobbyStep, 138);
     } catch {
       // ignore
     }
