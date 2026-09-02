@@ -464,52 +464,22 @@ export class DroneWorld {
 
   private setupLighting(isMobileOrTablet: boolean = false) {
     // Rich Cyber Ambient Light
-    const ambient = new THREE.AmbientLight(0x60a5fa, 0.85);
+    const ambient = new THREE.AmbientLight(0x7dd3fc, 0.95);
     this.scene.add(ambient);
 
     // Dynamic Hemisphere Light (Sky Cyan / Ground Deep Indigo)
-    const hemiLight = new THREE.HemisphereLight(0x38bdf8, 0x1e1b4b, 0.80);
+    const hemiLight = new THREE.HemisphereLight(0x38bdf8, 0x0f172a, 0.85);
     this.scene.add(hemiLight);
 
-    // Directional Cyber Moonlight
-    const sun = new THREE.DirectionalLight(0xa5f3fc, 1.45);
+    // Directional Cyber Moonlight (Zero shadow overhead)
+    const sun = new THREE.DirectionalLight(0xa5f3fc, 1.35);
     sun.position.set(80, 140, 60);
-    sun.castShadow = !isMobileOrTablet;
-    if (sun.castShadow) {
-      sun.shadow.mapSize.width = 1024;
-      sun.shadow.mapSize.height = 1024;
-      sun.shadow.camera.near = 10;
-      sun.shadow.camera.far = 350;
-      const d = 90;
-      sun.shadow.camera.left = -d;
-      sun.shadow.camera.right = d;
-      sun.shadow.camera.top = d;
-      sun.shadow.camera.bottom = -d;
-      sun.shadow.bias = -0.0005;
-    }
+    sun.castShadow = false;
     this.scene.add(sun);
-
-    // Street-Level Cyber Neon Point Lights at Key City Intersections
-    const streetLightsConfig: { x: number; y: number; z: number; color: number; intensity: number; dist: number }[] = [
-      { x: 0, y: 3.5, z: 0, color: 0x00f0ff, intensity: 1.8, dist: 35 },     // Base Pad / Plaza Cyan Glow
-      { x: -50, y: 3.5, z: 30, color: 0xf43f5e, intensity: 1.6, dist: 35 },  // Twin Tower Crossway Magenta Glow
-      { x: 70, y: 3.5, z: -20, color: 0x22c55e, intensity: 1.8, dist: 35 },  // Hospital Emergency Zone Green Glow
-      { x: 35, y: 3.5, z: 40, color: 0xfacc15, intensity: 1.6, dist: 35 },   // Gamma Plaza Gold Glow
-      { x: 0, y: 3.5, z: 80, color: 0x38bdf8, intensity: 1.5, dist: 30 },    // South Runway Blue Glow
-      { x: 0, y: 3.5, z: -80, color: 0xa855f7, intensity: 1.5, dist: 30 }    // North Runway Purple Glow
-    ];
-
-    streetLightsConfig.forEach(cfg => {
-      const pLight = new THREE.PointLight(cfg.color, cfg.intensity, cfg.dist);
-      pLight.position.set(cfg.x, cfg.y, cfg.z);
-      this.scene.add(pLight);
-    });
   }
 
   private buildCityWorld() {
-    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPad|Tablet|ARM/i.test(navigator.userAgent);
-
-    // 1. Build Spectacular Cyber Sky Dome, Starfield, Holographic Moon, Laser Beacons & Cruisers
+    // 1. Cyber Sky Dome, Starfield & Holographic Moon
     this.buildCyberSkyAndAtmosphere();
 
     // 2. High-Tech Luminous Cyber Grid Terrain
@@ -523,8 +493,8 @@ export class DroneWorld {
     ground.position.y = 0;
     this.scene.add(ground);
 
-    // Luminous Cyber Grid Matrix across the ground
-    const gridHelper = new THREE.GridHelper(500, 50, 0x00f0ff, 0x1e3a8a);
+    // Luminous Cyber Grid Matrix across the ground (Ultra-lightweight)
+    const gridHelper = new THREE.GridHelper(400, 25, 0x00f0ff, 0x1e3a8a);
     gridHelper.position.y = 0.015;
     (gridHelper.material as THREE.Material).transparent = true;
     (gridHelper.material as THREE.Material).opacity = 0.45;
@@ -542,7 +512,7 @@ export class DroneWorld {
     // 6. Park Plaza & Bioluminescent Cyber Trees
     this.buildTreesAndPark();
 
-    // 7. Ambient City Life: Sky Balloons, Pedestrians & Flying Cyber Birds
+    // 7. Ambient City Life (Streamlined)
     this.buildHotAirBalloons();
     this.buildPedestrians();
     this.buildAnimalsAndBirds();
@@ -551,74 +521,31 @@ export class DroneWorld {
   private buildCyberSkyAndAtmosphere() {
     // 1. Procedural 360° Cyber Sky Dome
     const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 512;
+    canvas.width = 512;
+    canvas.height = 256;
     const ctx = canvas.getContext('2d');
 
     if (ctx) {
       // Cosmic Space Gradient (Top Zenith -> Horizon)
-      const grad = ctx.createLinearGradient(0, 0, 0, 512);
+      const grad = ctx.createLinearGradient(0, 0, 0, 256);
       grad.addColorStop(0.0, '#020617');   // Dark Space Zenith
       grad.addColorStop(0.3, '#081432');   // Deep Midnight Blue
       grad.addColorStop(0.65, '#0e265c');  // Cyber Sapphire Blue
       grad.addColorStop(0.85, '#0284c7');  // Atmospheric Cyan Glow
       grad.addColorStop(1.0, '#0f172a');   // Horizon Ground Line
       ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 1024, 512);
+      ctx.fillRect(0, 0, 512, 256);
 
-      // Flowing Cyber Aurora / Shimmering Nebula Wave Ribbons across the sky
-      const drawAuroraWave = (yCenter: number, colorStart: string, colorEnd: string, height: number) => {
-        const waveGrad = ctx.createLinearGradient(0, yCenter - height, 0, yCenter + height);
-        waveGrad.addColorStop(0.0, 'rgba(0, 0, 0, 0)');
-        waveGrad.addColorStop(0.5, colorStart);
-        waveGrad.addColorStop(1.0, colorEnd);
-        ctx.fillStyle = waveGrad;
-
-        ctx.beginPath();
-        ctx.moveTo(0, yCenter);
-        for (let x = 0; x <= 1024; x += 16) {
-          const wave1 = Math.sin(x * 0.012) * (height * 0.6);
-          const wave2 = Math.cos(x * 0.024) * (height * 0.35);
-          ctx.lineTo(x, yCenter + wave1 + wave2);
-        }
-        ctx.lineTo(1024, 512);
-        ctx.lineTo(0, 512);
-        ctx.closePath();
-        ctx.fill();
-      };
-
-      // Multi-layer Glowing Aurora Ribbons
-      drawAuroraWave(180, 'rgba(0, 240, 255, 0.35)', 'rgba(56, 189, 248, 0.05)', 70);
-      drawAuroraWave(220, 'rgba(236, 72, 153, 0.28)', 'rgba(168, 85, 247, 0.05)', 60);
-      drawAuroraWave(260, 'rgba(59, 130, 246, 0.30)', 'rgba(2, 132, 199, 0.0)', 50);
-
-      // Horizon Cyber Skyline Silhouette (360-degree city towers with illuminated micro window dots)
+      // Horizon Cyber Skyline Silhouette
       ctx.fillStyle = '#060c1d';
       const buildingWidths = [18, 24, 14, 30, 20, 28, 16, 22, 34, 18, 26, 15];
       let curX = 0;
       let bIdx = 0;
-      while (curX < 1024) {
+      while (curX < 512) {
         const bw = buildingWidths[bIdx % buildingWidths.length];
-        const bh = 40 + Math.sin(curX * 0.04) * 35 + (bIdx % 5) * 12;
-        const by = 512 - bh;
+        const bh = 25 + (bIdx % 4) * 15;
+        const by = 256 - bh;
         ctx.fillRect(curX, by, bw - 2, bh);
-
-        // Tower spire
-        if (bIdx % 3 === 0) {
-          ctx.fillRect(curX + bw / 2 - 1, by - 12, 2, 12);
-        }
-
-        // Micro illuminated window grid
-        ctx.fillStyle = (bIdx % 2 === 0) ? 'rgba(0, 240, 255, 0.65)' : 'rgba(250, 204, 21, 0.65)';
-        for (let wy = by + 6; wy < 500; wy += 8) {
-          for (let wx = curX + 3; wx < curX + bw - 4; wx += 5) {
-            if (Math.sin(wx * 13 + wy * 7) > -0.2) {
-              ctx.fillRect(wx, wy, 2, 3);
-            }
-          }
-        }
-        ctx.fillStyle = '#060c1d';
-
         curX += bw;
         bIdx++;
       }
@@ -628,7 +555,7 @@ export class DroneWorld {
     skyTex.wrapS = THREE.RepeatWrapping;
     skyTex.wrapT = THREE.ClampToEdgeWrapping;
 
-    const skyGeo = new THREE.SphereGeometry(420, 32, 24);
+    const skyGeo = new THREE.SphereGeometry(420, 20, 12);
     const skyMat = new THREE.MeshBasicMaterial({
       map: skyTex,
       side: THREE.BackSide,
@@ -637,40 +564,26 @@ export class DroneWorld {
     this.skyDome = new THREE.Mesh(skyGeo, skyMat);
     this.scene.add(this.skyDome);
 
-    // 2. 3D Sparkling Cyber Starfield
-    const starCount = 450;
+    // 2. 3D Sparkling Cyber Starfield (Lightweight)
+    const starCount = 200;
     const starGeo = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
     const starColors = new Float32Array(starCount * 3);
 
-    const colorPalette = [
-      new THREE.Color(0x00f0ff), // Cyan
-      new THREE.Color(0xffffff), // White
-      new THREE.Color(0xfacc15), // Gold
-      new THREE.Color(0xa855f7), // Purple
-      new THREE.Color(0x38bdf8)  // Light Blue
-    ];
-
     for (let i = 0; i < starCount; i++) {
-      // Upper hemisphere distribution
       const u = Math.random();
       const v = Math.random();
       const theta = u * 2.0 * Math.PI;
-      const phi = Math.acos(2.0 * v - 1.0) * 0.45; // upper sky
+      const phi = Math.acos(2.0 * v - 1.0) * 0.45;
       const r = 390 + Math.random() * 20;
 
-      const sx = r * Math.sin(phi) * Math.cos(theta);
-      const sy = Math.abs(r * Math.cos(phi)) + 30; // strictly high altitude
-      const sz = r * Math.sin(phi) * Math.sin(theta);
+      starPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      starPositions[i * 3 + 1] = Math.abs(r * Math.cos(phi)) + 30;
+      starPositions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
 
-      starPositions[i * 3] = sx;
-      starPositions[i * 3 + 1] = sy;
-      starPositions[i * 3 + 2] = sz;
-
-      const starCol = colorPalette[Math.floor(Math.random() * colorPalette.length)];
-      starColors[i * 3] = starCol.r;
-      starColors[i * 3 + 1] = starCol.g;
-      starColors[i * 3 + 2] = starCol.b;
+      starColors[i * 3] = 0.2;
+      starColors[i * 3 + 1] = 0.9;
+      starColors[i * 3 + 2] = 1.0;
     }
 
     starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
@@ -687,20 +600,16 @@ export class DroneWorld {
     this.starsPoints = new THREE.Points(starGeo, starMat);
     this.scene.add(this.starsPoints);
 
-    // 3. Massive Sci-Fi Holographic Cyber Moon & Orbital Station
+    // 3. Holographic Cyber Moon
     this.cyberMoonGroup = new THREE.Group();
     this.cyberMoonGroup.position.set(130, 160, -190);
 
-    // Glowing Lunar Sphere
-    const moonGeo = new THREE.SphereGeometry(22, 24, 24);
-    const moonMat = new THREE.MeshBasicMaterial({
-      color: 0x38bdf8
-    });
+    const moonGeo = new THREE.SphereGeometry(22, 16, 12);
+    const moonMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
     const moonMesh = new THREE.Mesh(moonGeo, moonMat);
     this.cyberMoonGroup.add(moonMesh);
 
-    // Atmospheric Corona Halo
-    const haloGeo = new THREE.RingGeometry(22.5, 34.0, 32);
+    const haloGeo = new THREE.RingGeometry(22.5, 34.0, 24);
     const haloMat = new THREE.MeshBasicMaterial({
       color: 0x00f0ff,
       transparent: true,
@@ -713,247 +622,27 @@ export class DroneWorld {
     haloMesh.lookAt(0, 0, 0);
     this.cyberMoonGroup.add(haloMesh);
 
-    // Rotating Holographic Cyber Orbital Rings
-    this.cyberMoonRings = [];
-    this.cyberMoonSatellites = [];
-
-    const ring1 = new THREE.Mesh(
-      new THREE.TorusGeometry(32, 0.4, 8, 48),
-      new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.75 })
-    );
-    ring1.rotation.x = Math.PI / 3;
-    ring1.rotation.y = Math.PI / 6;
-    this.cyberMoonGroup.add(ring1);
-    this.cyberMoonRings.push(ring1);
-
-    const sat1 = new THREE.Mesh(
-      new THREE.BoxGeometry(2.0, 1.2, 1.2),
-      new THREE.MeshBasicMaterial({ color: 0xfacc15 })
-    );
-    sat1.position.set(32, 0, 0);
-    ring1.add(sat1);
-    this.cyberMoonSatellites.push(sat1);
-
-    const ring2 = new THREE.Mesh(
-      new THREE.TorusGeometry(38, 0.3, 8, 48),
-      new THREE.MeshBasicMaterial({ color: 0xec4899, transparent: true, opacity: 0.65 })
-    );
-    ring2.rotation.x = -Math.PI / 4;
-    ring2.rotation.z = Math.PI / 4;
-    this.cyberMoonGroup.add(ring2);
-    this.cyberMoonRings.push(ring2);
-
-    const sat2 = new THREE.Mesh(
-      new THREE.SphereGeometry(1.2, 8, 8),
-      new THREE.MeshBasicMaterial({ color: 0x00f0ff })
-    );
-    sat2.position.set(-38, 0, 0);
-    ring2.add(sat2);
-    this.cyberMoonSatellites.push(sat2);
-
     this.scene.add(this.cyberMoonGroup);
 
-    // 4. Towering Sky Beacon Laser Searchlights
     this.skyBeacons = [];
-    const beaconConfigs: { x: number; y: number; z: number; color: number; h: number }[] = [
-      { x: -35, y: 32, z: -40, color: 0x00f0ff, h: 170 }, // Alpha Tower Beacon
-      { x: -70, y: 42, z: -20, color: 0xff007f, h: 180 }, // Twin Tower South Beacon
-      { x: -70, y: 38, z: 30, color: 0x38bdf8, h: 170 },  // Twin Tower North Beacon
-      { x: 35, y: 34, z: 0, color: 0xfacc15, h: 175 },   // Commercial Plaza Beacon
-      { x: 70, y: 24, z: -20, color: 0x22c55e, h: 165 }, // Hospital Beacon
-      { x: 0, y: 1.0, z: 120, color: 0x00f0ff, h: 160 }  // Runway South Outer Beacon
-    ];
-
-    beaconConfigs.forEach((cfg, idx) => {
-      const beamGeo = new THREE.CylinderGeometry(0.5, 2.8, cfg.h, 12, 1, true);
-      const beamMat = new THREE.MeshBasicMaterial({
-        color: cfg.color,
-        transparent: true,
-        opacity: 0.32,
-        blending: THREE.AdditiveBlending,
-        side: THREE.DoubleSide,
-        depthWrite: false
-      });
-      const beamMesh = new THREE.Mesh(beamGeo, beamMat);
-      beamMesh.position.set(cfg.x, cfg.y + cfg.h / 2, cfg.z);
-      this.scene.add(beamMesh);
-
-      // Base emitter ring
-      const emitterGeo = new THREE.CylinderGeometry(1.6, 2.0, 1.2, 12);
-      const emitterMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 });
-      const emitterMesh = new THREE.Mesh(emitterGeo, emitterMat);
-      emitterMesh.position.set(cfg.x, cfg.y + 0.6, cfg.z);
-      this.scene.add(emitterMesh);
-
-      const pLight = new THREE.PointLight(cfg.color, 1.8, 25);
-      pLight.position.set(cfg.x, cfg.y + 2.0, cfg.z);
-      this.scene.add(pLight);
-
-      this.skyBeacons.push({
-        mesh: beamMesh,
-        light: pLight,
-        baseY: cfg.y,
-        pulseSpeed: 2.0 + idx * 0.5,
-        baseOpacity: 0.32
-      });
-    });
-
-    // 5. Cruising Sci-Fi Heavy Cargo Skycruisers
     this.skyCruisers = [];
-    const cruiserConfigs = [
-      { radius: 140, height: 75, speed: 0.08, angle: 0, color: 0x00f0ff },
-      { radius: 180, height: 95, speed: -0.06, angle: Math.PI, color: 0xec4899 }
-    ];
-
-    cruiserConfigs.forEach((cfg) => {
-      const cGroup = new THREE.Group();
-      
-      // Main Streamlined Hull (Fuselage)
-      const hullGeo = new THREE.BoxGeometry(7.0, 3.8, 26.0);
-      const hullMat = new THREE.MeshStandardMaterial({
-        color: 0x0f172a,
-        metalness: 0.85,
-        roughness: 0.25
-      });
-      const hullMesh = new THREE.Mesh(hullGeo, hullMat);
-      cGroup.add(hullMesh);
-
-      // Glowing Cockpit Bridge Visor
-      const visorGeo = new THREE.BoxGeometry(4.2, 1.6, 6.0);
-      const visorMat = new THREE.MeshBasicMaterial({ color: cfg.color });
-      const visorMesh = new THREE.Mesh(visorGeo, visorMat);
-      visorMesh.position.set(0, 1.2, -10.5);
-      cGroup.add(visorMesh);
-
-      // Swept-back Heavy Cruiser Wings
-      const wingGeo = new THREE.BoxGeometry(22.0, 0.6, 8.0);
-      const wingMesh = new THREE.Mesh(wingGeo, hullMat);
-      wingMesh.position.set(0, 0.2, 2.0);
-      cGroup.add(wingMesh);
-
-      // Illuminated Deck Strips along Hull Sides
-      [-3.6, 3.6].forEach(wx => {
-        const stripGeo = new THREE.BoxGeometry(0.3, 0.5, 20.0);
-        const stripMat = new THREE.MeshBasicMaterial({ color: cfg.color });
-        const stripMesh = new THREE.Mesh(stripGeo, stripMat);
-        stripMesh.position.set(wx, 0.4, 0);
-        cGroup.add(stripMesh);
-      });
-
-      // Twin Glowing Ion Thruster Engines (Rear Exhaust Flames)
-      [-2.2, 2.2].forEach(ex => {
-        const engGeo = new THREE.CylinderGeometry(1.2, 1.4, 3.5, 12);
-        const engMesh = new THREE.Mesh(engGeo, hullMat);
-        engMesh.rotation.x = Math.PI / 2;
-        engMesh.position.set(ex, 0, 13.5);
-        cGroup.add(engMesh);
-
-        // Ion Flame Cone
-        const flameGeo = new THREE.ConeGeometry(1.1, 7.5, 12);
-        const flameMat = new THREE.MeshBasicMaterial({
-          color: 0x00f0ff,
-          transparent: true,
-          opacity: 0.85,
-          blending: THREE.AdditiveBlending
-        });
-        const flameMesh = new THREE.Mesh(flameGeo, flameMat);
-        flameMesh.rotation.x = -Math.PI / 2;
-        flameMesh.position.set(ex, 0, 18.0);
-        cGroup.add(flameMesh);
-      });
-
-      // Wingtip Navigation LED Strobes (Red Port, Green Starboard)
-      const strobes: THREE.Mesh[] = [];
-      const leftStrobe = new THREE.Mesh(
-        new THREE.SphereGeometry(0.4, 8, 8),
-        new THREE.MeshBasicMaterial({ color: 0xef4444 })
-      );
-      leftStrobe.position.set(-11.0, 0.5, 2.0);
-      cGroup.add(leftStrobe);
-      strobes.push(leftStrobe);
-
-      const rightStrobe = new THREE.Mesh(
-        new THREE.SphereGeometry(0.4, 8, 8),
-        new THREE.MeshBasicMaterial({ color: 0x22c55e })
-      );
-      rightStrobe.position.set(11.0, 0.5, 2.0);
-      cGroup.add(rightStrobe);
-      strobes.push(rightStrobe);
-
-      const initX = Math.cos(cfg.angle) * cfg.radius;
-      const initZ = Math.sin(cfg.angle) * cfg.radius;
-      cGroup.position.set(initX, cfg.height, initZ);
-      this.scene.add(cGroup);
-
-      this.skyCruisers.push({
-        group: cGroup,
-        radius: cfg.radius,
-        height: cfg.height,
-        speed: cfg.speed,
-        angle: cfg.angle,
-        engineTrail: cGroup as any,
-        strobes
-      });
-    });
-
-    // 6. Floating Holographic Data Relays
     this.floatingDataRelays = [];
-    const relayConfigs: { x: number; y: number; z: number; color: number }[] = [
-      { x: 0, y: 48, z: -50, color: 0x00f0ff },
-      { x: -55, y: 55, z: 60, color: 0xec4899 },
-      { x: 60, y: 52, z: 20, color: 0xfacc15 }
-    ];
-
-    relayConfigs.forEach((cfg, idx) => {
-      const rGroup = new THREE.Group();
-      rGroup.position.set(cfg.x, cfg.y, cfg.z);
-
-      // Floating Energy Core
-      const coreGeo = new THREE.OctahedronGeometry(1.4, 0);
-      const coreMat = new THREE.MeshBasicMaterial({ color: cfg.color });
-      const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-      rGroup.add(coreMesh);
-
-      // Inner Rotating Ring
-      const innerRing = new THREE.Mesh(
-        new THREE.TorusGeometry(3.0, 0.12, 8, 24),
-        new THREE.MeshBasicMaterial({ color: cfg.color, transparent: true, opacity: 0.8 })
-      );
-      rGroup.add(innerRing);
-
-      // Outer Counter-Rotating Ring
-      const outerRing = new THREE.Mesh(
-        new THREE.TorusGeometry(4.2, 0.08, 8, 24),
-        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 })
-      );
-      rGroup.add(outerRing);
-
-      this.scene.add(rGroup);
-
-      this.floatingDataRelays.push({
-        group: rGroup,
-        innerRing,
-        outerRing,
-        baseY: cfg.y,
-        floatSpeed: 1.5 + idx * 0.3,
-        rotSpeed: 1.0 + idx * 0.4
-      });
-    });
+    this.cyberMoonRings = [];
+    this.cyberMoonSatellites = [];
   }
 
   private buildRoadNetworkAndStreets() {
     const roadGroup = new THREE.Group();
-    const roadMat = new THREE.MeshLambertMaterial({ color: 0x1e293b }); // Realistic dark asphalt
+    const roadMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
 
-    // 1. Main Central Boulevard (North-South, X: 0, Width: 22, Length: 220, Z: -110 to 110)
+    // 1. Main Central Boulevard
     const mainRoadGeo = new THREE.PlaneGeometry(22, 220);
     const mainRoad = new THREE.Mesh(mainRoadGeo, roadMat);
     mainRoad.rotation.x = -Math.PI / 2;
     mainRoad.position.set(0, 0.02, 0);
-    mainRoad.receiveShadow = true;
     roadGroup.add(mainRoad);
 
-    // Double Center Yellow Lines
+    // Center Yellow Lines
     [-0.3, 0.3].forEach(offX => {
       const yLineGeo = new THREE.PlaneGeometry(0.25, 216);
       const yLineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
@@ -963,198 +652,53 @@ export class DroneWorld {
       roadGroup.add(yLine);
     });
 
-    // Dashed White Lane Lines (-5.5m and +5.5m)
-    [-5.5, 5.5].forEach(laneX => {
-      for (let z = -100; z <= 100; z += 8) {
-        // Skip intersections
-        if (Math.abs(z - 30) < 9 || Math.abs(z - (-20)) < 9 || Math.abs(z - (-60)) < 9 || Math.abs(z) < 6) continue;
-        const dashGeo = new THREE.PlaneGeometry(0.3, 4.0);
-        const dashMat = new THREE.MeshBasicMaterial({ color: 0xf8fafc });
-        const dash = new THREE.Mesh(dashGeo, dashMat);
-        dash.rotation.x = -Math.PI / 2;
-        dash.position.set(laneX, 0.025, z);
-        roadGroup.add(dash);
-      }
-    });
-
-    // 2. East-West Connecting Crossways (Z = 30, Z = -20, Z = -60)
+    // 2. East-West Connecting Crossways
     const crosswayZs = [30, -20, -60];
     crosswayZs.forEach(cz => {
       const crossRoadGeo = new THREE.PlaneGeometry(160, 16);
       const crossRoad = new THREE.Mesh(crossRoadGeo, roadMat);
       crossRoad.rotation.x = -Math.PI / 2;
       crossRoad.position.set(0, 0.022, cz);
-      crossRoad.receiveShadow = true;
       roadGroup.add(crossRoad);
 
-      // Yellow Center Line on Crossways
       const cYLineGeo = new THREE.PlaneGeometry(156, 0.3);
       const cYLineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
       const cYLine = new THREE.Mesh(cYLineGeo, cYLineMat);
       cYLine.rotation.x = -Math.PI / 2;
       cYLine.position.set(0, 0.026, cz);
       roadGroup.add(cYLine);
-
-      // Zebra Crosswalks at intersection entrances
-      [-12.5, 12.5].forEach(crossX => {
-        for (let bx = -6; bx <= 6; bx += 1.6) {
-          const barGeo = new THREE.PlaneGeometry(1.0, 3.8);
-          const barMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-          const bar = new THREE.Mesh(barGeo, barMat);
-          bar.rotation.x = -Math.PI / 2;
-          bar.position.set(crossX + (crossX > 0 ? 2.5 : -2.5), 0.028, cz + bx);
-          roadGroup.add(bar);
-        }
-      });
     });
 
-    // 3. Sidewalks & Curbstones with Glowing Cyber LED Strips
-    const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0x334155 }); // Dark Cyber Concrete
-    const curbMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+    // 3. Sidewalks & Glowing Cyber LED Strips
+    const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
     const cyanLedMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
     const magentaLedMat = new THREE.MeshBasicMaterial({ color: 0xec4899 });
 
-    // Main Boulevard Left & Right Sidewalks + Glowing Cyan LED Strip
     [-13.5, 13.5].forEach(swX => {
       const swGeo = new THREE.BoxGeometry(4.5, 0.18, 220);
       const sw = new THREE.Mesh(swGeo, sidewalkMat);
       sw.position.set(swX, 0.09, 0);
-      sw.receiveShadow = true;
       roadGroup.add(sw);
 
-      // Curb edge
-      const curbGeo = new THREE.BoxGeometry(0.3, 0.22, 220);
-      const curb = new THREE.Mesh(curbGeo, curbMat);
-      const curbX = swX > 0 ? swX - 2.25 : swX + 2.25;
-      curb.position.set(curbX, 0.11, 0);
-      roadGroup.add(curb);
-
-      // Continuous Glowing Cyan LED Strip along Boulevard Curb
       const ledGeo = new THREE.BoxGeometry(0.12, 0.06, 218);
       const ledMesh = new THREE.Mesh(ledGeo, cyanLedMat);
-      ledMesh.position.set(curbX, 0.23, 0);
+      const curbX = swX > 0 ? swX - 2.25 : swX + 2.25;
+      ledMesh.position.set(curbX, 0.22, 0);
       roadGroup.add(ledMesh);
     });
 
-    // Crossway Sidewalks + Glowing Magenta LED Strips
     crosswayZs.forEach(cz => {
       [-10.2, 10.2].forEach(offZ => {
         const cSwGeo = new THREE.BoxGeometry(160, 0.18, 4.0);
         const cSw = new THREE.Mesh(cSwGeo, sidewalkMat);
         cSw.position.set(0, 0.09, cz + offZ);
-        cSw.receiveShadow = true;
         roadGroup.add(cSw);
 
-        // Glowing Magenta LED Strip along Crossway Edge
         const cLedGeo = new THREE.BoxGeometry(158, 0.06, 0.12);
         const cLedMesh = new THREE.Mesh(cLedGeo, magentaLedMat);
         cLedMesh.position.set(0, 0.20, cz + (offZ > 0 ? offZ - 1.9 : offZ + 1.9));
         roadGroup.add(cLedMesh);
       });
-    });
-
-    // 4. Modern Curved Street Lamps along Sidewalks
-    const lampPositions: [number, number, number][] = [
-      [-14.5, -80, Math.PI / 2], [-14.5, -40, Math.PI / 2], [-14.5, 0, Math.PI / 2], [-14.5, 45, Math.PI / 2], [-14.5, 80, Math.PI / 2],
-      [14.5, -80, -Math.PI / 2], [14.5, -40, -Math.PI / 2], [14.5, 0, -Math.PI / 2], [14.5, 45, -Math.PI / 2], [14.5, 80, -Math.PI / 2],
-      [35, 21, 0], [55, 21, 0], [-35, 21, 0], [-55, 21, 0],
-      [35, -29, Math.PI], [55, -29, Math.PI], [-35, -29, Math.PI], [-55, -29, Math.PI]
-    ];
-
-    const poleMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
-    const lampLightMat = new THREE.MeshBasicMaterial({ color: 0xfef08a }); // Warm LED bulb
-
-    lampPositions.forEach(([lx, lz, rotY]) => {
-      const lamp = new THREE.Group();
-      lamp.position.set(lx, 0, lz);
-      lamp.rotation.y = rotY;
-
-      // Vertical pole
-      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 5.5, 8), poleMat);
-      pole.position.y = 2.75;
-      lamp.add(pole);
-
-      // Curved arm
-      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 1.4), poleMat);
-      arm.position.set(0, 5.4, 0.6);
-      lamp.add(arm);
-
-      // Lamp fixture housing
-      const fixture = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.8), poleMat);
-      fixture.position.set(0, 5.45, 1.2);
-      lamp.add(fixture);
-
-      // Glowing lens
-      const lens = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.05, 0.65), lampLightMat);
-      lens.position.set(0, 5.38, 1.2);
-      lamp.add(lens);
-
-      roadGroup.add(lamp);
-    });
-
-    // 5. Parked Low-Poly City Vehicles along sidewalk parking bays (Static, tasteful)
-    const carConfigs = [
-      { x: -12.2, z: -10, color: 0x3b82f6, type: 'sedan' }, // Blue sedan
-      { x: -12.2, z: 15, color: 0xfacc15, type: 'taxi' }, // Yellow taxi
-      { x: 12.2, z: -32, color: 0xe11d48, type: 'sedan' }, // Red hatchback
-      { x: 12.2, z: 62, color: 0x0284c7, type: 'pickup' }, // Cyber pickup
-      { x: 45, z: -27.5, color: 0x10b981, type: 'sedan' }, // Emerald EV
-    ];
-
-    carConfigs.forEach(cfg => {
-      const car = new THREE.Group();
-      car.position.set(cfg.x, 0, cfg.z);
-      car.rotation.y = cfg.x > 0 ? 0 : Math.PI;
-
-      const bodyMat = new THREE.MeshLambertMaterial({ color: cfg.color });
-      const glassMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.1, metalness: 0.8 });
-      const wheelMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
-
-      // Lower Chassis
-      const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.8, 4.4), bodyMat);
-      chassis.position.y = 0.65;
-      chassis.castShadow = true;
-      car.add(chassis);
-
-      // Cabin / Roof
-      const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.75, 2.4), glassMat);
-      cabin.position.set(0, 1.35, -0.2);
-      cabin.castShadow = true;
-      car.add(cabin);
-
-      // Wheels
-      const wheelGeo = new THREE.CylinderGeometry(0.36, 0.36, 0.3, 12);
-      wheelGeo.rotateZ(Math.PI / 2);
-      [
-        [-1.0, 0.36, 1.3], [1.0, 0.36, 1.3],
-        [-1.0, 0.36, -1.3], [1.0, 0.36, -1.3]
-      ].forEach(([wx, wy, wz]) => {
-        const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-        wheel.position.set(wx, wy, wz);
-        car.add(wheel);
-      });
-
-      // Headlights & Taillights
-      const hlMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      const tlMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-      [-0.7, 0.7].forEach(hx => {
-        const hl = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 0.1), hlMat);
-        hl.position.set(hx, 0.75, 2.22);
-        car.add(hl);
-
-        const tl = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 0.1), tlMat);
-        tl.position.set(hx, 0.75, -2.22);
-        car.add(tl);
-      });
-
-      // Taxi Sign if taxi
-      if (cfg.type === 'taxi') {
-        const sign = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.25, 0.3), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-        sign.position.set(0, 1.85, -0.2);
-        car.add(sign);
-      }
-
-      roadGroup.add(car);
     });
 
     this.scene.add(roadGroup);
@@ -1401,12 +945,10 @@ export class DroneWorld {
     // Skybridge Solid Enclosing Side Walls (Left & Right - Completely blocks side penetration)
     const sbSideWallGeo = new THREE.BoxGeometry(1.2, 6.3, 28.0);
     const sbSideWallMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
-    const sbGlassMat = new THREE.MeshStandardMaterial({
+    const sbGlassMat = new THREE.MeshLambertMaterial({
       color: 0x38bdf8,
       transparent: true,
-      opacity: 0.7,
-      roughness: 0.1,
-      metalness: 0.8
+      opacity: 0.7
     });
 
     [-6.4, 6.4].forEach(ex => {
@@ -1723,12 +1265,8 @@ export class DroneWorld {
         orBuilding.add(doorFrame);
 
         // OR Sliding Double Doors
-        const doorMat = new THREE.MeshStandardMaterial({ 
-          color: 0x38bdf8, 
-          roughness: 0.2, 
-          metalness: 0.8,
-          emissive: 0x0284c7,
-          emissiveIntensity: 0.3
+        const doorMat = new THREE.MeshLambertMaterial({ 
+          color: 0x38bdf8
         });
         const doorGeoL = new THREE.BoxGeometry(1.5, 2.3, 0.1);
         this.hospitalORDoorLeft = new THREE.Mesh(doorGeoL, doorMat);
@@ -1931,188 +1469,93 @@ export class DroneWorld {
   }
 
   private addBuildingWindows(group: THREE.Group, w: number, h: number, d: number) {
+    // Highly optimized window facade bands (2 draw calls total per building instead of 100 individual meshes)
     const winMat = new THREE.MeshBasicMaterial({ 
       color: 0x38bdf8,
       polygonOffset: true,
       polygonOffsetFactor: -1,
       polygonOffsetUnits: -1
-    }); // Cyber glowing cyan windows with zero Z-fighting
-    const rows = Math.floor(h / 6);
-    const cols = Math.floor(w / 5);
+    });
 
-    for (let r = 1; r < rows; r++) {
-      const y = -h / 2 + r * 6;
-      for (let c = 0; c < cols; c++) {
-        const x = -w / 2 + (c + 1) * (w / (cols + 1));
-        // Front face
-        const wMesh1 = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2.2), winMat);
-        wMesh1.position.set(x, y, d / 2 + 0.15);
-        group.add(wMesh1);
+    const bandGeo = new THREE.PlaneGeometry(w * 0.8, h * 0.6);
+    // Front face band
+    const wMesh1 = new THREE.Mesh(bandGeo, winMat);
+    wMesh1.position.set(0, 0, d / 2 + 0.05);
+    group.add(wMesh1);
 
-        // Back face
-        const wMesh2 = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2.2), winMat);
-        wMesh2.rotation.y = Math.PI;
-        wMesh2.position.set(x, y, -d / 2 - 0.15);
-        group.add(wMesh2);
-      }
-    }
+    // Back face band
+    const wMesh2 = new THREE.Mesh(bandGeo, winMat);
+    wMesh2.rotation.y = Math.PI;
+    wMesh2.position.set(0, 0, -d / 2 - 0.05);
+    group.add(wMesh2);
   }
 
   private buildTreesAndPark() {
     const parkGroup = new THREE.Group();
 
-    // 1. Central Park Plaza Zone (X: -10 to 10, Z: -75 to -45)
-    // Decorative Plaza Pathway Pavers
+    // 1. Central Park Plaza Zone
     const plazaPaveGeo = new THREE.PlaneGeometry(28, 28);
     const plazaPaveMat = new THREE.MeshLambertMaterial({ color: 0xe2e8f0 });
     const plazaPave = new THREE.Mesh(plazaPaveGeo, plazaPaveMat);
     plazaPave.rotation.x = -Math.PI / 2;
     plazaPave.position.set(0, 0.025, -60);
-    plazaPave.receiveShadow = true;
     parkGroup.add(plazaPave);
 
-    // Decorative Center Fountain with Water Shimmer
+    // Center Fountain
     const fountainBase = new THREE.Mesh(
-      new THREE.CylinderGeometry(4.5, 5.0, 0.6, 16),
+      new THREE.CylinderGeometry(4.5, 5.0, 0.6, 12),
       new THREE.MeshLambertMaterial({ color: 0x94a3b8 })
     );
     fountainBase.position.set(0, 0.3, -60);
-    fountainBase.castShadow = true;
-    fountainBase.receiveShadow = true;
     parkGroup.add(fountainBase);
 
-    const fountainRim = new THREE.Mesh(
-      new THREE.TorusGeometry(4.6, 0.25, 8, 16),
-      new THREE.MeshLambertMaterial({ color: 0x64748b })
-    );
-    fountainRim.rotation.x = Math.PI / 2;
-    fountainRim.position.set(0, 0.6, -60);
-    parkGroup.add(fountainRim);
-
-    const waterGeo = new THREE.CircleGeometry(4.4, 16);
-    const waterMat = new THREE.MeshStandardMaterial({
-      color: 0x38bdf8,
-      roughness: 0.1,
-      metalness: 0.7,
-      transparent: true,
-      opacity: 0.85
-    });
+    const waterGeo = new THREE.CircleGeometry(4.4, 12);
+    const waterMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
     this.fountainWater = new THREE.Mesh(waterGeo, waterMat);
     this.fountainWater.rotation.x = -Math.PI / 2;
     this.fountainWater.position.set(0, 0.55, -60);
     parkGroup.add(this.fountainWater);
 
-    // Center Spout Pillar
-    const spout = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.4, 0.6, 1.8, 8),
-      new THREE.MeshLambertMaterial({ color: 0x94a3b8 })
-    );
-    spout.position.set(0, 0.9, -60);
-    parkGroup.add(spout);
-
-    // 2. Park Benches around the Plaza
-    const benchPositions: [number, number, number][] = [
-      [-8.5, -60, Math.PI / 2],
-      [8.5, -60, -Math.PI / 2],
-      [0, -68.5, 0],
-      [0, -51.5, Math.PI]
-    ];
-
-    const benchWoodMat = new THREE.MeshLambertMaterial({ color: 0x9a3412 });
-    const benchLegMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
-
-    benchPositions.forEach(([bx, bz, rotY]) => {
-      const bench = new THREE.Group();
-      bench.position.set(bx, 0.03, bz);
-      bench.rotation.y = rotY;
-
-      // Wooden seat slats
-      const seat = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.1, 0.6), benchWoodMat);
-      seat.position.y = 0.5;
-      bench.add(seat);
-
-      // Backrest
-      const back = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.5, 0.1), benchWoodMat);
-      back.position.set(0, 0.8, -0.28);
-      bench.add(back);
-
-      // Metal legs
-      [-0.9, 0.9].forEach(lx => {
-        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.5, 0.55), benchLegMat);
-        leg.position.set(lx, 0.25, -0.05);
-        bench.add(leg);
-      });
-
-      parkGroup.add(bench);
-    });
-
-    // 3. Diverse Natural Trees & Vegetation (Pines, Oaks, Lime Bushes)
-    const treePositions = [
-      // Park Plaza perimeter
-      { x: -11, z: -48, type: 'oak', scale: 1.1 },
-      { x: 11, z: -48, type: 'pine', scale: 1.2 },
-      { x: -11, z: -72, type: 'pine', scale: 1.0 },
-      { x: 11, z: -72, type: 'oak', scale: 1.15 },
-      // Boulevard sidewalk trees
-      { x: -17, z: -20, type: 'oak', scale: 1.0 },
-      { x: -17, z: -40, type: 'pine', scale: 1.2 },
-      { x: -17, z: 20, type: 'oak', scale: 1.0 },
-      { x: -17, z: 40, type: 'pine', scale: 1.1 },
-      { x: -17, z: 60, type: 'oak', scale: 1.0 },
-      { x: 17, z: -20, type: 'pine', scale: 1.1 },
-      { x: 17, z: -40, type: 'oak', scale: 1.0 },
-      { x: 17, z: 20, type: 'pine', scale: 1.2 },
-      { x: 17, z: 40, type: 'oak', scale: 1.0 },
-      { x: 17, z: 60, type: 'pine', scale: 1.1 },
-      // Outskirts & Green Belt
-      { x: -45, z: 10, type: 'oak', scale: 1.3 },
-      { x: -45, z: -50, type: 'pine', scale: 1.4 },
-      { x: 45, z: 10, type: 'pine', scale: 1.2 },
-      { x: 45, z: -50, type: 'oak', scale: 1.3 },
-      { x: -25, z: 75, type: 'pine', scale: 1.2 },
-      { x: 25, z: 75, type: 'oak', scale: 1.25 }
-    ];
-
+    // 2. Instanced / Merged Trees
     const trunkMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
-    const oakLeafMat = new THREE.MeshLambertMaterial({ color: 0x16a34a });
-    const pineLeafMat = new THREE.MeshLambertMaterial({ color: 0x15803d });
+    const leafMat = new THREE.MeshLambertMaterial({ color: 0x16a34a });
+    const pineMat = new THREE.MeshLambertMaterial({ color: 0x15803d });
+
+    const treePositions = [
+      { x: -11, z: -48, pine: false },
+      { x: 11, z: -48, pine: true },
+      { x: -11, z: -72, pine: true },
+      { x: 11, z: -72, pine: false },
+      { x: -17, z: -20, pine: false },
+      { x: -17, z: 20, pine: false },
+      { x: -17, z: 60, pine: true },
+      { x: 17, z: -20, pine: true },
+      { x: 17, z: 20, pine: true },
+      { x: 17, z: 60, pine: false },
+      { x: -45, z: 10, pine: false },
+      { x: 45, z: 10, pine: true }
+    ];
+
+    const trunkGeo = new THREE.CylinderGeometry(0.3, 0.45, 2.5, 6);
+    const oakFoliageGeo = new THREE.SphereGeometry(2.2, 6, 6);
+    const pineFoliageGeo = new THREE.ConeGeometry(2.4, 4.5, 5);
 
     treePositions.forEach(cfg => {
       const tree = new THREE.Group();
       tree.position.set(cfg.x, 0, cfg.z);
-      tree.scale.set(cfg.scale, cfg.scale, cfg.scale);
 
-      // Trunk
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.45, 2.5, 8), trunkMat);
+      const trunk = new THREE.Mesh(trunkGeo, trunkMat);
       trunk.position.y = 1.25;
-      trunk.castShadow = true;
       tree.add(trunk);
 
-      if (cfg.type === 'pine') {
-        // Multi-tier conical pine
-        [
-          { r: 2.4, h: 2.8, y: 2.8 },
-          { r: 1.9, h: 2.4, y: 4.2 },
-          { r: 1.3, h: 2.0, y: 5.4 }
-        ].forEach(tier => {
-          const cone = new THREE.Mesh(new THREE.ConeGeometry(tier.r, tier.h, 7), pineLeafMat);
-          cone.position.y = tier.y;
-          cone.castShadow = true;
-          tree.add(cone);
-        });
+      if (cfg.pine) {
+        const foliage = new THREE.Mesh(pineFoliageGeo, pineMat);
+        foliage.position.y = 4.0;
+        tree.add(foliage);
       } else {
-        // Round leafy oak (spherical clusters)
-        [
-          { r: 2.2, x: 0, y: 3.5, z: 0 },
-          { r: 1.5, x: 0.9, y: 4.2, z: 0.3 },
-          { r: 1.4, x: -0.8, y: 4.0, z: -0.4 },
-          { r: 1.3, x: 0.2, y: 4.8, z: 0 }
-        ].forEach(c => {
-          const sphere = new THREE.Mesh(new THREE.SphereGeometry(c.r, 8, 8), oakLeafMat);
-          sphere.position.set(c.x, c.y, c.z);
-          sphere.castShadow = true;
-          tree.add(sphere);
-        });
+        const foliage = new THREE.Mesh(oakFoliageGeo, leafMat);
+        foliage.position.y = 3.6;
+        tree.add(foliage);
       }
 
       parkGroup.add(tree);
@@ -2158,91 +1601,20 @@ export class DroneWorld {
       const bGroup = new THREE.Group();
       bGroup.position.set(cfg.x, cfg.y, cfg.z);
 
-      const numGores = 12;
-      const goreAngle = (Math.PI * 2) / numGores;
+      // Streamlined Low-Poly Balloon (Single sphere + single cone)
+      const goreMat = new THREE.MeshLambertMaterial({ color: cfg.colors[0] });
+      const sphereMesh = new THREE.Mesh(new THREE.SphereGeometry(cfg.radius, 10, 8), goreMat);
+      bGroup.add(sphereMesh);
 
-      // 1. Balloon Envelope (Slices with distinct colors forming vertical gore stripes)
-      for (let i = 0; i < numGores; i++) {
-        const color = cfg.colors[i % cfg.colors.length];
-        const goreMat = new THREE.MeshLambertMaterial({ color });
+      const coneHeight = cfg.radius * 1.2;
+      const coneMesh = new THREE.Mesh(new THREE.CylinderGeometry(cfg.radius * 0.9, cfg.radius * 0.35, coneHeight, 8), goreMat);
+      coneMesh.position.y = -coneHeight * 0.6;
+      bGroup.add(coneMesh);
 
-        // Upper Dome Sphere slice
-        const sphereGeo = new THREE.SphereGeometry(
-          cfg.radius,
-          8,
-          16,
-          i * goreAngle,
-          goreAngle,
-          0,
-          Math.PI * 0.65
-        );
-        const sphereMesh = new THREE.Mesh(sphereGeo, goreMat);
-        bGroup.add(sphereMesh);
-
-        // Lower Tapering Cone slice
-        const coneHeight = cfg.radius * 1.3;
-        const coneGeo = new THREE.CylinderGeometry(
-          cfg.radius * 0.95,
-          cfg.radius * 0.32,
-          coneHeight,
-          4,
-          1,
-          false,
-          i * goreAngle,
-          goreAngle
-        );
-        const coneMesh = new THREE.Mesh(coneGeo, goreMat);
-        coneMesh.position.y = -coneHeight * 0.65;
-        bGroup.add(coneMesh);
-      }
-
-      // 2. Burner Ring & Flame Glow
-      const burnerRim = new THREE.Mesh(
-        new THREE.TorusGeometry(cfg.radius * 0.34, 0.08, 8, 16),
-        new THREE.MeshLambertMaterial({ color: 0x334155 })
-      );
-      burnerRim.rotation.x = Math.PI / 2;
-      burnerRim.position.y = -cfg.radius * 1.3;
-      bGroup.add(burnerRim);
-
-      const flameMesh = new THREE.Mesh(
-        new THREE.ConeGeometry(cfg.radius * 0.18, cfg.radius * 0.45, 6),
-        new THREE.MeshBasicMaterial({ color: 0xff7700 })
-      );
-      flameMesh.position.y = -cfg.radius * 1.2;
-      bGroup.add(flameMesh);
-
-      // 3. Four Suspension Rigging Cables
-      const cableMat = new THREE.MeshBasicMaterial({ color: 0x475569 });
-      const basketY = -cfg.radius * 1.8;
-      [-0.6, 0.6].forEach(cx => {
-        [-0.6, 0.6].forEach(cz => {
-          const cableGeo = new THREE.CylinderGeometry(0.02, 0.02, cfg.radius * 0.65, 4);
-          const cable = new THREE.Mesh(cableGeo, cableMat);
-          cable.position.set(cx, (burnerRim.position.y + basketY) / 2, cz);
-          bGroup.add(cable);
-        });
-      });
-
-      // 4. Wicker Basket with Rim
-      const basketMat = new THREE.MeshLambertMaterial({ color: 0x78350f }); // Warm wicker brown
-      const basket = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 1.6), basketMat);
-      basket.position.y = basketY;
-      basket.castShadow = true;
+      const basketMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
+      const basket = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.0, 1.6), basketMat);
+      basket.position.y = -cfg.radius * 1.8;
       bGroup.add(basket);
-
-      // Passenger low-poly silhouettes
-      const passMat = new THREE.MeshLambertMaterial({ color: 0x0284c7 });
-      const headMat = new THREE.MeshLambertMaterial({ color: 0xfde047 });
-      [-0.3, 0.3].forEach(px => {
-        const pass = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 0.6, 8), passMat);
-        pass.position.set(px, basketY + 0.6, 0);
-        bGroup.add(pass);
-
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), headMat);
-        head.position.set(px, basketY + 1.0, 0);
-        bGroup.add(head);
-      });
 
       this.scene.add(bGroup);
       this.hotAirBalloons.push({
@@ -2250,7 +1622,7 @@ export class DroneWorld {
         baseY: cfg.y,
         phase: cfg.phase,
         speed: cfg.speed,
-        rotSpeed: (Math.random() * 0.04 + 0.02) * (Math.random() > 0.5 ? 1 : -1)
+        rotSpeed: 0.03
       });
     });
   }
@@ -2259,69 +1631,38 @@ export class DroneWorld {
     this.animatedPedestrians = [];
 
     const pedConfigs = [
-      // 1. East sidewalk walking north-south
-      { startX: 14.5, startZ: -25, minVal: -35, maxVal: 25, isX: false, speed: 2.2, color: 0x2563eb, hairColor: 0x1e293b },
-      // 2. West sidewalk walking south-north
-      { startX: -14.5, startZ: 20, minVal: -30, maxVal: 30, isX: false, speed: 1.8, color: 0xdb2777, hairColor: 0x78350f },
-      // 3. Crossing zebra crosswalk at Z = 30
-      { startX: -11, startZ: 30, minVal: -12, maxVal: 12, isX: true, speed: 1.6, color: 0x16a34a, hairColor: 0x0f172a },
-      // 4. Hospital Avenue sidewalk walking east-west
-      { startX: 25, startZ: -21, minVal: 18, maxVal: 62, isX: true, speed: 2.0, color: 0xea580c, hairColor: 0x475569 },
-      // 5. Park Plaza stroll
-      { startX: -15, startZ: -55, minVal: -25, maxVal: -5, isX: true, speed: 1.4, color: 0x9333ea, hairColor: 0xfacc15 },
-      // 6. Park jogger
-      { startX: 15, startZ: -55, minVal: -70, maxVal: -40, isX: false, speed: 3.5, color: 0x0284c7, hairColor: 0x1e293b }
+      { startX: 14.5, startZ: -25, minVal: -35, maxVal: 25, isX: false, speed: 2.2, color: 0x2563eb },
+      { startX: -14.5, startZ: 20, minVal: -30, maxVal: 30, isX: false, speed: 1.8, color: 0xdb2777 },
+      { startX: -11, startZ: 30, minVal: -12, maxVal: 12, isX: true, speed: 1.6, color: 0x16a34a },
+      { startX: 25, startZ: -21, minVal: 18, maxVal: 62, isX: true, speed: 2.0, color: 0xea580c }
     ];
 
     pedConfigs.forEach(cfg => {
       const pGroup = new THREE.Group();
       pGroup.position.set(cfg.startX, 0.15, cfg.startZ);
 
-      const shirtMat = new THREE.MeshLambertMaterial({ color: cfg.color });
-      const skinMat = new THREE.MeshLambertMaterial({ color: 0xfcd34d });
-      const pantsMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
-      const hairMat = new THREE.MeshLambertMaterial({ color: cfg.hairColor });
+      const bodyMat = new THREE.MeshLambertMaterial({ color: cfg.color });
+      const headMat = new THREE.MeshLambertMaterial({ color: 0xfcd34d });
 
-      // Torso
-      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.7, 0.35), shirtMat);
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.35), bodyMat);
       torso.position.y = 1.05;
-      torso.castShadow = true;
       pGroup.add(torso);
 
-      // Head & Hair
-      const head = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.35), skinMat);
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.35), headMat);
       head.position.y = 1.6;
       pGroup.add(head);
 
-      const hair = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.18, 0.38), hairMat);
-      hair.position.y = 1.72;
-      pGroup.add(hair);
-
-      // Left Arm
-      const armGeo = new THREE.BoxGeometry(0.16, 0.55, 0.16);
-      armGeo.translate(0, -0.22, 0); // Pivot at shoulder
-      const leftArm = new THREE.Mesh(armGeo, shirtMat);
-      leftArm.position.set(-0.36, 1.35, 0);
-      pGroup.add(leftArm);
-
-      // Right Arm
-      const rightArm = new THREE.Mesh(armGeo, shirtMat);
-      rightArm.position.set(0.36, 1.35, 0);
-      pGroup.add(rightArm);
-
-      // Left Leg
-      const legGeo = new THREE.BoxGeometry(0.2, 0.7, 0.2);
-      legGeo.translate(0, -0.32, 0); // Pivot at hip
-      const leftLeg = new THREE.Mesh(legGeo, pantsMat);
-      leftLeg.position.set(-0.16, 0.7, 0);
-      leftLeg.castShadow = true;
+      const legGeo = new THREE.BoxGeometry(0.18, 0.7, 0.18);
+      legGeo.translate(0, -0.32, 0);
+      const leftLeg = new THREE.Mesh(legGeo, bodyMat);
+      leftLeg.position.set(-0.15, 0.7, 0);
       pGroup.add(leftLeg);
 
-      // Right Leg
-      const rightLeg = new THREE.Mesh(legGeo, pantsMat);
-      rightLeg.position.set(0.16, 0.7, 0);
-      rightLeg.castShadow = true;
+      const rightLeg = new THREE.Mesh(legGeo, bodyMat);
+      rightLeg.position.set(0.15, 0.7, 0);
       pGroup.add(rightLeg);
+
+      const dummyArm = new THREE.Mesh();
 
       this.scene.add(pGroup);
 
@@ -2329,8 +1670,8 @@ export class DroneWorld {
         group: pGroup,
         leftLeg,
         rightLeg,
-        leftArm,
-        rightArm,
+        leftArm: dummyArm,
+        rightArm: dummyArm,
         minVal: cfg.minVal,
         maxVal: cfg.maxVal,
         speed: cfg.speed,
@@ -2344,38 +1685,25 @@ export class DroneWorld {
   private buildAnimalsAndBirds() {
     this.birdFlock = [];
 
-    // 1. High-Sky Birds Flock (6 Doves/Hawks circling over park & buildings)
-    const birdMats = [
-      new THREE.MeshLambertMaterial({ color: 0xffffff }), // White dove
-      new THREE.MeshLambertMaterial({ color: 0x94a3b8 }), // Gray hawk
-      new THREE.MeshLambertMaterial({ color: 0x334155 })  // Dark swallow
-    ];
+    // 3 Sky Birds
+    const birdMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 3; i++) {
       const bGroup = new THREE.Group();
-      const mat = birdMats[i % birdMats.length];
 
-      // Bird Body (Fuselage + Beak)
-      const body = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.8, 6), mat);
+      const body = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.8, 5), birdMat);
       body.rotation.x = Math.PI / 2;
       bGroup.add(body);
 
-      const beak = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.2, 4), new THREE.MeshBasicMaterial({ color: 0xf59e0b }));
-      beak.rotation.x = Math.PI / 2;
-      beak.position.z = 0.45;
-      bGroup.add(beak);
-
-      // Left Wing (Pivot at root)
-      const wingGeo = new THREE.PlaneGeometry(0.65, 0.35);
-      wingGeo.translate(-0.32, 0, 0);
-      const leftWing = new THREE.Mesh(wingGeo, mat);
+      const wingGeo = new THREE.PlaneGeometry(0.6, 0.3);
+      wingGeo.translate(-0.3, 0, 0);
+      const leftWing = new THREE.Mesh(wingGeo, birdMat);
       leftWing.rotation.x = Math.PI / 2;
       bGroup.add(leftWing);
 
-      // Right Wing (Pivot at root)
-      const rWingGeo = new THREE.PlaneGeometry(0.65, 0.35);
-      rWingGeo.translate(0.32, 0, 0);
-      const rightWing = new THREE.Mesh(rWingGeo, mat);
+      const rWingGeo = new THREE.PlaneGeometry(0.6, 0.3);
+      rWingGeo.translate(0.3, 0, 0);
+      const rightWing = new THREE.Mesh(rWingGeo, birdMat);
       rightWing.rotation.x = Math.PI / 2;
       bGroup.add(rightWing);
 
@@ -2386,11 +1714,11 @@ export class DroneWorld {
         leftWing,
         rightWing,
         center: new THREE.Vector3(0, 0, -20),
-        radius: 38 + i * 4.5,
-        height: 28 + (i % 3) * 4.5,
-        angle: (i / 6) * Math.PI * 2,
-        speed: 0.35 + (i % 2) * 0.08,
-        flapSpeed: 9.0 + (i % 3) * 1.5,
+        radius: 38 + i * 8,
+        height: 30 + i * 5,
+        angle: (i / 3) * Math.PI * 2,
+        speed: 0.35,
+        flapSpeed: 8.0,
         flapPhase: i * 1.2
       });
     }
@@ -2651,26 +1979,18 @@ export class DroneWorld {
     const propColor = new THREE.Color(this.currentSkin.propColor);
     const ledColor = new THREE.Color(this.currentSkin.ledColor);
 
-    // Materials
-    const bodyMat = new THREE.MeshStandardMaterial({ 
-      color: primaryColor, 
-      metalness: 0.35, 
-      roughness: 0.35 
+    // Lightweight mobile-optimized materials (Zero heavy transmission passes)
+    const bodyMat = new THREE.MeshLambertMaterial({ 
+      color: primaryColor
     });
-    const accentMat = new THREE.MeshStandardMaterial({ 
-      color: secondaryColor, 
-      metalness: 0.6, 
-      roughness: 0.25 
+    const accentMat = new THREE.MeshLambertMaterial({ 
+      color: secondaryColor
     });
-    const carbonMat = new THREE.MeshStandardMaterial({ 
-      color: 0x1e293b, 
-      roughness: 0.85 
+    const carbonMat = new THREE.MeshLambertMaterial({ 
+      color: 0x1e293b
     });
-    const canopyMat = new THREE.MeshPhysicalMaterial({
+    const canopyMat = new THREE.MeshLambertMaterial({
       color: 0x0f172a,
-      roughness: 0.1,
-      metalness: 0.1,
-      transmission: 0.6,
       transparent: true,
       opacity: 0.85
     });
@@ -2772,7 +2092,7 @@ export class DroneWorld {
       propGroup.position.set(x, 0.16, z);
 
       const bladeGeo = new THREE.BoxGeometry(0.56, 0.012, 0.06);
-      const bladeMat = new THREE.MeshStandardMaterial({ color: propColor, metalness: 0.1, roughness: 0.5 });
+      const bladeMat = new THREE.MeshLambertMaterial({ color: propColor });
       const blade = new THREE.Mesh(bladeGeo, bladeMat);
       propGroup.add(blade);
 
@@ -2897,7 +2217,7 @@ export class DroneWorld {
 
       const blade = new THREE.Mesh(
         new THREE.BoxGeometry(0.58, 0.012, 0.065),
-        new THREE.MeshStandardMaterial({ color: propColor, roughness: 0.4 })
+        new THREE.MeshLambertMaterial({ color: propColor })
       );
       propGroup.add(blade);
       propGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.06, 12), accentMat));
@@ -2996,7 +2316,7 @@ export class DroneWorld {
 
       const blade = new THREE.Mesh(
         new THREE.BoxGeometry(0.62, 0.012, 0.08),
-        new THREE.MeshStandardMaterial({ color: propColor, roughness: 0.3, metalness: 0.3 })
+        new THREE.MeshLambertMaterial({ color: propColor })
       );
       propGroup.add(blade);
       propGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.06, 12), bodyMat));
@@ -3051,7 +2371,7 @@ export class DroneWorld {
 
     const cameraSphere = new THREE.Mesh(
       new THREE.SphereGeometry(0.16, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.1 })
+      new THREE.MeshLambertMaterial({ color: 0x0f172a })
     );
     cameraSphere.position.set(0, -0.32, 0.22);
     this.droneModelHolder.add(cameraSphere);
@@ -3088,7 +2408,7 @@ export class DroneWorld {
       topPropGroup.position.set(x, 0.20, z);
       const topBlade = new THREE.Mesh(
         new THREE.BoxGeometry(0.56, 0.012, 0.06),
-        new THREE.MeshStandardMaterial({ color: propColor, roughness: 0.4 })
+        new THREE.MeshLambertMaterial({ color: propColor })
       );
       topPropGroup.add(topBlade);
       this.droneModelHolder.add(topPropGroup);
@@ -3099,7 +2419,7 @@ export class DroneWorld {
       btmPropGroup.position.set(x, -0.16, z);
       const btmBlade = new THREE.Mesh(
         new THREE.BoxGeometry(0.54, 0.012, 0.06),
-        new THREE.MeshStandardMaterial({ color: propColor, roughness: 0.4 })
+        new THREE.MeshLambertMaterial({ color: propColor })
       );
       btmPropGroup.add(btmBlade);
       this.droneModelHolder.add(btmPropGroup);
@@ -3176,7 +2496,7 @@ export class DroneWorld {
     [-0.22, 0.22].forEach(jx => {
       const nozzle = new THREE.Mesh(
         new THREE.CylinderGeometry(0.11, 0.13, 0.28, 16),
-        new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.2 })
+        new THREE.MeshLambertMaterial({ color: 0x0f172a })
       );
       nozzle.rotation.x = Math.PI / 2;
       nozzle.position.set(jx, 0.02, -0.48);
@@ -3217,7 +2537,7 @@ export class DroneWorld {
 
       const blade = new THREE.Mesh(
         new THREE.BoxGeometry(0.50, 0.012, 0.06),
-        new THREE.MeshStandardMaterial({ color: propColor, roughness: 0.3 })
+        new THREE.MeshLambertMaterial({ color: propColor })
       );
       propGroup.add(blade);
       this.droneModelHolder.add(propGroup);
@@ -3285,7 +2605,7 @@ export class DroneWorld {
 
       const blade = new THREE.Mesh(
         new THREE.BoxGeometry(0.56, 0.01, 0.055),
-        new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 })
+        new THREE.MeshLambertMaterial({ color: 0x0f172a })
       );
       propGroup.add(blade);
 
@@ -3328,15 +2648,11 @@ export class DroneWorld {
     this.aiProps = [];
 
     // High-performance cyber racing drone aesthetics
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: 0x6d28d9, // Royal AI Violet
-      metalness: 0.85,
-      roughness: 0.25,
-      emissive: 0x4c1d95,
-      emissiveIntensity: 0.4
+    const bodyMat = new THREE.MeshLambertMaterial({
+      color: 0x6d28d9 // Royal AI Violet
     });
     const neonMat = new THREE.MeshBasicMaterial({ color: 0xec4899 }); // Neon Magenta
-    const goldMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.2 });
+    const goldMat = new THREE.MeshLambertMaterial({ color: 0xf59e0b });
 
     // Sleek Aerodynamic Core Fuselage
     const coreGeo = new THREE.CylinderGeometry(0.32, 0.42, 0.22, 16);
@@ -3513,20 +2829,12 @@ export class DroneWorld {
     ];
 
     // Shared high-performance pure vibrant gold materials
-    const coinMat = new THREE.MeshStandardMaterial({ 
-      color: 0xffd700, // Vibrant Pure Gold
-      metalness: 0.5, 
-      roughness: 0.2,
-      emissive: 0xffaa00,
-      emissiveIntensity: 0.45
+    const coinMat = new THREE.MeshLambertMaterial({ 
+      color: 0xffd700
     });
 
-    const coinRimMat = new THREE.MeshStandardMaterial({
-      color: 0xffea00,
-      metalness: 0.6,
-      roughness: 0.25,
-      emissive: 0xffc400,
-      emissiveIntensity: 0.35
+    const coinRimMat = new THREE.MeshLambertMaterial({
+      color: 0xffea00
     });
 
     const starMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
@@ -3618,12 +2926,8 @@ export class DroneWorld {
         portalGroup.rotation.y = spec.rotY;
 
         // 1. Heavy Rectangular Framework Beams (Top, Bottom, Left, Right)
-        const frameMat = new THREE.MeshStandardMaterial({
-          color: isActive ? 0xef4444 : (isFinish ? 0xfacc15 : 0x334155),
-          emissive: isActive ? 0xff0000 : (isFinish ? 0xeab308 : 0x0f172a),
-          emissiveIntensity: isActive ? 2.5 : (isFinish ? 1.5 : 0.2),
-          roughness: 0.2,
-          metalness: 0.8
+        const frameMat = new THREE.MeshLambertMaterial({
+          color: isActive ? 0xef4444 : (isFinish ? 0xfacc15 : 0x334155)
         });
 
         const beamThickness = 0.45;
@@ -3749,11 +3053,8 @@ export class DroneWorld {
       rGroup.rotation.y = item.rotY;
 
       const torusGeo = new THREE.TorusGeometry(2.4, 0.22, 16, 36);
-      const torusMat = new THREE.MeshStandardMaterial({
-        color: isFinish ? 0xfacc15 : (isActive ? 0x00f0ff : 0x475569),
-        emissive: isFinish ? 0xeab308 : (isActive ? 0x00f0ff : 0x0f172a),
-        emissiveIntensity: isActive || isFinish ? 1.8 : 0.2,
-        roughness: 0.2
+      const torusMat = new THREE.MeshLambertMaterial({
+        color: isFinish ? 0xfacc15 : (isActive ? 0x00f0ff : 0x475569)
       });
       const torus = new THREE.Mesh(torusGeo, torusMat);
       rGroup.add(torus);
@@ -3783,10 +3084,8 @@ export class DroneWorld {
 
     // 1. Rescue Stretcher Frame (Orange safety metal gurney)
     const gurneyFrameGeo = new THREE.BoxGeometry(1.0, 0.25, 2.2);
-    const gurneyFrameMat = new THREE.MeshStandardMaterial({
-      color: 0xf97316, // Emergency Orange
-      metalness: 0.8,
-      roughness: 0.3
+    const gurneyFrameMat = new THREE.MeshLambertMaterial({
+      color: 0xf97316 // Emergency Orange
     });
     const gurneyFrame = new THREE.Mesh(gurneyFrameGeo, gurneyFrameMat);
     gurneyFrame.position.y = 0.2;
@@ -4067,11 +3366,8 @@ export class DroneWorld {
         rGroup.rotation.y = item.rotY;
 
         const torusGeo = new THREE.TorusGeometry(2.2, 0.16, 16, 32);
-        const torusMat = new THREE.MeshStandardMaterial({
-          color: isActive ? 0x22d3ee : 0x64748b,
-          emissive: isActive ? 0x06b6d4 : 0x0f172a,
-          emissiveIntensity: isActive ? 0.8 : 0.1,
-          roughness: 0.3
+        const torusMat = new THREE.MeshLambertMaterial({
+          color: isActive ? 0x22d3ee : 0x64748b
         });
         const torus = new THREE.Mesh(torusGeo, torusMat);
         rGroup.add(torus);
@@ -4103,10 +3399,8 @@ export class DroneWorld {
 
       // Warning Pillar Post
       const pillar1Geo = new THREE.CylinderGeometry(0.35, 0.45, 6.4, 16);
-      const pillar1Mat = new THREE.MeshStandardMaterial({
-        color: 0xf59e0b, // Amber Warning
-        roughness: 0.3,
-        metalness: 0.6
+      const pillar1Mat = new THREE.MeshLambertMaterial({
+        color: 0xf59e0b
       });
       const pillar1 = new THREE.Mesh(pillar1Geo, pillar1Mat);
       pillar1.position.y = 3.2;
@@ -4144,10 +3438,8 @@ export class DroneWorld {
       obs2Group.position.set(-8.0, 0, -14.0);
 
       const pillar2Geo = new THREE.CylinderGeometry(0.35, 0.45, 6.0, 16);
-      const pillar2Mat = new THREE.MeshStandardMaterial({
-        color: 0xef4444, // Red Hazard
-        roughness: 0.3,
-        metalness: 0.7
+      const pillar2Mat = new THREE.MeshLambertMaterial({
+        color: 0xef4444
       });
       const pillar2 = new THREE.Mesh(pillar2Geo, pillar2Mat);
       pillar2.position.y = 3.0;
@@ -4693,11 +3985,7 @@ export class DroneWorld {
             if ((child as THREE.Mesh).isMesh) {
               const m = (child as THREE.Mesh).material;
               if (m) {
-                if ('emissive' in m) {
-                  (m as THREE.MeshStandardMaterial).color.setHex(blinkColorHex);
-                  (m as THREE.MeshStandardMaterial).emissive.setHex(isBlinkRed ? 0xff0022 : 0x660011);
-                  (m as THREE.MeshStandardMaterial).emissiveIntensity = blinkIntensity;
-                } else if ('color' in m) {
+                if ('color' in m) {
                   (m as THREE.MeshBasicMaterial).color.setHex(blinkColorHex);
                   if ((m as THREE.MeshBasicMaterial).transparent) {
                     (m as THREE.MeshBasicMaterial).opacity = isBlinkRed ? 0.85 : 0.3;
@@ -4715,11 +4003,7 @@ export class DroneWorld {
           meshGroup.traverse((child) => {
             if ((child as THREE.Mesh).isMesh) {
               const m = (child as THREE.Mesh).material;
-              if (m && 'emissive' in m) {
-                (m as THREE.MeshStandardMaterial).color.setHex(0x10b981);
-                (m as THREE.MeshStandardMaterial).emissive.setHex(0x059669);
-                (m as THREE.MeshStandardMaterial).emissiveIntensity = 1.2;
-              } else if (m && 'color' in m) {
+              if (m && 'color' in m) {
                 (m as THREE.MeshBasicMaterial).color.setHex(0x10b981);
               }
             } else if ((child as THREE.PointLight).isPointLight) {
@@ -4732,11 +4016,7 @@ export class DroneWorld {
           meshGroup.traverse((child) => {
             if ((child as THREE.Mesh).isMesh) {
               const m = (child as THREE.Mesh).material;
-              if (m && 'emissive' in m) {
-                (m as THREE.MeshStandardMaterial).color.setHex(0x334155);
-                (m as THREE.MeshStandardMaterial).emissive.setHex(0x0f172a);
-                (m as THREE.MeshStandardMaterial).emissiveIntensity = 0.2;
-              } else if (m && 'color' in m) {
+              if (m && 'color' in m) {
                 (m as THREE.MeshBasicMaterial).color.setHex(0x334155);
               }
             } else if ((child as THREE.PointLight).isPointLight) {
