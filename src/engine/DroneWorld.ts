@@ -501,13 +501,14 @@ export class DroneWorld {
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = 0;
+    ground.renderOrder = 0;
     this.scene.add(ground);
 
     // 3. Clear Crossway Roads & Runway Network with LED Edge Strips
     this.buildRoadNetworkAndStreets();
 
     // 4. Main Base Start / Landing Helipad
-    this.baseHelipadMesh = this.buildHelipad(0, 0.12, 0, 7.5, 0xfacc15, 'START / BASE');
+    this.baseHelipadMesh = this.buildHelipad(0, 0.15, 0, 7.5, 0xfacc15, 'START / BASE');
 
     // 5. High-Tech Low-Poly Optimized Buildings (with Corner Neon Trims & Holo-Billboards)
     this.buildBuildings();
@@ -636,22 +637,33 @@ export class DroneWorld {
 
   private buildRoadNetworkAndStreets() {
     const roadGroup = new THREE.Group();
-    const roadMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+    roadGroup.renderOrder = 1;
+    const roadMat = new THREE.MeshLambertMaterial({ 
+      color: 0x1e293b,
+      polygonOffset: true,
+      polygonOffsetFactor: -4.0,
+      polygonOffsetUnits: -4.0
+    });
 
     // 1. Main Central Boulevard (Clean height above ground)
     const mainRoadGeo = new THREE.PlaneGeometry(22, 220);
     const mainRoad = new THREE.Mesh(mainRoadGeo, roadMat);
     mainRoad.rotation.x = -Math.PI / 2;
-    mainRoad.position.set(0, 0.04, 0);
+    mainRoad.position.set(0, 0.08, 0);
     roadGroup.add(mainRoad);
 
     // Center Yellow Lines
     [-0.3, 0.3].forEach(offX => {
       const yLineGeo = new THREE.PlaneGeometry(0.25, 216);
-      const yLineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+      const yLineMat = new THREE.MeshBasicMaterial({ 
+        color: 0xfacc15,
+        polygonOffset: true,
+        polygonOffsetFactor: -8.0,
+        polygonOffsetUnits: -8.0
+      });
       const yLine = new THREE.Mesh(yLineGeo, yLineMat);
       yLine.rotation.x = -Math.PI / 2;
-      yLine.position.set(offX, 0.06, 0);
+      yLine.position.set(offX, 0.11, 0);
       roadGroup.add(yLine);
     });
 
@@ -661,32 +673,42 @@ export class DroneWorld {
       const crossRoadGeo = new THREE.PlaneGeometry(160, 16);
       const crossRoad = new THREE.Mesh(crossRoadGeo, roadMat);
       crossRoad.rotation.x = -Math.PI / 2;
-      crossRoad.position.set(0, 0.045, cz);
+      crossRoad.position.set(0, 0.085, cz);
       roadGroup.add(crossRoad);
 
       const cYLineGeo = new THREE.PlaneGeometry(156, 0.3);
-      const cYLineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+      const cYLineMat = new THREE.MeshBasicMaterial({ 
+        color: 0xfacc15,
+        polygonOffset: true,
+        polygonOffsetFactor: -8.0,
+        polygonOffsetUnits: -8.0
+      });
       const cYLine = new THREE.Mesh(cYLineGeo, cYLineMat);
       cYLine.rotation.x = -Math.PI / 2;
-      cYLine.position.set(0, 0.065, cz);
+      cYLine.position.set(0, 0.115, cz);
       roadGroup.add(cYLine);
     });
 
     // 3. Sidewalks & Glowing Cyber LED Strips
-    const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
+    const sidewalkMat = new THREE.MeshLambertMaterial({ 
+      color: 0x334155,
+      polygonOffset: true,
+      polygonOffsetFactor: -6.0,
+      polygonOffsetUnits: -6.0
+    });
     const cyanLedMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
     const magentaLedMat = new THREE.MeshBasicMaterial({ color: 0xec4899 });
 
     [-13.5, 13.5].forEach(swX => {
       const swGeo = new THREE.BoxGeometry(4.5, 0.18, 220);
       const sw = new THREE.Mesh(swGeo, sidewalkMat);
-      sw.position.set(swX, 0.09, 0);
+      sw.position.set(swX, 0.14, 0);
       roadGroup.add(sw);
 
       const ledGeo = new THREE.BoxGeometry(0.12, 0.06, 218);
       const ledMesh = new THREE.Mesh(ledGeo, cyanLedMat);
       const curbX = swX > 0 ? swX - 2.25 : swX + 2.25;
-      ledMesh.position.set(curbX, 0.22, 0);
+      ledMesh.position.set(curbX, 0.26, 0);
       roadGroup.add(ledMesh);
     });
 
@@ -694,12 +716,12 @@ export class DroneWorld {
       [-10.2, 10.2].forEach(offZ => {
         const cSwGeo = new THREE.BoxGeometry(160, 0.18, 4.0);
         const cSw = new THREE.Mesh(cSwGeo, sidewalkMat);
-        cSw.position.set(0, 0.09, cz + offZ);
+        cSw.position.set(0, 0.14, cz + offZ);
         roadGroup.add(cSw);
 
         const cLedGeo = new THREE.BoxGeometry(158, 0.06, 0.12);
         const cLedMesh = new THREE.Mesh(cLedGeo, magentaLedMat);
-        cLedMesh.position.set(0, 0.20, cz + (offZ > 0 ? offZ - 1.9 : offZ + 1.9));
+        cLedMesh.position.set(0, 0.26, cz + (offZ > 0 ? offZ - 1.9 : offZ + 1.9));
         roadGroup.add(cLedMesh);
       });
     });
@@ -709,12 +731,16 @@ export class DroneWorld {
 
   private buildHelipad(x: number, y: number, z: number, size: number, color: number, labelText?: string): THREE.Group {
     const padGroup = new THREE.Group();
+    padGroup.renderOrder = 3;
     padGroup.position.set(x, y, z);
 
     // Outer circle
     const circleGeo = new THREE.CircleGeometry(size / 2, 32);
     const circleMat = new THREE.MeshBasicMaterial({ 
-      color
+      color,
+      polygonOffset: true,
+      polygonOffsetFactor: -6.0,
+      polygonOffsetUnits: -6.0
     });
     const circle = new THREE.Mesh(circleGeo, circleMat);
     circle.rotation.x = -Math.PI / 2;
@@ -724,7 +750,10 @@ export class DroneWorld {
     const ringGeo = new THREE.RingGeometry(size / 2 - 0.5, size / 2, 32);
     const ringMat = new THREE.MeshBasicMaterial({ 
       color: 0xffffff, 
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -8.0,
+      polygonOffsetUnits: -8.0
     });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = -Math.PI / 2;
@@ -733,7 +762,10 @@ export class DroneWorld {
 
     // Letter 'H'
     const hBarMat = new THREE.MeshBasicMaterial({ 
-      color: 0xffffff
+      color: 0xffffff,
+      polygonOffset: true,
+      polygonOffsetFactor: -10.0,
+      polygonOffsetUnits: -10.0
     });
     const hBar1 = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 3.2), hBarMat);
     hBar1.rotation.x = -Math.PI / 2;

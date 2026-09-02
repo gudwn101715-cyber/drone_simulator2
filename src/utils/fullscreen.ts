@@ -17,20 +17,36 @@ export async function requestFullscreen(): Promise<boolean> {
   if (typeof document === 'undefined') return false;
   if (isFullscreen()) return true;
 
-  try {
-    const docEl = document.documentElement as any;
-    if (docEl.requestFullscreen) {
-      await docEl.requestFullscreen({ navigationUI: 'hide' });
-    } else if (docEl.webkitRequestFullscreen) {
-      await docEl.webkitRequestFullscreen();
-    } else if (docEl.mozRequestFullScreen) {
-      await docEl.mozRequestFullScreen();
-    } else if (docEl.msRequestFullscreen) {
-      await docEl.msRequestFullscreen();
+  const targets = [
+    document.documentElement,
+    document.body,
+    document.getElementById('root')
+  ].filter(Boolean) as any[];
+
+  for (const el of targets) {
+    try {
+      if (el.requestFullscreen) {
+        await el.requestFullscreen({ navigationUI: 'hide' });
+        return true;
+      } else if (el.webkitRequestFullscreen) {
+        await el.webkitRequestFullscreen();
+        return true;
+      } else if (el.mozRequestFullScreen) {
+        await el.mozRequestFullScreen();
+        return true;
+      } else if (el.msRequestFullscreen) {
+        await el.msRequestFullscreen();
+        return true;
+      }
+    } catch {
+      // try next target
     }
-    return true;
-  } catch (err) {
-    console.warn('Fullscreen request was prevented or not permitted:', err);
-    return false;
   }
+
+  // Scroll viewport to hide address bar if full-screen API is restricted in iframe/iOS
+  try {
+    window.scrollTo(0, 1);
+  } catch {}
+
+  return false;
 }

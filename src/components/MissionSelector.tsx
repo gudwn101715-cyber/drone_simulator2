@@ -10,6 +10,7 @@ import {
   getPilotRank 
 } from '../utils/storage';
 import { soundManager } from '../utils/audio';
+import { requestFullscreen } from '../utils/fullscreen';
 import { 
   Play, 
   Star, 
@@ -199,28 +200,44 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
           {/* Left/Main Column: Visual Flight Roadmap Track */}
           <div className="flex-1 bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-white/10 p-4 sm:p-6 shadow-2xl relative overflow-hidden flex flex-col justify-between">
             {/* Roadmap Header & Progress Summary */}
-            <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <span className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 shrink-0">
                   <Compass className="w-4 h-4" />
                 </span>
                 <div>
-                  <h2 className="text-sm sm:text-base font-black text-white tracking-wide flex items-center gap-2">
-                    <span>비행 모험 탐험 로드맵</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-sm sm:text-base font-black text-white tracking-wide">
+                      비행 모험 탐험 로드맵
+                    </h2>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
                       ALL UNLOCKED
                     </span>
-                  </h2>
-                  <p className="text-[11px] text-slate-400 font-medium">
-                    원하는 단계를 자유롭게 터치하여 비행 목표를 확인하고 출격하세요!
+                  </div>
+                  <p className="text-[11px] text-slate-400 font-medium hidden sm:block">
+                    원하는 단계를 터치하여 선택 후 바로 출격하세요!
                   </p>
                 </div>
               </div>
 
-              <div className="text-right">
-                <span className="text-xs font-black text-emerald-400 font-mono px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+              {/* Compact Launch Button & Progress next to Roadmap Title */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-emerald-400 font-mono px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hidden md:inline-block">
                   {MISSION_STAGES.filter(s => profile.missionProgress[s.id]?.completed).length} / {MISSION_STAGES.length} 완료
                 </span>
+
+                <button
+                  id={`btn-header-launch-${activeStage.id}`}
+                  onClick={async () => {
+                    await requestFullscreen().catch(() => {});
+                    onSelectStage(activeStage);
+                  }}
+                  className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 hover:from-cyan-300 hover:via-blue-400 hover:to-indigo-500 text-white font-black text-xs sm:text-sm shadow-[0_0_20px_rgba(6,182,212,0.6)] transition-all transform active:scale-95 cursor-pointer flex items-center gap-1.5 border border-white/20"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current text-white animate-pulse" />
+                  <span>출격 ({activeStage.title})</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-cyan-200" />
+                </button>
               </div>
             </div>
 
@@ -388,7 +405,10 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
               <div className="mb-4 p-3 rounded-2xl bg-cyan-950/40 border border-cyan-500/40 shadow-lg">
                 <button
                   id={`btn-launch-roadmap-${activeStage.id}`}
-                  onClick={() => onSelectStage(activeStage)}
+                  onClick={async () => {
+                    await requestFullscreen().catch(() => {});
+                    onSelectStage(activeStage);
+                  }}
                   className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 hover:from-cyan-300 hover:via-blue-400 hover:to-indigo-500 text-white font-black text-sm sm:text-base shadow-[0_0_25px_rgba(6,182,212,0.6)] transition-all transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Play className="w-5 h-5 fill-current text-white animate-pulse" />
