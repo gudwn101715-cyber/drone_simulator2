@@ -401,24 +401,25 @@ export class DroneWorld {
     this.scene.background = new THREE.Color(0x020617); // Deep cosmic cyberpunk space
     this.scene.fog = new THREE.FogExp2(0x060e24, 0.0055);
 
-    // Camera with balanced depth range (near: 0.45, far: 380) for clean depth resolution without Z-fighting
+    // Camera with balanced depth range (near: 0.5, far: 450) with logarithmic depth buffer for zero Z-fighting
     const aspect = container.clientWidth / container.clientHeight;
-    this.camera = new THREE.PerspectiveCamera(65, aspect, 0.45, 380);
+    this.camera = new THREE.PerspectiveCamera(65, aspect, 0.5, 450);
     this.camera.position.set(0, 3, 6);
 
-    // Optimized WebGLRenderer for Tablet Performance:
-    // - 0.7x Resolution Scaling for ultra-smooth 60 FPS
-    // - logarithmicDepthBuffer disabled to eliminate heavy per-pixel shader calculations
-    // - shadowMap disabled to save additional render pass
+    // High-Precision WebGLRenderer:
+    // - highp float precision to eliminate polygon jitter and tearing on Mali/Adreno GPUs
+    // - logarithmicDepthBuffer enabled to completely prevent Z-fighting between ground, roads, and buildings
+    // - antialias enabled with adaptive pixel ratio for sharp, tearing-free edges
     this.renderer = new THREE.WebGLRenderer({ 
-      antialias: false, 
+      antialias: true, 
       alpha: false, 
       powerPreference: 'high-performance',
-      precision: 'mediump',
-      logarithmicDepthBuffer: false
+      precision: 'highp',
+      logarithmicDepthBuffer: true
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
-    this.renderer.setPixelRatio(0.7); // 0.7x tablet scale requested
+    const initialDpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    this.renderer.setPixelRatio(initialDpr);
     
     this.renderer.shadowMap.enabled = false;
     this.renderer.autoClear = true;
@@ -4710,7 +4711,7 @@ export class DroneWorld {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(0.7);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   };
 
   public destroy() {

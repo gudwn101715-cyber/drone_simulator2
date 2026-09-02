@@ -4,7 +4,8 @@
   "description": "어린이와 초보자를 위한 3D 프로브 드론 비행 시뮬레이터",
   "start_url": "/",
   "display": "fullscreen",
-  "orientation": "landscape",
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "orientation": "landscape-primary",
   "background_color": "#0f172a",
   "theme_color": "#0284c7",
   "icons": [
