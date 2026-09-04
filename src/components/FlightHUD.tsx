@@ -31,7 +31,8 @@ import {
   Building2,
   Lock,
   Navigation,
-  Milestone
+  Milestone,
+  Box
 } from 'lucide-react';
 
 interface FlightHUDProps {
@@ -56,6 +57,7 @@ interface FlightHUDProps {
   onToggleSound: () => void;
   onResetDrone: () => void;
   onEmergencyStop?: () => void;
+  onOpenGLTFModal: () => void;
   onOpenSettings: () => void;
   onOpenHelp: () => void;
   onExitMission: () => void;
@@ -74,6 +76,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
   onToggleSound,
   onResetDrone,
   onEmergencyStop,
+  onOpenGLTFModal,
   onOpenSettings,
   onOpenHelp,
   onExitMission
@@ -137,9 +140,16 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
                 </span>
               )}
               {stage.type === 'AI_RACING' && (
-                <span className="text-purple-700 font-black">
-                  {missionData.currentLap}/{missionData.totalLaps}랩 {telemetry.raceRank === 1 ? '(1위)' : '(2위)'}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-purple-700 font-black">
+                    {missionData.currentLap}/{missionData.totalLaps}랩 {telemetry.raceRank === 1 ? '(1위)' : '(2위)'}
+                  </span>
+                  {missionData.coinsCollected > 0 && (
+                    <span className="text-amber-600 font-black bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200 text-[11px] flex items-center gap-0.5">
+                      🪙 {missionData.coinsCollected}
+                    </span>
+                  )}
+                </div>
               )}
               {stage.type === 'TUTORIAL' && (
                 <span className="text-emerald-700 font-black">
@@ -223,6 +233,16 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
             title="카메라 시점 전환"
           >
             <Camera className="w-4 h-4 text-blue-600" />
+          </button>
+
+          {/* 3D Graphics & GLTF Model Loader */}
+          <button
+            id="hud-gltf-modal-toggle"
+            onClick={onOpenGLTFModal}
+            className="p-1.5 rounded-lg bg-white hover:bg-blue-50 text-blue-900 border border-slate-200 shadow-xs transition-all cursor-pointer"
+            title="3D 그래픽 환경 및 커스텀 GLTF 모델 관리"
+          >
+            <Box className="w-4 h-4 text-indigo-600" />
           </button>
 
           {/* Sound Toggle */}

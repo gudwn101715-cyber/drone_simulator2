@@ -262,24 +262,28 @@ export class CityNavGraph {
     if (nearSkyRescue !== undefined) this.connect(rescueRoofApproach, nearSkyRescue);
 
     // C) North Skyline High-Speed Connector (Twin North buffer to Gamma Entrance)
-    const northCross1 = this.addNode(-20, 16, 64);
-    const northCross2 = this.addNode(18, 14, 64);
+    const northCross1 = this.addNode(-20, 16, 60);
+    const northCross2 = this.addNode(15, 14, 60);
     this.connectDirected(twinNorthBuffer, northCross1);
     this.connectDirected(northCross1, northCross2);
 
     // D) Gamma Skyscraper Tunnel at (35, 14, 40) - Flown North-to-South (-Z direction from z=64 to z=16)
     // Gamma extends z: 28 to 52
-    const gammaApproach = this.addNode(35, 14, 64);
+    const gammaApproach = this.addNode(35, 14, 60);
     const gammaNorthIn = this.addNode(35, 14, 52); // North-facing Entrance at +Z side
     const gammaInside = this.addNode(35, 14, 40);
     const gammaSouthOut = this.addNode(35, 14, 28); // South-facing Exit at -Z side
     const gammaBuffer = this.addNode(35, 14, 16);
+    const southWaterfrontArch = this.addNode(15, 8, 15);
+    const finishGateNode = this.addNode(0, 5, 12);
 
     this.connectDirected(northCross2, gammaApproach);
     this.connectDirected(gammaApproach, gammaNorthIn);
     this.connectDirected(gammaNorthIn, gammaInside);
     this.connectDirected(gammaInside, gammaSouthOut);
     this.connectDirected(gammaSouthOut, gammaBuffer);
+    this.connectDirected(gammaBuffer, southWaterfrontArch);
+    this.connectDirected(southWaterfrontArch, finishGateNode);
 
     const nearGammaStreetNorth1 = gridMap[`18,14,40`];
     const nearGammaStreetNorth2 = gridMap[`52,14,40`];
@@ -292,22 +296,57 @@ export class CityNavGraph {
     if (nearGammaStreetSouth2 !== undefined) this.connect(gammaBuffer, nearGammaStreetSouth2);
     if (nearGammaStreetSouth3 !== undefined) this.connect(gammaBuffer, nearGammaStreetSouth3);
 
-    // E) Arch Portal at (0, 5, -25)
+    // E) Arch Portal & National Assembly Grand Corridor
+    const natAssemblyGate1 = this.addNode(0, 6, -45);
+    const natAssemblyGate2 = this.addNode(0, 8, -95);
+    const natAssemblyDomeClimb = this.addNode(0, 16, -95);
+    const westTowerDive = this.addNode(-50, 10, -75);
+    const natAssemblyTurn = this.addNode(-35, 12, -75);
+    const waterSlalom = this.addNode(35, 6, -10);
+
+    this.connect(natAssemblyGate1, natAssemblyGate2);
+    this.connect(natAssemblyGate1, natAssemblyDomeClimb);
+    this.connect(natAssemblyDomeClimb, westTowerDive);
+    this.connect(westTowerDive, alphaBackApproach);
+    this.connect(natAssemblyGate2, natAssemblyTurn);
+    this.connect(natAssemblyTurn, alphaBackApproach);
+    this.connect(gammaBuffer, waterSlalom);
+    this.connect(waterSlalom, southWaterfrontArch);
+
     const archIn = this.addNode(0, 5, -16);
     const archMid = this.addNode(0, 5, -25);
     const archOut = this.addNode(0, 5, -34);
     this.connect(archIn, archMid);
     this.connect(archMid, archOut);
-    this.connect(archOut, streetCornerNE); // Direct connection to northeast street corner menuju Alpha back!
+    this.connect(archOut, natAssemblyGate1);
+    this.connect(archOut, streetCornerNE); // Direct connection to northeast street corner towards Alpha back!
     const nearArch1 = gridMap[`0,4.5,-20`];
     const nearArch2 = gridMap[`0,4.5,-40`];
     if (nearArch1 !== undefined) this.connect(archIn, nearArch1);
     if (nearArch2 !== undefined) this.connect(archOut, nearArch2);
 
-    // E) Hospital Rooftop Helipad (70, 25, -20)
+    // F) 63 Building Observation Rooftop Helipad (45, 78.5, 95)
+    const bldg63Helipad = this.addNode(45, 78.5, 95);
+    const bldg63Approach = this.addNode(45, 86, 95);
+    const bldg63Mid = this.addNode(45, 44, 95);
+    this.connect(bldg63Helipad, bldg63Approach);
+    this.connect(bldg63Approach, bldg63Mid);
+
+    const nearSky63A = skyMap[`35,60`];
+    const nearSky63B = skyMap[`70,60`];
+    if (nearSky63A !== undefined) this.connect(bldg63Approach, nearSky63A);
+    if (nearSky63B !== undefined) this.connect(bldg63Approach, nearSky63B);
+
+    const nearGrid63A = gridMap[`52,14,65`];
+    const nearGrid63B = gridMap[`18,14,65`];
+    if (nearGrid63A !== undefined) this.connect(bldg63Mid, nearGrid63A);
+    if (nearGrid63B !== undefined) this.connect(bldg63Mid, nearGrid63B);
+
+    // G) Hospital Rooftop Helipad (70, 25, -20)
     const hospHelipad = this.addNode(70, 25, -20);
     const hospApproach = this.addNode(70, 30, -20);
     this.connect(hospHelipad, hospApproach);
+    this.connect(hospApproach, bldg63Approach); // Direct high-altitude sky corridor between 63 Building and Hospital!
     const hospStreetApproach = this.addNode(52, 25, -20);
     this.connect(hospApproach, hospStreetApproach);
     const nearHospGrid = gridMap[`52,14,-20`];

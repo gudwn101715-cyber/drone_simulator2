@@ -31,7 +31,8 @@ import {
   Check,
   GraduationCap,
   Lightbulb,
-  BookOpen
+  BookOpen,
+  Box
 } from 'lucide-react';
 
 interface MissionSelectorProps {
@@ -40,6 +41,7 @@ interface MissionSelectorProps {
   onSelectStage: (stage: MissionStage) => void;
   onOpenLicense: () => void;
   onOpenSkins: () => void;
+  onOpenGLTF?: () => void;
   onOpenSettings: () => void;
   onOpenHelp: () => void;
   onReturnHome: () => void;
@@ -51,12 +53,15 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
   onSelectStage,
   onOpenLicense,
   onOpenSkins,
+  onOpenGLTF,
   onOpenSettings,
   onOpenHelp,
   onReturnHome
 }) => {
   const [selectedStageId, setSelectedStageId] = useState<string>(() => {
-    // Default to the first uncompleted mission, or first stage
+    // Default to 'ai-racing-1' (Level 1 AI 대결 2바퀴)
+    const aiRacingStage = MISSION_STAGES.find(s => s.id === 'ai-racing-1');
+    if (aiRacingStage) return 'ai-racing-1';
     const uncompleted = MISSION_STAGES.find(s => {
       const p = profile.missionProgress[s.id];
       return s.type !== 'FREE_FLIGHT' && (!p || !p.completed);
@@ -177,6 +182,19 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
               <Palette className="w-3.5 h-3.5 text-cyan-400" />
               <span className="hidden md:inline">드론 스킨</span>
             </button>
+
+            {/* 3D Graphics & GLTF Model Loader */}
+            {onOpenGLTF && (
+              <button
+                id="btn-open-gltf-main"
+                onClick={onOpenGLTF}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-bold border border-slate-700 shadow-sm transition-all cursor-pointer"
+                title="3D 그래픽 환경 및 커스텀 GLTF 모델 관리"
+              >
+                <Box className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="hidden md:inline">3D 그래픽/GLTF</span>
+              </button>
+            )}
 
             {/* Help Manual */}
             <button
@@ -424,11 +442,13 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                 </button>
 
                 <div className="flex items-center justify-between text-[11px] mt-2.5 px-1">
-                  <span className="text-slate-400 font-bold">🏆 내 최고 기록</span>
+                  <span className="text-slate-400 font-bold">🏆 내 최고 점수 / 기록</span>
                   <span className="font-mono font-black text-cyan-300">
-                    {activeProgress.bestTimeSec !== null 
-                      ? `${activeProgress.bestTimeSec.toFixed(1)} 초 (${activeProgress.stars}성)` 
-                      : '아직 도전 안 함'}
+                    {activeProgress.highScore > 0
+                      ? `${activeProgress.highScore.toLocaleString()}점 (${activeProgress.stars}성)` 
+                      : activeProgress.bestTimeSec !== null
+                        ? `${activeProgress.bestTimeSec.toFixed(1)}초 (${activeProgress.stars}성)`
+                        : '아직 도전 안 함'}
                   </span>
                 </div>
               </div>
@@ -471,25 +491,25 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                 </div>
               )}
 
-              {/* Relaxed Star Evaluation Thresholds */}
+              {/* Score-based Star Evaluation Thresholds */}
               {activeStage.type !== 'FREE_FLIGHT' && (
                 <div className="p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/50">
                   <div className="text-[11px] font-black text-slate-300 mb-1.5 flex items-center justify-between">
                     <span className="flex items-center gap-1 text-amber-400">
                       <Star className="w-3.5 h-3.5 fill-amber-400" />
-                      <span>별점 기준 시간</span>
+                      <span>별점 획득 기준 점수</span>
                     </span>
-                    <span className="text-[10px] text-slate-400">제한시간 {activeStage.timeLimitSec}초</span>
+                    <span className="text-[10px] text-cyan-400 font-bold">🪙 동전 & 시간 & 무충돌 합산</span>
                   </div>
                   <div className="grid grid-cols-3 gap-1 text-center text-[10px] font-mono font-bold">
                     <div className="p-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-black">
-                      ★★★ {activeStage.starThresholds[0]}초 이내
+                      ★★★ {activeStage.starThresholds[0].toLocaleString()}점
                     </div>
                     <div className="p-1 rounded bg-slate-700/40 text-slate-300 border border-slate-600">
-                      ★★ {activeStage.starThresholds[1]}초 이내
+                      ★★ {activeStage.starThresholds[1].toLocaleString()}점
                     </div>
                     <div className="p-1 rounded bg-slate-700/40 text-slate-400 border border-slate-600">
-                      ★ {activeStage.starThresholds[2]}초 이내
+                      ★ {activeStage.starThresholds[2].toLocaleString()}점
                     </div>
                   </div>
                 </div>

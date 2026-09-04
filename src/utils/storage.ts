@@ -104,7 +104,7 @@ export const MISSION_STAGES: MissionStage[] = [
     badgeIcon: 'Sparkles',
     targetCount: 3,
     timeLimitSec: 120,
-    starThresholds: [45, 75, 105], // Generous thresholds for easy 3-star clear
+    starThresholds: [2200, 1600, 1000], // [★★★ 2,200점, ★★ 1,600점, ★ 1,000점]
     flightTheory: '날개 바람(양력)과 지구가 당기는 힘(중력)',
     educationTip: '선풍기 바람을 아래로 쏘면 손이 위로 밀려나는 것처럼, 드론 날개 4개가 쌩쌩 돌며 바람을 아래로 밀어내서 위로 떠올라요! 날개 힘과 지구가 당기는 힘이 똑같아지면 공중에 마법처럼 딱 멈춘답니다.',
     objectives: [
@@ -123,7 +123,7 @@ export const MISSION_STAGES: MissionStage[] = [
     badgeIcon: 'Compass',
     targetCount: 3,
     timeLimitSec: 120,
-    starThresholds: [50, 80, 110], // Generous thresholds
+    starThresholds: [2200, 1600, 1000],
     flightTheory: '몸을 앞으로 기울이면 전진해요! (피치 조종)',
     educationTip: '우리가 앞으로 달릴 때 몸을 앞으로 살짝 숙이는 것처럼, 드론도 뒷날개를 더 세게 돌려 앞을 숙이면 앞으로 슝 나아가요! 멈출 때는 뒤로 살짝 기울여 브레이크를 밟아요.',
     objectives: [
@@ -142,50 +142,50 @@ export const MISSION_STAGES: MissionStage[] = [
     badgeIcon: 'Coins',
     targetCount: 8,
     timeLimitSec: 150,
-    starThresholds: [65, 100, 135], // Generous thresholds
+    starThresholds: [2600, 1900, 1100],
     flightTheory: '높이를 일정하게 맞추고 살살 조종하기',
     educationTip: '스틱을 너무 팍팍 꺾으면 드론이 휘청거려요! 높이(왼쪽 스틱)를 알맞게 맞춘 다음, 오른쪽 스틱을 톡톡 살짝 건드리듯 조종하면 훨씬 부드럽고 정확하게 동전을 먹을 수 있어요.',
     objectives: [
       '공원에 있는 반짝이는 황금 동전 8개 모두 먹기',
       '건물이나 나무에 부딪히지 않고 안전하게 비행하기',
-      '빠르게 완료해서 반짝이는 별 3개(★★★) 받기'
+      '빠르게 완료해서 높은 점수로 별 3개(★★★) 받기'
     ]
   },
   {
     id: 'ring-race-1',
     type: 'RING_RACE',
-    title: '제4단계: 초고층 빌딩 관통 비행',
-    subtitle: '빨간 불빛 터널과 구름다리 쏙 꿰뚫기',
-    description: '빨간색으로 깜빡이는 빌딩 한가운데 터널과 높은 구름다리를 멋지게 통과해 보세요! 레이저 불빛이 통과할 길을 친절하게 알려준답니다.',
+    title: '제4단계: 국회의사당 & 초고층 빌딩 관통 비행',
+    subtitle: '국회의사당 광장 분수대와 빌딩 터널, 구름다리 쏙 꿰뚫기',
+    description: '이륙 후 시원하게 펼쳐진 국회의사당 앞 잔디광장과 분수대 상공을 가로질러 날아간 뒤, 초고층 빌딩 속 비밀 터널과 높은 구름다리, 연결 회랑을 멋지게 통과해 보세요! 레이저 불빛이 통과할 길을 친절하게 안내합니다.',
     difficulty: '보통',
     badgeIcon: 'Building',
-    targetCount: 5,
-    timeLimitSec: 150,
-    starThresholds: [65, 100, 135], // Generous thresholds
-    flightTheory: '드론 머리 방향을 터널 가운데로 똑바로 맞추기',
-    educationTip: '좁은 터널을 지날 때는 시선을 터널 한가운데 출구에 딱 맞추고, 드론 머리를 똑바로 정렬해야 벽에 부딪히지 않고 쏙 빠져나갈 수 있어요!',
+    targetCount: 9,
+    timeLimitSec: 180,
+    starThresholds: [2700, 2000, 1200],
+    flightTheory: '드론 머리 방향을 터널 한가운데로 똑바로 정렬하기',
+    educationTip: '국회의사당 분수대 앞과 좁은 빌딩 터널을 지날 때는 시선을 출구 한가운데에 딱 맞추고, 드론 머리를 똑바로 정렬해야 부딪히지 않고 쏙 빠져나갈 수 있어요!',
     objectives: [
-      '빨간색으로 깜빡이는 1번 네온 아치 관통하기',
-      '빌딩 속 뚫린 비밀 터널과 높은 구름다리 통과하기',
-      '마지막 피니시 골인 게이트를 통과하여 완주하기'
+      '국회의사당 잔디광장 및 분수대 앞 게이트 통과하기',
+      '알파 빌딩 비밀 터널과 높은 구름다리, 감마 타워 관통하기',
+      '연결 회랑과 수변 아치를 거쳐 마지막 피니시 골인 게이트 완주하기'
     ]
   },
   {
     id: 'rescue-mission-1',
     type: 'RESCUE',
-    title: '제5단계: 응급 환자 구조 & 응급실 긴급 이송',
-    subtitle: '옥상 아픈 환자 헬리패드로 안전 배달',
-    description: '빌딩 옥상에 있는 아픈 환자의 들것에 자석 줄을 찰칵 연결한 뒤, 24시 병원 옥상 헬리패드로 안전하게 싣고 날아가세요! 의사 선생님들이 기다리고 있어요.',
+    title: '제5단계: 63빌딩 응급 환자 구조 & 응급실 긴급 이송',
+    subtitle: '63빌딩 옥상 조난 환자 구조 후 병원 헬리패드로 이송',
+    description: '황금빛 63빌딩 옥상에 있는 아픈 환자의 들것에 자석 줄을 찰칵 연결한 뒤, 24시 종합병원 옥상 헬리패드로 안전하게 싣고 날아가세요! 의사 선생님들이 기다리고 있어요.',
     difficulty: '보통',
     badgeIcon: 'HeartPulse',
     targetCount: 2,
-    timeLimitSec: 160,
-    starThresholds: [70, 110, 145], // Generous thresholds
+    timeLimitSec: 180,
+    starThresholds: [2400, 1800, 1100],
     flightTheory: '무거운 짐을 들었을 때는 미리미리 브레이크!',
-    educationTip: '가방이 무거울 때 갑자기 멈추기 힘든 것처럼, 무거운 들것을 매달면 드론이 멈추는 데 시간이 더 걸려요. 착륙장 근처에 오면 미리 속도를 줄여야 안전하게 내릴 수 있어요!',
+    educationTip: '가방이 무거울 때 갑자기 멈추기 힘든 것처럼, 무거운 들것을 매달면 드론이 멈추는 데 시간이 더 걸려요. 63빌딩에서 환자를 싣고 병원 착륙장에 올 때 미리 속도를 줄여야 안전하게 내릴 수 있어요!',
     objectives: [
-      '옥상에 있는 환자 들것 위로 날아가 자석 줄 연결하기',
-      '환자가 떨어지지 않게 조심조심 병원 옥상으로 날아가기',
+      '63빌딩 옥상에 있는 환자 들것 위로 날아가 자석 줄 연결하기',
+      '환자가 떨어지지 않게 조심조심 종합병원 옥상으로 날아가기',
       '병원 헬리패드 착륙장에 무사히 착륙하여 구조 완료하기'
     ]
   },
@@ -193,19 +193,19 @@ export const MISSION_STAGES: MissionStage[] = [
     id: 'ai-racing-1',
     type: 'AI_RACING',
     title: '제6단계: AI 라이벌 서킷 레이스 [Level 1]',
-    subtitle: '로봇 친구와 2바퀴 달리기 시합 (초보자용)',
-    description: '여유롭게 나는 친절한 AI 로봇 드론과 함께 2바퀴 달리기 시합을 해요! 트랙 게이트를 따라 쌩쌩 날아보세요.',
+    subtitle: '스피드 그랑프리 서킷: 8개 게이트 & 황금 보너스 코인 2바퀴 레이스',
+    description: '탁 트인 도심 메인 대로와 수변 광장을 고속 질주하는 박진감 만점 서킷! 최적의 레이싱 라인에 놓인 황금 코인을 획득하며 루키 AI 드론보다 먼저 2바퀴를 완주해보세요.',
     difficulty: '쉬움',
     badgeIcon: 'Trophy',
     targetCount: 2, // 2 laps
-    timeLimitSec: 160,
-    starThresholds: [85, 120, 150], // Generous thresholds
+    timeLimitSec: 150,
+    starThresholds: [2600, 1900, 1200],
     flightTheory: '왼쪽/오른쪽으로 몸 돌리기 (요 회전 원리)',
     educationTip: '드론의 날개 4개는 2개씩 서로 반대 방향으로 돌아요! 한쪽 날개를 더 빠르게 돌리면 회전하는 힘이 생겨서 드론이 제자리에서 뱅글 돌 수 있답니다.',
     objectives: [
       '★ 2단 스포츠 스피드로 신나게 달리기',
-      '동그란 레이싱 게이트를 따라 트랙 2바퀴 돌기',
-      '귀여운 루키 로봇 드론보다 먼저 결승선에 도착하기'
+      '탁 트인 8개 게이트 서킷 2바퀴 완주하기',
+      '트랙 중간 황금 코인을 획득하며 AI 라이벌 제치기'
     ],
     aiDifficulty: 'LEVEL_1'
   },
@@ -213,19 +213,19 @@ export const MISSION_STAGES: MissionStage[] = [
     id: 'ai-racing-2',
     type: 'AI_RACING',
     title: '제6단계: AI 라이벌 서킷 레이스 [Level 2]',
-    subtitle: '빠른 에이스 로봇 드론과 2바퀴 챔피언 대결',
-    description: '실력이 뛰어난 에이스 로봇 드론과의 박진감 넘치는 2바퀴 스피드 대결! 코너를 날카롭게 돌아 멋지게 1등으로 들어와 보세요!',
+    subtitle: '스피드 그랑프리 서킷: 프로 에이스 로봇과 2바퀴 챔피언 대결',
+    description: '도심 속을 날카롭게 파고드는 프로 에이스 로봇과의 진검승부! 코너 레이싱 라인의 황금 코인을 모두 챙기며 1등으로 우승해보세요!',
     difficulty: '보통',
     badgeIcon: 'Trophy',
     targetCount: 2, // 2 laps
-    timeLimitSec: 140,
-    starThresholds: [70, 100, 130], // Generous thresholds
+    timeLimitSec: 130,
+    starThresholds: [2700, 2000, 1300],
     flightTheory: '커브를 돌 때 밖으로 튕겨 나가지 않는 방법 (원심력)',
     educationTip: '자전거를 타고 코너를 돌 때 안쪽으로 몸을 기울이는 것처럼, 드론도 코너를 돌 때 몸을 살짝 기울여주면 밖으로 밀려나지 않고 훨씬 빠르게 슝 돌 수 있어요!',
     objectives: [
       '★ 2단 스포츠 스피드로 신나게 달리기',
-      '동그란 레이싱 게이트를 따라 트랙 2바퀴 돌기',
-      '날쌘 프로 로봇 드론을 제치고 멋지게 우승(1등)하기'
+      '탁 트인 8개 게이트 서킷 2바퀴 연속 통과하기',
+      '트랙 위 황금 코인을 모으며 프로 AI 제치고 우승(1등)하기'
     ],
     aiDifficulty: 'LEVEL_2'
   },

@@ -11,7 +11,10 @@ import {
   CameraView, 
   DroneControlInput, 
   DroneSkin,
-  SpeedGear 
+  SpeedGear,
+  GraphicsAtmospherePreset,
+  CustomGLTFModel,
+  ScoreBreakdown
 } from './types';
 import { 
   loadUserProfile, 
@@ -33,6 +36,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { HelpManualModal } from './components/HelpManualModal';
 import { CountdownOverlay } from './components/CountdownOverlay';
 import { StartSplashScreen } from './components/StartSplashScreen';
+import { GLTFModelModal } from './components/GLTFModelModal';
 import { requestFullscreen } from './utils/fullscreen';
 
 export default function App() {
@@ -100,6 +104,7 @@ export default function App() {
     stage: MissionStage | null;
     stars: number;
     timeSec: number;
+    scoreBreakdown: ScoreBreakdown | null;
     isNewRecord: boolean;
     racePlayerWon?: boolean;
     aiTimeSec?: number;
@@ -108,6 +113,7 @@ export default function App() {
     stage: null,
     stars: 0,
     timeSec: 0,
+    scoreBreakdown: null,
     isNewRecord: false
   });
 
@@ -115,6 +121,9 @@ export default function App() {
   const [showSkinModal, setShowSkinModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showGLTFModal, setShowGLTFModal] = useState(false);
+  const [graphicsPreset, setGraphicsPreset] = useState<GraphicsAtmospherePreset>('SEOUL_HANRIVER_DAY');
+  const [loadedGLTFModels, setLoadedGLTFModels] = useState<CustomGLTFModel[]>([]);
 
   // 3D Engine World Ref & Live State Tracking Refs
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -123,6 +132,8 @@ export default function App() {
   const countdownTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const elapsedSecRef = useRef<number>(0);
   const stageCompletedRef = useRef<boolean>(false);
+  const crashCountRef = useRef<number>(0);
+  const coinsCollectedRef = useRef<number>(0);
   const currentStageRef = useRef<MissionStage | null>(currentStage);
   currentStageRef.current = currentStage;
 
@@ -207,33 +218,62 @@ export default function App() {
     soundManager.stopMotorSound();
     soundManager.stopBgm();
 
-    const isAiRace = stage.type === 'AI_RACING';
+    const isAiRace = stage.type === 'AI_RACING' || stage.id === 'ai-racing-1' || stage.id === 'ai-racing-2';
+    const playerWon = raceResult ? raceResult.playerWon : false;
+
+    // Comprehensive Scoring Engine
+    const baseScore = 1000;
+    const coinsCollected = coinsCollectedRef.current;
+    const coinScore = coinsCollected * 150;
+    const totalCoins = stage.type === 'COIN_HUNT' ? (stage.targetCount || 8) : 8;
+    const allCoinsBonus = (coinsCollected >= totalCoins && totalCoins > 0) ? 500 : 0;
+
+    let timeBonus = 0;
+    if (stage.timeLimitSec > 0) {
+      const timeLeft = Math.max(0, stage.timeLimitSec - timeSec);
+      timeBonus = Math.round(timeLeft * 10);
+    } else {
+      timeBonus = 400;
+    }
+
+    const noCrashBonus = crashCountRef.current === 0 ? 300 : 0;
+    const raceWinBonus = (isAiRace && playerWon) ? 600 : 0;
+    const totalScore = baseScore + coinScore + allCoinsBonus + timeBonus + noCrashBonus + raceWinBonus;
+
+    const scoreBreakdown: ScoreBreakdown = {
+      baseScore,
+      coinScore,
+      coinsCollected,
+      totalCoins,
+      allCoinsBonus,
+      timeBonus,
+      noCrashBonus,
+      raceWinBonus: isAiRace ? raceWinBonus : undefined,
+      totalScore
+    };
+
+    // Calculate Stars based on totalScore and stage.starThresholds
     let stars = 1;
+    if (totalScore >= stage.starThresholds[0]) {
+      stars = 3;
+    } else if (totalScore >= stage.starThresholds[1]) {
+      stars = 2;
+    } else {
+      stars = 1;
+    }
 
     if (isAiRace) {
-      const playerWon = raceResult ? raceResult.playerWon : false;
       if (playerWon) {
         soundManager.playVictory();
         soundManager.speakGuide('우와! 1등 우승! 멋지게 승리했어!');
-        // Reward 2 or 3 stars when defeating AI based on race finish time
-        if (timeSec <= stage.starThresholds[0]) stars = 3;
-        else if (timeSec <= stage.starThresholds[1]) stars = 2;
-        else stars = 2;
       } else {
-        // Defeat against AI: Award 1 star completion reward
-        stars = 1;
+        // Defeat against AI: Award completion score and cap at 2 stars
+        stars = Math.min(stars, 2);
         soundManager.speakGuide('아깝다! 그래도 끝까지 멋지게 완주했어! 최고야!');
       }
     } else {
       soundManager.playVictory();
       soundManager.speakGuide('와아, 미션 성공! 완벽한 비행이었어!');
-      if (stage.timeLimitSec > 0) {
-        if (timeSec <= stage.starThresholds[0]) stars = 3;
-        else if (timeSec <= stage.starThresholds[1]) stars = 2;
-        else stars = 1;
-      } else {
-        stars = 3;
-      }
     }
 
     let isNewRecord = false;
@@ -241,14 +281,15 @@ export default function App() {
     setProfile(prevProfile => {
       const currentProgress = prevProfile.missionProgress[stage.id];
       const prevBest = currentProgress?.bestTimeSec;
-      isNewRecord = prevBest === null || timeSec < prevBest;
+      const prevHighScore = currentProgress?.highScore || 0;
+      isNewRecord = prevHighScore === 0 || totalScore > prevHighScore;
 
       const nextProgress = { ...prevProfile.missionProgress };
       nextProgress[stage.id] = {
         unlocked: true,
         completed: true,
-        bestTimeSec: isNewRecord ? timeSec : prevBest,
-        highScore: Math.max(currentProgress?.highScore || 0, stars * 1000),
+        bestTimeSec: (prevBest === null || timeSec < prevBest) ? timeSec : prevBest,
+        highScore: Math.max(prevHighScore, totalScore),
         stars: Math.max(currentProgress?.stars || 0, stars)
       };
 
@@ -266,6 +307,7 @@ export default function App() {
       stage: stage,
       stars,
       timeSec,
+      scoreBreakdown,
       isNewRecord,
       racePlayerWon: isAiRace ? (raceResult?.playerWon ?? false) : undefined,
       aiTimeSec: isAiRace ? (raceResult?.aiTimeSec ?? undefined) : undefined
@@ -293,10 +335,11 @@ export default function App() {
     onTelemetry: handleTelemetry,
     onCoinCollected: (_coinId: number, total: number) => {
       soundManager.playCoin();
+      coinsCollectedRef.current = total;
       setMissionData(prev => ({ ...prev, coinsCollected: total }));
       updateProfile(prev => ({ ...prev, totalCoinsCollected: prev.totalCoinsCollected + 1 }));
       const targetCoins = currentStageRef.current?.targetCount || 8;
-      if (total >= targetCoins) {
+      if (currentStageRef.current?.type === 'COIN_HUNT' && total >= targetCoins) {
         handleStageComplete(elapsedSecRef.current);
       }
     },
@@ -323,6 +366,7 @@ export default function App() {
       }, 1000);
     },
     onCrash: (impactSpeed: number) => {
+      crashCountRef.current += 1;
       soundManager.playSparkImpact(impactSpeed);
     },
     onLapFinished: (lap: number, totalLaps: number, _lapTime: number, playerAhead: boolean) => {
@@ -344,11 +388,14 @@ export default function App() {
       onTelemetry: handleTelemetry,
       onCoinCollected: (_coinId, total) => {
         soundManager.playCoin();
+        coinsCollectedRef.current = total;
         setMissionData(prev => ({ ...prev, coinsCollected: total }));
         updateProfile(prev => ({ ...prev, totalCoinsCollected: prev.totalCoinsCollected + 1 }));
-        const targetCoins = currentStageRef.current?.targetCount || 8;
-        if (total >= targetCoins) {
-          handleStageComplete(elapsedSecRef.current);
+        if (currentStageRef.current?.type === 'COIN_HUNT') {
+          const targetCoins = currentStageRef.current?.targetCount || 8;
+          if (total >= targetCoins) {
+            handleStageComplete(elapsedSecRef.current);
+          }
         }
       },
       onRingPassed: (ringId, nextRingId) => {
@@ -374,6 +421,7 @@ export default function App() {
         }, 1000);
       },
       onCrash: (impactSpeed) => {
+        crashCountRef.current += 1;
         soundManager.playSparkImpact(impactSpeed);
       },
       onLapFinished: (lap, _totalLaps, _lapTime, playerAhead) => {
@@ -530,6 +578,8 @@ export default function App() {
   const handleResetDrone = useCallback(() => {
     if (!currentStage) return;
     stageCompletedRef.current = false;
+    crashCountRef.current = 0;
+    coinsCollectedRef.current = 0;
     setElapsedSec(0);
     elapsedSecRef.current = 0;
     setTutorialStep(1);
@@ -726,6 +776,37 @@ export default function App() {
     updateProfile(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }));
   };
 
+  // 3D Graphics & Atmosphere Lighting Handlers
+  const handleSelectAtmospherePreset = (preset: GraphicsAtmospherePreset) => {
+    setGraphicsPreset(preset);
+    if (droneWorldRef.current) {
+      droneWorldRef.current.setAtmospherePreset(preset);
+    }
+  };
+
+  const handleUploadGLTF = async (file: File) => {
+    if (!droneWorldRef.current) {
+      throw new Error('3D 엔진이 초기화되지 않았습니다.');
+    }
+    const loaded = await droneWorldRef.current.loadCustomGLTF(file);
+    setLoadedGLTFModels(droneWorldRef.current.getLoadedCustomModels());
+    soundManager.playRescueDelivered();
+  };
+
+  const handleRemoveGLTF = (modelId: string) => {
+    if (droneWorldRef.current) {
+      droneWorldRef.current.removeCustomGLTF(modelId);
+      setLoadedGLTFModels(droneWorldRef.current.getLoadedCustomModels());
+    }
+  };
+
+  const handleClearAllGLTF = () => {
+    if (droneWorldRef.current) {
+      droneWorldRef.current.clearCustomModels();
+      setLoadedGLTFModels([]);
+    }
+  };
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-slate-950 select-none font-sans">
       {/* 0. If First Launch / Splash Screen: Show Start Screen with Title and Photo */}
@@ -742,6 +823,7 @@ export default function App() {
           onSelectStage={handleSelectStage}
           onOpenLicense={() => setShowLicenseModal(true)}
           onOpenSkins={() => setShowSkinModal(true)}
+          onOpenGLTF={() => setShowGLTFModal(true)}
           onOpenSettings={() => setShowSettingsModal(true)}
           onOpenHelp={() => setShowHelpModal(true)}
           onReturnHome={() => setHasStartedApp(false)}
@@ -770,6 +852,7 @@ export default function App() {
               setStickValues({ leftX: 0, leftY: 0, rightX: 0, rightY: 0 });
               soundManager.speakGuide('제자리 호버링 멈춤!');
             }}
+            onOpenGLTFModal={() => setShowGLTFModal(true)}
             onOpenSettings={() => setShowSettingsModal(true)}
             onOpenHelp={() => setShowHelpModal(true)}
             onExitMission={handleExitMission}
@@ -863,11 +946,12 @@ export default function App() {
       )}
 
       {/* Mission Result Modal */}
-      {resultModal.show && resultModal.stage && (
+      {resultModal.show && resultModal.stage && resultModal.scoreBreakdown && (
         <MissionResultModal
           stage={resultModal.stage}
           stars={resultModal.stars}
           timeSec={resultModal.timeSec}
+          scoreBreakdown={resultModal.scoreBreakdown}
           isNewRecord={resultModal.isNewRecord}
           racePlayerWon={resultModal.racePlayerWon}
           aiTimeSec={resultModal.aiTimeSec}
@@ -960,6 +1044,19 @@ export default function App() {
       {/* Help Modal */}
       {showHelpModal && (
         <HelpManualModal onClose={() => setShowHelpModal(false)} />
+      )}
+
+      {/* 3D Graphics & Custom GLTF Model Loader Modal */}
+      {showGLTFModal && (
+        <GLTFModelModal
+          currentPreset={graphicsPreset}
+          loadedModels={loadedGLTFModels}
+          onSelectPreset={handleSelectAtmospherePreset}
+          onUploadGLTF={handleUploadGLTF}
+          onRemoveModel={handleRemoveGLTF}
+          onClearAllModels={handleClearAllGLTF}
+          onClose={() => setShowGLTFModal(false)}
+        />
       )}
     </div>
   );

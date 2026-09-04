@@ -206,11 +206,15 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = memo(({
         const r = missionData.currentRing - 1;
         const total = missionData.totalRings;
         if (r === 1) {
-          showPraise('🚀', '1번 게이트 통과!', '멋진 출발! 다음 게이트로!');
+          showPraise('🏛️', '국회의사당 진입 성공!', '멋진 출발! 잔디광장 분수대로!');
         } else if (r === 2) {
-          showPraise('🏢', '빌딩 터널 돌파!', '짜릿한 비행 성공! 훌륭해요!');
+          showPraise('⛲', '국회의사당 광장 돌파!', '완벽한 관통! 알파 빌딩 터널로!');
         } else if (r === 3) {
+          showPraise('🏢', '알파 빌딩 터널 돌파!', '짜릿한 비행 성공! 훌륭해요!');
+        } else if (r === 4) {
           showPraise('🌉', '구름다리 통과!', '완벽한 조종 감각! 대단해요!');
+        } else if (r === 5) {
+          showPraise('⚡', '감마 타워 관통!', '골인 결승선으로 진입하세요!');
         } else if (r >= total) {
           showPraise('🏆', '모든 게이트 돌파 완료!', '골인 지점으로 착륙하세요!');
         } else {
@@ -222,10 +226,10 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = memo(({
 
     if (stage.type === 'RESCUE') {
       if (missionData.patientPickedUp && !lastPatientPickedRef.current) {
-        showPraise('💖', '환자 구조 연결!', '자석 줄 결착! 병원 헬리패드로 출발!');
+        showPraise('💖', '63빌딩 환자 구조 연결!', '자석 줄 결착! 종합병원 헬리패드로 출발!');
       }
       if (missionData.patientDelivered && !lastPatientDeliveredRef.current) {
-        showPraise('🎖️', '소중한 생명 구조 성공!', '병원 응급실 이송 완료! 최고!');
+        showPraise('🎖️', '소중한 생명 구조 성공!', '종합병원 응급실 이송 완료! 최고!');
       }
       lastPatientPickedRef.current = missionData.patientPickedUp;
       lastPatientDeliveredRef.current = missionData.patientDelivered;
@@ -406,11 +410,12 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = memo(({
             <span className="font-black text-rose-300 flex items-center gap-1.5 truncate">
               <Target className="w-3.5 h-3.5 text-rose-400 shrink-0" />
               <span>
-                {ring === 1 && '1번 네온 아치 관통'}
-                {ring === 2 && '2번 빌딩 비밀 터널 관통'}
-                {ring === 3 && '3번 높은 공중 구름다리'}
-                {ring === 4 && '4번 타워 관통 게이트'}
-                {ring >= 5 && '🏁 5번 피니시 결승선 골인!'}
+                {ring === 1 && '1번 국회의사당 잔디광장 진입'}
+                {ring === 2 && '2번 국회의사당 분수대 관통'}
+                {ring === 3 && '3번 알파 빌딩 비밀 터널 관통'}
+                {ring === 4 && '4번 높은 공중 구름다리'}
+                {ring === 5 && '5번 감마 타워 관통 게이트'}
+                {ring >= 6 && '🏁 6번 피니시 결승선 골인!'}
               </span>
             </span>
             <span className="font-mono font-bold text-rose-300 bg-slate-800/90 px-2 py-0.5 rounded text-[11px] shrink-0 border border-rose-500/40">
@@ -439,8 +444,8 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = memo(({
             <span className="font-black text-rose-300 flex items-center gap-1.5 truncate">
               <HeartPulse className="w-3.5 h-3.5 text-rose-400 shrink-0 animate-pulse" />
               <span>
-                {!picked && '1단계: 옥상 환자 위로 날아가 자석 연결'}
-                {picked && !delivered && '2단계: 병원 옥상 헬리패드로 안전 이송'}
+                {!picked && '1단계: 63빌딩 옥상 환자 위로 날아가 자석 연결'}
+                {picked && !delivered && '2단계: 종합병원 옥상 헬리패드로 안전 이송'}
                 {delivered && '🎉 환자 이송 완료! 생명을 구했어요!'}
               </span>
             </span>

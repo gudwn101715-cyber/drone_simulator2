@@ -1,11 +1,12 @@
 import React from 'react';
-import { MissionStage } from '../types';
-import { Star, Trophy, RotateCcw, ArrowRight, Home, Sparkles } from 'lucide-react';
+import { MissionStage, ScoreBreakdown } from '../types';
+import { Star, Trophy, RotateCcw, ArrowRight, Home, Sparkles, Coins, Zap, ShieldCheck, Clock, CheckCircle2 } from 'lucide-react';
 
 interface MissionResultModalProps {
   stage: MissionStage;
   stars: number;
   timeSec: number;
+  scoreBreakdown: ScoreBreakdown;
   isNewRecord: boolean;
   racePlayerWon?: boolean;
   aiTimeSec?: number;
@@ -18,6 +19,7 @@ export const MissionResultModal: React.FC<MissionResultModalProps> = ({
   stage,
   stars,
   timeSec,
+  scoreBreakdown,
   isNewRecord,
   racePlayerWon,
   aiTimeSec,
@@ -25,19 +27,19 @@ export const MissionResultModal: React.FC<MissionResultModalProps> = ({
   onNext,
   onHome
 }) => {
-  const isAiRace = stage.type === 'AI_RACING' || stage.id === 'ai-racing-1';
+  const isAiRace = stage.type === 'AI_RACING' || stage.id === 'ai-racing-1' || stage.id === 'ai-racing-2';
   const playerLostRace = isAiRace && racePlayerWon === false;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-sky-950/60 backdrop-blur-md animate-fadeIn">
-      <div className="bg-white/98 border-4 border-blue-300 rounded-[32px] p-5 sm:p-7 max-w-md w-full shadow-2xl text-center text-slate-800 flex flex-col items-center max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-sky-950/70 backdrop-blur-md animate-fadeIn">
+      <div className="bg-white/98 border-4 border-blue-300 rounded-[32px] p-5 sm:p-6 max-w-md w-full shadow-2xl text-center text-slate-800 flex flex-col items-center max-h-[94vh] overflow-y-auto">
         {/* Top Trophy Icon */}
-        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-4 border-white flex items-center justify-center shadow-lg mb-2 ${
+        <div className={`w-13 h-13 sm:w-15 sm:h-15 rounded-2xl border-4 border-white flex items-center justify-center shadow-lg mb-2 ${
           playerLostRace 
             ? 'bg-slate-300 text-slate-700 shadow-slate-400/30'
             : 'bg-yellow-400 text-yellow-950 shadow-yellow-500/30 animate-bounce'
         }`}>
-          <Trophy className="w-8 h-8 sm:w-9 sm:h-9 fill-current" />
+          <Trophy className="w-7 h-7 sm:w-8 sm:h-8 fill-current" />
         </div>
 
         <span className={`text-[11px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full border ${
@@ -47,7 +49,7 @@ export const MissionResultModal: React.FC<MissionResultModalProps> = ({
         }`}>
           {playerLostRace ? '🥈 2등 완주! 아쉬워요!' : '🎉 미션 대성공! 참 잘했어요!'}
         </span>
-        <h2 className="text-lg sm:text-xl font-black text-slate-900 mt-1.5 mb-0.5">
+        <h2 className="text-base sm:text-lg font-black text-slate-900 mt-1.5 mb-0.5">
           {playerLostRace ? '2등으로 골인! (로봇 드론 승리)' : isAiRace ? '🏆 1등 챔피언! 로봇 드론을 이겼어요!' : '🌟 미션을 멋지게 성공했어요!'}
         </h2>
         <p className="text-xs text-slate-600 font-medium mb-3">
@@ -60,49 +62,126 @@ export const MissionResultModal: React.FC<MissionResultModalProps> = ({
           )}
         </p>
 
-        {/* Star Rating Animation */}
-        <div className="flex items-center justify-center gap-3 mb-4 bg-yellow-50/80 px-5 py-2 rounded-2xl border-2 border-yellow-200">
-          {[1, 2, 3].map((starIdx) => (
-            <div
-              key={starIdx}
-              className={`transition-all duration-500 transform ${
-                starIdx <= stars ? 'scale-110' : 'scale-90 opacity-40'
-              }`}
-            >
-              <Star
-                className={`w-10 h-10 ${
-                  starIdx <= stars
-                    ? 'fill-yellow-400 text-yellow-500 drop-shadow-md'
-                    : 'text-slate-300 fill-slate-200'
+        {/* Total Score & Star Rating Hero */}
+        <div className="w-full bg-gradient-to-b from-amber-500/10 via-yellow-400/15 to-amber-500/5 rounded-2xl p-3.5 border-2 border-amber-300/80 mb-3 shadow-inner">
+          <div className="text-[11px] font-black text-amber-800 uppercase tracking-wider flex items-center justify-center gap-1.5 mb-0.5">
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            <span>최종 비행 점수 (TOTAL SCORE)</span>
+          </div>
+          <div className="text-3xl sm:text-4xl font-black font-mono text-amber-900 tracking-tight flex items-baseline justify-center gap-1">
+            <span>{scoreBreakdown.totalScore.toLocaleString()}</span>
+            <span className="text-base font-bold text-amber-700">점</span>
+          </div>
+
+          {/* Star Rating Display */}
+          <div className="flex items-center justify-center gap-2.5 mt-2 bg-white/80 py-1.5 px-4 rounded-xl border border-amber-200/80 mx-auto w-fit shadow-sm">
+            {[1, 2, 3].map((starIdx) => (
+              <div
+                key={starIdx}
+                className={`transition-all duration-500 transform ${
+                  starIdx <= stars ? 'scale-110' : 'scale-90 opacity-30'
                 }`}
-              />
+              >
+                <Star
+                  className={`w-7 h-7 sm:w-8 sm:h-8 ${
+                    starIdx <= stars
+                      ? 'fill-yellow-400 text-yellow-500 drop-shadow-sm'
+                      : 'text-slate-300 fill-slate-200'
+                  }`}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="text-[10px] text-amber-800 font-bold mt-1.5">
+            {stars === 3 ? '★★★ 최고 등급 마스터 파일럿 달성!' : stars === 2 ? `★★ 우수 비행! (★★★ 3성 기준: ${stage.starThresholds[0].toLocaleString()}점)` : `★ 완주 성공! (★★ 2성 기준: ${stage.starThresholds[1].toLocaleString()}점)`}
+          </div>
+        </div>
+
+        {/* Detailed Score Breakdown List */}
+        <div className="w-full bg-slate-50 rounded-2xl p-3 border border-slate-200 text-left mb-3 space-y-1.5 text-xs">
+          <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1 px-1 flex items-center justify-between">
+            <span>점수 획득 상세 내역</span>
+            {isNewRecord && (
+              <span className="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded font-bold flex items-center gap-0.5">
+                <Sparkles className="w-3 h-3" /> 최고 점수 갱신!
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between px-1 text-slate-700 font-semibold">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" />
+              <span>미션 기본 완주 점수</span>
+            </span>
+            <span className="font-mono font-bold text-blue-600">+{scoreBreakdown.baseScore.toLocaleString()}점</span>
+          </div>
+
+          {scoreBreakdown.coinsCollected > 0 && (
+            <div className="flex items-center justify-between px-1 text-slate-700 font-semibold">
+              <span className="flex items-center gap-1.5">
+                <Coins className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                <span>황금 동전 획득 ({scoreBreakdown.coinsCollected}개)</span>
+              </span>
+              <span className="font-mono font-bold text-amber-600">+{scoreBreakdown.coinScore.toLocaleString()}점</span>
             </div>
-          ))}
+          )}
+
+          {scoreBreakdown.allCoinsBonus > 0 && (
+            <div className="flex items-center justify-between px-1 text-amber-800 font-bold bg-amber-100/70 p-1 rounded-lg">
+              <span className="flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                <span>✨ 동전 올클리어 보너스!</span>
+              </span>
+              <span className="font-mono font-bold text-amber-700">+{scoreBreakdown.allCoinsBonus.toLocaleString()}점</span>
+            </div>
+          )}
+
+          {scoreBreakdown.timeBonus > 0 && (
+            <div className="flex items-center justify-between px-1 text-slate-700 font-semibold">
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                <span>쾌속 비행 타임 보너스 ({timeSec.toFixed(1)}초)</span>
+              </span>
+              <span className="font-mono font-bold text-indigo-600">+{scoreBreakdown.timeBonus.toLocaleString()}점</span>
+            </div>
+          )}
+
+          {scoreBreakdown.noCrashBonus > 0 && (
+            <div className="flex items-center justify-between px-1 text-slate-700 font-semibold">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span>무충돌 클린 비행 보너스</span>
+              </span>
+              <span className="font-mono font-bold text-emerald-600">+{scoreBreakdown.noCrashBonus.toLocaleString()}점</span>
+            </div>
+          )}
+
+          {scoreBreakdown.raceWinBonus && scoreBreakdown.raceWinBonus > 0 && (
+            <div className="flex items-center justify-between px-1 text-purple-900 font-bold bg-purple-100/70 p-1 rounded-lg">
+              <span className="flex items-center gap-1.5">
+                <Trophy className="w-3.5 h-3.5 text-purple-600 fill-purple-500" />
+                <span>AI 라이벌 1등 우승 보너스</span>
+              </span>
+              <span className="font-mono font-bold text-purple-700">+{scoreBreakdown.raceWinBonus.toLocaleString()}점</span>
+            </div>
+          )}
         </div>
 
         {/* Clear Time Stats */}
-        <div className="w-full bg-blue-50/90 rounded-2xl p-3 sm:p-4 border-2 border-blue-100 mb-5 flex items-center justify-around">
-          <div>
-            <span className="text-[11px] text-blue-900 font-black block">내 비행 완주 시간</span>
-            <span className="text-2xl font-black font-mono text-blue-600">
-              {timeSec.toFixed(1)}초
-            </span>
-          </div>
-          {isAiRace && aiTimeSec !== undefined && (
+        {isAiRace && aiTimeSec !== undefined && (
+          <div className="w-full bg-blue-50/90 rounded-2xl p-2.5 border border-blue-100 mb-3 flex items-center justify-around text-xs">
+            <div>
+              <span className="text-[10px] text-blue-900 font-black block">내 완주 시간</span>
+              <span className="text-lg font-black font-mono text-blue-600">{timeSec.toFixed(1)}초</span>
+            </div>
             <div className="border-l border-blue-200 pl-4">
-              <span className="text-[11px] text-purple-900 font-black block">AI 라이벌 기록</span>
-              <span className={`text-xl font-black font-mono ${playerLostRace ? 'text-rose-600 font-bold' : 'text-purple-600'}`}>
+              <span className="text-[10px] text-purple-900 font-black block">AI 라이벌 기록</span>
+              <span className={`text-lg font-black font-mono ${playerLostRace ? 'text-rose-600 font-bold' : 'text-purple-600'}`}>
                 {aiTimeSec.toFixed(1)}초
               </span>
             </div>
-          )}
-          {isNewRecord && !isAiRace && (
-            <div className="flex items-center gap-1 text-emerald-700 font-black text-xs bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-300 shadow-sm">
-              <Sparkles className="w-4 h-4 text-emerald-600" />
-              <span>최고 기록 갱신!</span>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="grid grid-cols-3 gap-2.5 w-full">

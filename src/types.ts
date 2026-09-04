@@ -50,6 +50,18 @@ export interface DroneTelemetry {
 
 export type AiDifficulty = 'LEVEL_1' | 'LEVEL_2';
 
+export interface ScoreBreakdown {
+  baseScore: number;
+  coinScore: number;
+  coinsCollected: number;
+  totalCoins: number;
+  allCoinsBonus: number;
+  timeBonus: number;
+  noCrashBonus: number;
+  raceWinBonus?: number;
+  totalScore: number;
+}
+
 export interface MissionStage {
   id: string;
   type: MissionType;
@@ -60,7 +72,7 @@ export interface MissionStage {
   badgeIcon: string;
   targetCount: number;
   timeLimitSec: number;
-  starThresholds: [number, number, number]; // [3 stars max time, 2 stars max time, 1 star max time]
+  starThresholds: [number, number, number]; // [3 stars min score, 2 stars min score, 1 star min score]
   objectives: string[];
   flightTheory?: string;
   educationTip?: string;
@@ -151,4 +163,18 @@ export interface AiRacerState {
   finished: boolean;
   finishTimeSec: number | null;
   droneMeshOffset?: number;
+}
+
+export type GraphicsAtmospherePreset = 'SEOUL_HANRIVER_DAY' | 'GANGNAM_NIGHT' | 'BLENDER_PBR_DAY' | 'AIRPORT_SUNSET' | 'CYBERPUNK_NIGHT' | 'ALPINE_DAWN';
+
+export interface CustomGLTFModel {
+  id: string;
+  name: string;
+  url?: string;
+  fileName?: string;
+  vertexCount: number;
+  meshCount: number;
+  scale: number;
+  position: [number, number, number];
+  loadedAt: number;
 }
