@@ -1602,6 +1602,8 @@ export class DroneWorld {
   } | null = null;
   private redWarningLights: THREE.Mesh[] = [];
   private fountainWater: THREE.Mesh | null = null;
+  private prevIsNsGreen: boolean | null = null;
+  public performanceMode: 'TABLET_MAX_FPS' | 'BALANCED' = 'TABLET_MAX_FPS';
 
   // Cyber Sky, Moon, Space Beacons & Airships
   private skyDome: THREE.Mesh | null = null;
@@ -5953,41 +5955,44 @@ export class DroneWorld {
     const trafficCycle = (time % 16.0); // 16-second complete light cycle (8s North-South Green, 8s East-West Green)
     const isNsGreen = trafficCycle < 8.0;
 
-    // Update 3D Traffic Light Signal Emissive Colors
-    this.trafficLightMeshes.forEach(tl => {
-      const nsRedMat = tl.nsRedMesh.material as THREE.MeshBasicMaterial;
-      const nsGreenMat = tl.nsGreenMesh.material as THREE.MeshBasicMaterial;
-      const ewRedMat = tl.ewRedMesh.material as THREE.MeshBasicMaterial;
-      const ewGreenMat = tl.ewGreenMesh.material as THREE.MeshBasicMaterial;
+    // Update 3D Traffic Light Signal Emissive Colors ONLY when signal phase transitions (Saves ~1000 Three.js material ops per sec)
+    if (this.prevIsNsGreen !== isNsGreen) {
+      this.prevIsNsGreen = isNsGreen;
+      this.trafficLightMeshes.forEach(tl => {
+        const nsRedMat = tl.nsRedMesh.material as THREE.MeshBasicMaterial;
+        const nsGreenMat = tl.nsGreenMesh.material as THREE.MeshBasicMaterial;
+        const ewRedMat = tl.ewRedMesh.material as THREE.MeshBasicMaterial;
+        const ewGreenMat = tl.ewGreenMesh.material as THREE.MeshBasicMaterial;
 
-      if (isNsGreen) {
-        nsGreenMat.color.setHex(0x22c55e); // Bright Green
-        nsRedMat.color.setHex(0x450a0a);   // Dim Red
-        ewGreenMat.color.setHex(0x052e16); // Dim Green
-        ewRedMat.color.setHex(0xef4444);   // Bright Red
-      } else {
-        nsGreenMat.color.setHex(0x052e16); // Dim Green
-        nsRedMat.color.setHex(0xef4444);   // Bright Red
-        ewGreenMat.color.setHex(0x22c55e); // Bright Green
-        ewRedMat.color.setHex(0x450a0a);   // Dim Red
-      }
-    });
+        if (isNsGreen) {
+          nsGreenMat.color.setHex(0x22c55e); // Bright Green
+          nsRedMat.color.setHex(0x450a0a);   // Dim Red
+          ewGreenMat.color.setHex(0x052e16); // Dim Green
+          ewRedMat.color.setHex(0xef4444);   // Bright Red
+        } else {
+          nsGreenMat.color.setHex(0x052e16); // Dim Green
+          nsRedMat.color.setHex(0xef4444);   // Bright Red
+          ewGreenMat.color.setHex(0x22c55e); // Bright Green
+          ewRedMat.color.setHex(0x450a0a);   // Dim Red
+        }
+      });
+    }
 
     const crosswayZs = [30, -20, -60];
+    const numVehicles = this.dynamicVehicles.length;
 
-    for (let i = 0; i < this.dynamicVehicles.length; i++) {
+    for (let i = 0; i < numVehicles; i++) {
       const v = this.dynamicVehicles[i];
       let currentSpeed = v.speed;
 
-      // Check distance to preceding vehicle in the exact same lane & direction
+      // Fast headway check: check nearest preceding vehicle in the same lane
       let minAheadDist = 999;
-      for (let j = 0; j < this.dynamicVehicles.length; j++) {
+      for (let j = 0; j < numVehicles; j++) {
         if (i === j) continue;
         const other = this.dynamicVehicles[j];
         if (other.isX !== v.isX || other.dir !== v.dir) continue;
 
         if (v.isX) {
-          // Check lateral lane alignment (same Z lane)
           if (Math.abs(other.group.position.z - v.group.position.z) < 1.8) {
             const forwardDelta = (other.group.position.x - v.group.position.x) * v.dir;
             if (forwardDelta > 0 && forwardDelta < minAheadDist) {
@@ -5995,7 +6000,6 @@ export class DroneWorld {
             }
           }
         } else {
-          // Check lateral lane alignment (same X lane)
           if (Math.abs(other.group.position.x - v.group.position.x) < 1.8) {
             const forwardDelta = (other.group.position.z - v.group.position.z) * v.dir;
             if (forwardDelta > 0 && forwardDelta < minAheadDist) {
@@ -6007,11 +6011,10 @@ export class DroneWorld {
 
       // Traffic Light Stop Line Logic
       if (!v.isX) {
-        // North-South vehicle (traveling along Z)
         if (!isNsGreen) {
-          // Red light for North-South
-          crosswayZs.forEach(cz => {
-            const stopZ = cz - v.dir * 10.5; // Stop line before crosswalk
+          for (let c = 0; c < 3; c++) {
+            const cz = crosswayZs[c];
+            const stopZ = cz - v.dir * 10.5;
             const distToStop = (stopZ - v.group.position.z) * v.dir;
             if (distToStop > 0 && distToStop < 12.0) {
               if (distToStop < 2.5) {
@@ -6019,22 +6022,19 @@ export class DroneWorld {
               } else {
                 currentSpeed = Math.min(currentSpeed, v.speed * (distToStop / 12.0));
               }
+              break;
             }
-          });
+          }
         }
       } else {
-        // East-West vehicle (traveling along X)
-        if (isNsGreen) {
-          // Red light for East-West crossways
-          if (Math.abs(v.group.position.z) < 90) { // On downtown crossway intersections
-            const stopX = -v.dir * 13.0; // Stop line before central boulevard
-            const distToStop = (stopX - v.group.position.x) * v.dir;
-            if (distToStop > 0 && distToStop < 12.0) {
-              if (distToStop < 2.5) {
-                currentSpeed = 0;
-              } else {
-                currentSpeed = Math.min(currentSpeed, v.speed * (distToStop / 12.0));
-              }
+        if (isNsGreen && Math.abs(v.group.position.z) < 90) {
+          const stopX = -v.dir * 13.0;
+          const distToStop = (stopX - v.group.position.x) * v.dir;
+          if (distToStop > 0 && distToStop < 12.0) {
+            if (distToStop < 2.5) {
+              currentSpeed = 0;
+            } else {
+              currentSpeed = Math.min(currentSpeed, v.speed * (distToStop / 12.0));
             }
           }
         }
@@ -6042,49 +6042,51 @@ export class DroneWorld {
 
       // Safe headway control: slow down or stop if another vehicle is ahead
       if (minAheadDist < 7.5) {
-        currentSpeed = 0; // Complete stop to prevent overlap
+        currentSpeed = 0;
       } else if (minAheadDist < 14.0) {
-        currentSpeed = Math.min(currentSpeed, v.speed * 0.45); // Match pace and decelerate
+        currentSpeed = Math.min(currentSpeed, v.speed * 0.45);
       }
 
-      // Pedestrian & Animal Safety Yield System: check if any pedestrian or animal is within vehicle forward path
-      const vPos = v.group.position;
-      for (let pIdx = 0; pIdx < this.animatedPedestrians.length; pIdx++) {
-        const pedPos = this.animatedPedestrians[pIdx].group.position;
-        if (v.isX) {
-          if (Math.abs(pedPos.z - vPos.z) < 2.2) {
-            const forwardPedDist = (pedPos.x - vPos.x) * v.dir;
-            if (forwardPedDist > 0 && forwardPedDist < 8.0) {
-              currentSpeed = 0; // Complete stop for pedestrian
-              break;
+      // Pedestrian & Dog Safety Yield System (Only computed when vehicles are near intersections)
+      if (isCloseToGround) {
+        const vPos = v.group.position;
+        const numPeds = this.animatedPedestrians.length;
+        for (let pIdx = 0; pIdx < numPeds; pIdx++) {
+          const pedPos = this.animatedPedestrians[pIdx].group.position;
+          if (v.isX) {
+            if (Math.abs(pedPos.z - vPos.z) < 2.2) {
+              const forwardPedDist = (pedPos.x - vPos.x) * v.dir;
+              if (forwardPedDist > 0 && forwardPedDist < 8.0) {
+                currentSpeed = 0;
+                break;
+              }
             }
-          }
-        } else {
-          if (Math.abs(pedPos.x - vPos.x) < 2.2) {
-            const forwardPedDist = (pedPos.z - vPos.z) * v.dir;
-            if (forwardPedDist > 0 && forwardPedDist < 8.0) {
-              currentSpeed = 0; // Complete stop for pedestrian
-              break;
+          } else {
+            if (Math.abs(pedPos.x - vPos.x) < 2.2) {
+              const forwardPedDist = (pedPos.z - vPos.z) * v.dir;
+              if (forwardPedDist > 0 && forwardPedDist < 8.0) {
+                currentSpeed = 0;
+                break;
+              }
             }
           }
         }
-      }
 
-      // Animal (Park Dog) Safety Yield
-      if (this.parkDog) {
-        const dogPos = this.parkDog.group.position;
-        if (v.isX) {
-          if (Math.abs(dogPos.z - vPos.z) < 2.0) {
-            const forwardDogDist = (dogPos.x - vPos.x) * v.dir;
-            if (forwardDogDist > 0 && forwardDogDist < 7.0) {
-              currentSpeed = 0; // Complete stop for animal
+        if (this.parkDog) {
+          const dogPos = this.parkDog.group.position;
+          if (v.isX) {
+            if (Math.abs(dogPos.z - vPos.z) < 2.0) {
+              const forwardDogDist = (dogPos.x - vPos.x) * v.dir;
+              if (forwardDogDist > 0 && forwardDogDist < 7.0) {
+                currentSpeed = 0;
+              }
             }
-          }
-        } else {
-          if (Math.abs(dogPos.x - vPos.x) < 2.0) {
-            const forwardDogDist = (dogPos.z - vPos.z) * v.dir;
-            if (forwardDogDist > 0 && forwardDogDist < 7.0) {
-              currentSpeed = 0; // Complete stop for animal
+          } else {
+            if (Math.abs(dogPos.x - vPos.x) < 2.0) {
+              const forwardDogDist = (dogPos.z - vPos.z) * v.dir;
+              if (forwardDogDist > 0 && forwardDogDist < 7.0) {
+                currentSpeed = 0;
+              }
             }
           }
         }
@@ -8067,6 +8069,15 @@ export class DroneWorld {
     this.invertPitch = invert;
   }
 
+  public setPerformanceMode(mode: 'TABLET_MAX_FPS' | 'BALANCED') {
+    this.performanceMode = mode;
+    if (this.renderer) {
+      const dpr = window.devicePixelRatio || 1;
+      const ratio = mode === 'TABLET_MAX_FPS' ? Math.min(dpr, 1.0) * 0.9 : Math.min(dpr, 1.0);
+      this.renderer.setPixelRatio(ratio);
+    }
+  }
+
   public setSpeedGear(gear: SpeedGear) {
     if (this.currentStage?.type === 'AI_RACING' || this.currentStage?.id === 'ai-racing-1' || this.currentStage?.id === 'stage-6') {
       this.speedGear = 2; // Locked to Sport mode in Stage 6 Grand Prix Circuit
@@ -9271,9 +9282,9 @@ export class DroneWorld {
       this.isGrounded
     );
 
-    // Throttle React state dispatch to ~20Hz (every 50ms) to eliminate React reconciliation CPU overhead
+    // Throttle React state dispatch to ~13.3Hz (every 75ms) to eliminate React reconciliation CPU overhead
     const now = performance.now();
-    if (now - this.lastTelemetryTime >= 50 || this.hasCrashed || this.isGrounded !== this.prevIsGrounded) {
+    if (now - this.lastTelemetryTime >= 75 || this.hasCrashed || this.isGrounded !== this.prevIsGrounded) {
       this.lastTelemetryTime = now;
       this.prevIsGrounded = this.isGrounded;
 

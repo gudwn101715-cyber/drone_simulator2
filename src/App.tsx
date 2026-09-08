@@ -12,8 +12,6 @@ import {
   DroneControlInput, 
   DroneSkin,
   SpeedGear,
-  GraphicsAtmospherePreset,
-  CustomGLTFModel,
   ScoreBreakdown
 } from './types';
 import { 
@@ -36,7 +34,6 @@ import { SettingsModal } from './components/SettingsModal';
 import { HelpManualModal } from './components/HelpManualModal';
 import { CountdownOverlay } from './components/CountdownOverlay';
 import { StartSplashScreen } from './components/StartSplashScreen';
-import { GLTFModelModal } from './components/GLTFModelModal';
 import { requestFullscreen } from './utils/fullscreen';
 
 export default function App() {
@@ -121,9 +118,6 @@ export default function App() {
   const [showSkinModal, setShowSkinModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
-  const [showGLTFModal, setShowGLTFModal] = useState(false);
-  const [graphicsPreset, setGraphicsPreset] = useState<GraphicsAtmospherePreset>('SEOUL_HANRIVER_DAY');
-  const [loadedGLTFModels, setLoadedGLTFModels] = useState<CustomGLTFModel[]>([]);
 
   // 3D Engine World Ref & Live State Tracking Refs
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -557,18 +551,38 @@ export default function App() {
     };
   }, [currentStage?.id, activeSkin.id, profile.assistLevel, profile.sensitivity, profile.invertPitch, startMissionCountdown]);
 
-  // Apply control inputs to DroneWorld
-  useEffect(() => {
+  const stickValuesRef = useRef({
+    leftX: 0,
+    leftY: 0,
+    rightX: 0,
+    rightY: 0
+  });
+
+  const handleLeftStickChange = useCallback((x: number, y: number) => {
+    stickValuesRef.current.leftX = x;
+    stickValuesRef.current.leftY = y;
     if (droneWorldRef.current) {
-      const input: DroneControlInput = {
-        throttle: stickValues.leftY,
-        yaw: stickValues.leftX,
-        pitch: stickValues.rightY,
-        roll: stickValues.rightX
-      };
-      droneWorldRef.current.setControlInput(input);
+      droneWorldRef.current.setControlInput({
+        throttle: y,
+        yaw: x,
+        pitch: stickValuesRef.current.rightY,
+        roll: stickValuesRef.current.rightX
+      });
     }
-  }, [stickValues]);
+  }, []);
+
+  const handleRightStickChange = useCallback((x: number, y: number) => {
+    stickValuesRef.current.rightX = x;
+    stickValuesRef.current.rightY = y;
+    if (droneWorldRef.current) {
+      droneWorldRef.current.setControlInput({
+        throttle: stickValuesRef.current.leftY,
+        yaw: stickValuesRef.current.leftX,
+        pitch: y,
+        roll: x
+      });
+    }
+  }, []);
 
   const handleAutoTakeoffLanding = useCallback(() => {
     droneWorldRef.current?.triggerAutoTakeoffLanding();
@@ -645,6 +659,20 @@ export default function App() {
       if (keyState.ArrowLeft || keyState.KeyJ) rx -= 1;
       if (keyState.ArrowRight || keyState.KeyL) rx += 1;
 
+      stickValuesRef.current = {
+        leftX: lx,
+        leftY: ly,
+        rightX: rx,
+        rightY: ry
+      };
+      if (droneWorldRef.current) {
+        droneWorldRef.current.setControlInput({
+          throttle: ly,
+          yaw: lx,
+          pitch: ry,
+          roll: rx
+        });
+      }
       setStickValues({
         leftX: lx,
         leftY: ly,
@@ -776,37 +804,6 @@ export default function App() {
     updateProfile(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }));
   };
 
-  // 3D Graphics & Atmosphere Lighting Handlers
-  const handleSelectAtmospherePreset = (preset: GraphicsAtmospherePreset) => {
-    setGraphicsPreset(preset);
-    if (droneWorldRef.current) {
-      droneWorldRef.current.setAtmospherePreset(preset);
-    }
-  };
-
-  const handleUploadGLTF = async (file: File) => {
-    if (!droneWorldRef.current) {
-      throw new Error('3D 엔진이 초기화되지 않았습니다.');
-    }
-    const loaded = await droneWorldRef.current.loadCustomGLTF(file);
-    setLoadedGLTFModels(droneWorldRef.current.getLoadedCustomModels());
-    soundManager.playRescueDelivered();
-  };
-
-  const handleRemoveGLTF = (modelId: string) => {
-    if (droneWorldRef.current) {
-      droneWorldRef.current.removeCustomGLTF(modelId);
-      setLoadedGLTFModels(droneWorldRef.current.getLoadedCustomModels());
-    }
-  };
-
-  const handleClearAllGLTF = () => {
-    if (droneWorldRef.current) {
-      droneWorldRef.current.clearCustomModels();
-      setLoadedGLTFModels([]);
-    }
-  };
-
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-slate-950 select-none font-sans">
       {/* 0. If First Launch / Splash Screen: Show Start Screen with Title and Photo */}
@@ -823,7 +820,6 @@ export default function App() {
           onSelectStage={handleSelectStage}
           onOpenLicense={() => setShowLicenseModal(true)}
           onOpenSkins={() => setShowSkinModal(true)}
-          onOpenGLTF={() => setShowGLTFModal(true)}
           onOpenSettings={() => setShowSettingsModal(true)}
           onOpenHelp={() => setShowHelpModal(true)}
           onReturnHome={() => setHasStartedApp(false)}
@@ -852,7 +848,6 @@ export default function App() {
               setStickValues({ leftX: 0, leftY: 0, rightX: 0, rightY: 0 });
               soundManager.speakGuide('제자리 호버링 멈춤!');
             }}
-            onOpenGLTFModal={() => setShowGLTFModal(true)}
             onOpenSettings={() => setShowSettingsModal(true)}
             onOpenHelp={() => setShowHelpModal(true)}
             onExitMission={handleExitMission}
@@ -923,7 +918,7 @@ export default function App() {
                 subLabel="상승·하강 / 좌·우회전"
                 valueX={stickValues.leftX}
                 valueY={stickValues.leftY}
-                onChange={(x, y) => setStickValues(prev => ({ ...prev, leftX: x, leftY: y }))}
+                onChange={handleLeftStickChange}
                 autoCenterY={true}
               />
             </div>
@@ -937,7 +932,7 @@ export default function App() {
                 subLabel="전진·후진 / 좌·우이동"
                 valueX={stickValues.rightX}
                 valueY={stickValues.rightY}
-                onChange={(x, y) => setStickValues(prev => ({ ...prev, rightX: x, rightY: y }))}
+                onChange={handleRightStickChange}
                 autoCenterY={true}
               />
             </div>
@@ -1044,19 +1039,6 @@ export default function App() {
       {/* Help Modal */}
       {showHelpModal && (
         <HelpManualModal onClose={() => setShowHelpModal(false)} />
-      )}
-
-      {/* 3D Graphics & Custom GLTF Model Loader Modal */}
-      {showGLTFModal && (
-        <GLTFModelModal
-          currentPreset={graphicsPreset}
-          loadedModels={loadedGLTFModels}
-          onSelectPreset={handleSelectAtmospherePreset}
-          onUploadGLTF={handleUploadGLTF}
-          onRemoveModel={handleRemoveGLTF}
-          onClearAllModels={handleClearAllGLTF}
-          onClose={() => setShowGLTFModal(false)}
-        />
       )}
     </div>
   );

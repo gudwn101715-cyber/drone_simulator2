@@ -127,6 +127,7 @@ export interface UserPilotProfile {
   voiceGuideEnabled: boolean;
   sensitivity: number; // 0.5 to 2.0
   invertPitch: boolean;
+  performanceMode?: 'TABLET_MAX_FPS' | 'BALANCED';
   missionProgress: Record<string, MissionProgress>;
   achievements: string[];
 }

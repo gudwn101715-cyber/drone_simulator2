@@ -31,8 +31,7 @@ import {
   Check,
   GraduationCap,
   Lightbulb,
-  BookOpen,
-  Box
+  BookOpen
 } from 'lucide-react';
 
 interface MissionSelectorProps {
@@ -41,7 +40,6 @@ interface MissionSelectorProps {
   onSelectStage: (stage: MissionStage) => void;
   onOpenLicense: () => void;
   onOpenSkins: () => void;
-  onOpenGLTF?: () => void;
   onOpenSettings: () => void;
   onOpenHelp: () => void;
   onReturnHome: () => void;
@@ -53,7 +51,6 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
   onSelectStage,
   onOpenLicense,
   onOpenSkins,
-  onOpenGLTF,
   onOpenSettings,
   onOpenHelp,
   onReturnHome
@@ -182,19 +179,6 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
               <Palette className="w-3.5 h-3.5 text-cyan-400" />
               <span className="hidden md:inline">드론 스킨</span>
             </button>
-
-            {/* 3D Graphics & GLTF Model Loader */}
-            {onOpenGLTF && (
-              <button
-                id="btn-open-gltf-main"
-                onClick={onOpenGLTF}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-bold border border-slate-700 shadow-sm transition-all cursor-pointer"
-                title="3D 그래픽 환경 및 커스텀 GLTF 모델 관리"
-              >
-                <Box className="w-3.5 h-3.5 text-indigo-400" />
-                <span className="hidden md:inline">3D 그래픽/GLTF</span>
-              </button>
-            )}
 
             {/* Help Manual */}
             <button

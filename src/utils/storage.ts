@@ -283,6 +283,7 @@ export function getDefaultProfile(): UserPilotProfile {
     voiceGuideEnabled: true,
     sensitivity: 0.7, // Fixed 0.7 flight sensitivity
     invertPitch: false,
+    performanceMode: 'TABLET_MAX_FPS',
     missionProgress: getInitialProgress(),
     achievements: ['first_boot']
   };

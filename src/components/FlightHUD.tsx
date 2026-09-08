@@ -31,8 +31,7 @@ import {
   Building2,
   Lock,
   Navigation,
-  Milestone,
-  Box
+  Milestone
 } from 'lucide-react';
 
 interface FlightHUDProps {
@@ -57,7 +56,6 @@ interface FlightHUDProps {
   onToggleSound: () => void;
   onResetDrone: () => void;
   onEmergencyStop?: () => void;
-  onOpenGLTFModal: () => void;
   onOpenSettings: () => void;
   onOpenHelp: () => void;
   onExitMission: () => void;
@@ -76,7 +74,6 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
   onToggleSound,
   onResetDrone,
   onEmergencyStop,
-  onOpenGLTFModal,
   onOpenSettings,
   onOpenHelp,
   onExitMission
@@ -233,16 +230,6 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
             title="카메라 시점 전환"
           >
             <Camera className="w-4 h-4 text-blue-600" />
-          </button>
-
-          {/* 3D Graphics & GLTF Model Loader */}
-          <button
-            id="hud-gltf-modal-toggle"
-            onClick={onOpenGLTFModal}
-            className="p-1.5 rounded-lg bg-white hover:bg-blue-50 text-blue-900 border border-slate-200 shadow-xs transition-all cursor-pointer"
-            title="3D 그래픽 환경 및 커스텀 GLTF 모델 관리"
-          >
-            <Box className="w-4 h-4 text-indigo-600" />
           </button>
 
           {/* Sound Toggle */}
