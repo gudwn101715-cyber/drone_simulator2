@@ -2,13 +2,10 @@ import React from 'react';
 import { 
   DroneTelemetry, 
   MissionStage, 
-  AssistLevel, 
   CameraView,
   SpeedGear 
 } from '../types';
 import { 
-  ShieldCheck, 
-  ShieldAlert, 
   RotateCcw, 
   Camera, 
   Volume2, 
@@ -16,22 +13,20 @@ import {
   Compass, 
   Gauge, 
   ArrowUp, 
-  ArrowDown,
   Coins, 
   Target, 
   HeartPulse, 
   Trophy, 
   Sparkles, 
-  HelpCircle, 
   Settings, 
   LogOut,
-  LogIn,
-  Hand,
   Zap,
-  Building2,
-  Lock,
+  BatteryCharging,
   Navigation,
-  Milestone
+  Crosshair,
+  Wifi,
+  Activity,
+  AlertTriangle
 } from 'lucide-react';
 
 interface FlightHUDProps {
@@ -75,7 +70,6 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
   onResetDrone,
   onEmergencyStop,
   onOpenSettings,
-  onOpenHelp,
   onExitMission
 }) => {
   const formatTime = (sec: number) => {
@@ -87,136 +81,184 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
 
   const getCameraLabel = (view: CameraView) => {
     switch (view) {
-      case 'FPV': return '1인칭 FPV';
-      case 'CHASE': return '3인칭 체이스';
-      case 'TOP': return '탑뷰(위)';
-      case 'FOLLOW_FAR': return '원거리 뷰';
+      case 'FPV': return 'FPV 1인칭';
+      case 'CHASE': return 'CHASE 3인칭';
+      case 'TOP': return 'TOP 탑뷰';
+      case 'FOLLOW_FAR': return 'FAR 원거리';
     }
   };
 
   const isAiRace = stage.type === 'AI_RACING';
+  const heading = ((Math.round(telemetry.yawDeg || 0) % 360) + 360) % 360;
+
+  // Calculate horizon tilt clamped for clean tactical HUD visuals
+  const rollAngle = Math.max(-25, Math.min(25, Math.round(telemetry.rollDeg || 0)));
+  const pitchOffset = Math.max(-20, Math.min(20, Math.round(telemetry.pitchDeg || 0)));
 
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-2.5 sm:p-3 font-sans select-none z-10">
-      {/* Top Cockpit Header Bar - Comfortable & Responsive for Tablets */}
-      <div className="flex items-center justify-between gap-2 w-full">
-        {/* Left: Mission Exit & Objective Tracker */}
+    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-2 sm:p-4 font-sans select-none z-10 overflow-hidden">
+      
+      {/* ─── 1. TOP AVIONICS GLASS HEADER BAR ─── */}
+      <div className="flex items-start justify-between gap-2 w-full">
+        
+        {/* Left: Mission / Objective Flight Deck */}
         <div className="pointer-events-auto flex items-center gap-2">
-          {/* Back/Exit Button */}
+          {/* Mission Exit Button */}
           <button
             id="hud-exit-mission"
             onClick={onExitMission}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/85 hover:bg-slate-900 text-white font-black text-xs sm:text-sm border border-white/40 shadow-md transition-transform active:scale-95 cursor-pointer"
+            className="group flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-slate-200 hover:text-white font-bold text-xs sm:text-sm border border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] backdrop-blur-md transition-all active:scale-95 cursor-pointer"
             title="미션 나가기"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4 h-4 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
             <span className="hidden sm:inline">나가기</span>
           </button>
 
-          {/* Stage Info & Target Pill */}
-          <div className="flex items-center gap-2.5 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white shadow-md max-w-[220px] sm:max-w-md">
-            <span className="text-xs sm:text-sm font-black text-slate-800 truncate">
-              {stage.title}
-            </span>
+          {/* Mission Objective Card */}
+          <div className="flex items-center gap-2.5 bg-slate-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.2)] text-white max-w-[220px] sm:max-w-md">
+            {/* Mission Type Icon */}
+            <div className="w-7 h-7 rounded-lg bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center shrink-0">
+              {stage.type === 'COIN_HUNT' && <Coins className="w-4 h-4 text-amber-400" />}
+              {stage.type === 'RING_RACE' && <Target className="w-4 h-4 text-rose-400" />}
+              {stage.type === 'RESCUE' && <HeartPulse className="w-4 h-4 text-rose-400" />}
+              {stage.type === 'AI_RACING' && <Trophy className="w-4 h-4 text-purple-400" />}
+              {stage.type === 'TUTORIAL' && <Sparkles className="w-4 h-4 text-cyan-400" />}
+              {stage.type === 'FREE_FLIGHT' && <Navigation className="w-4 h-4 text-emerald-400" />}
+            </div>
 
-            {/* Dynamic Objective Tracker */}
-            <div className="text-xs sm:text-sm font-bold shrink-0">
-              {stage.type === 'COIN_HUNT' && (
-                <span className="text-amber-600 font-black">
-                  {missionData.coinsCollected}/{missionData.totalCoins} 코인
-                </span>
-              )}
-              {stage.type === 'RING_RACE' && (
-                <span className="text-rose-600 font-black">
-                  {missionData.currentRing}/{missionData.totalRings} 링
-                </span>
-              )}
-              {stage.type === 'RESCUE' && (
-                <span className="text-rose-600 font-black">
-                  {missionData.patientDelivered ? '구조 완료' : missionData.patientPickedUp ? '병원 이송' : '조난자 접근'}
-                </span>
-              )}
-              {stage.type === 'AI_RACING' && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-purple-700 font-black">
-                    {missionData.currentLap}/{missionData.totalLaps}랩 {telemetry.raceRank === 1 ? '(1위)' : '(2위)'}
+            <div className="flex flex-col min-w-0">
+              <span className="text-[10px] sm:text-xs text-cyan-300 font-semibold tracking-wider uppercase truncate">
+                {stage.title}
+              </span>
+              
+              {/* Dynamic Mission Goal Status */}
+              <div className="text-xs sm:text-sm font-black tracking-tight">
+                {stage.type === 'COIN_HUNT' && (
+                  <span className="text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]">
+                    {missionData.coinsCollected} <span className="text-slate-400 font-normal">/ {missionData.totalCoins} COINS</span>
                   </span>
-                  {missionData.coinsCollected > 0 && (
-                    <span className="text-amber-600 font-black bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200 text-[11px] flex items-center gap-0.5">
-                      🪙 {missionData.coinsCollected}
+                )}
+                {stage.type === 'RING_RACE' && (
+                  <span className="text-rose-400 drop-shadow-[0_0_6px_rgba(244,63,94,0.5)]">
+                    {missionData.currentRing} <span className="text-slate-400 font-normal">/ {missionData.totalRings} RINGS</span>
+                  </span>
+                )}
+                {stage.type === 'RESCUE' && (
+                  <span className={missionData.patientDelivered ? "text-emerald-400" : missionData.patientPickedUp ? "text-cyan-300 animate-pulse" : "text-amber-400"}>
+                    {missionData.patientDelivered ? '★ 구조 완료' : missionData.patientPickedUp ? '🏥 병원 이송 중' : '🚨 조난자 접근'}
+                  </span>
+                )}
+                {stage.type === 'AI_RACING' && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-purple-300">
+                      LAP {missionData.currentLap}/{missionData.totalLaps}
                     </span>
-                  )}
-                </div>
-              )}
-              {stage.type === 'TUTORIAL' && (
-                <span className="text-emerald-700 font-black">
-                  {stage.id === 'tutorial-2' 
-                    ? (missionData.currentRing > 3 ? '★ 베이스 착륙!' : `${missionData.currentRing}/3 게이트`) 
-                    : '훈련 중'}
-                </span>
-              )}
+                    <span className={`px-1.5 py-0.2 rounded text-[10px] font-black ${
+                      telemetry.raceRank === 1 ? 'bg-amber-500/20 text-amber-300 border border-amber-400/40' : 'bg-slate-800 text-slate-300 border border-slate-700'
+                    }`}>
+                      {telemetry.raceRank === 1 ? '1위 LEAD' : '2위 CHASE'}
+                    </span>
+                  </div>
+                )}
+                {stage.type === 'TUTORIAL' && (
+                  <span className="text-emerald-400">
+                    {stage.id === 'tutorial-2' 
+                      ? (missionData.currentRing > 3 ? '★ 베이스 착륙!' : `${missionData.currentRing}/3 게이트 통과`) 
+                      : '비행 훈련 중'}
+                  </span>
+                )}
+                {stage.type === 'FREE_FLIGHT' && (
+                  <span className="text-cyan-300 font-mono text-[11px]">
+                    FREE FLIGHT MODE
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Center: Stopwatch */}
-        {stage.timeLimitSec > 0 && (
-          <div className="pointer-events-auto bg-yellow-400 px-3 py-1 rounded-xl border border-white shadow-md flex items-center gap-1.5">
-            <span className="text-[10px] sm:text-xs text-yellow-950 font-black">시간</span>
-            <span className="text-xs sm:text-sm font-black font-mono text-slate-900">
-              {formatTime(elapsedSec)}
+        {/* Center: Mission Chronometer & Compass Heading Ribbon */}
+        <div className="pointer-events-auto flex flex-col items-center gap-1">
+          {/* Top Compass Heading Ribbon */}
+          <div className="flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md px-3 py-0.5 rounded-full border border-cyan-500/30 text-[11px] font-mono font-bold text-cyan-300 shadow-md">
+            <Compass className="w-3.5 h-3.5 text-cyan-400 animate-spin-slow" />
+            <span>HDG {String(heading).padStart(3, '0')}°</span>
+            <span className="text-[9px] text-slate-400">
+              {heading >= 338 || heading < 23 ? 'N' :
+               heading >= 23 && heading < 68 ? 'NE' :
+               heading >= 68 && heading < 113 ? 'E' :
+               heading >= 113 && heading < 158 ? 'SE' :
+               heading >= 158 && heading < 203 ? 'S' :
+               heading >= 203 && heading < 248 ? 'SW' :
+               heading >= 248 && heading < 293 ? 'W' : 'NW'}
             </span>
           </div>
-        )}
 
-        {/* Right: Flight Controls (Speed Gear Multiplier, Reset, Sound, Settings) */}
-        <div className="pointer-events-auto flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-xl border border-white shadow-md">
+          {/* Precision Flight Timer */}
+          {stage.timeLimitSec > 0 && (
+            <div className="bg-slate-950/90 backdrop-blur-md px-3.5 py-1 rounded-xl border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.25)] flex items-center gap-2">
+              <span className="text-[10px] uppercase font-mono tracking-widest text-amber-400 font-bold">TIME</span>
+              <span className="text-sm sm:text-base font-black font-mono text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">
+                {formatTime(elapsedSec)}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Flight Controls & Gear System */}
+        <div className="pointer-events-auto flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md p-1.5 rounded-xl border border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
           {/* Speed Gear Multiplier (1단 / 2단 / 3단) */}
           {isAiRace ? (
-            <div className="px-2.5 py-1 bg-amber-100 rounded-lg text-xs font-black text-amber-900 border border-amber-300">
+            <div className="px-2.5 py-1 bg-purple-500/20 rounded-lg text-xs font-black text-purple-300 border border-purple-400/40 font-mono">
               2단 SPORT 고정
             </div>
           ) : (
-            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+            <div className="flex items-center gap-0.5 bg-slate-900/90 p-0.5 rounded-lg border border-slate-800">
               <button
                 id="hud-gear-1-btn"
                 onClick={() => onChangeSpeedGear(1)}
-                className={`px-2 py-1 rounded-md text-xs font-black transition-all cursor-pointer ${
-                  speedGear === 1 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-200'
+                className={`px-2 py-1 rounded-md text-[11px] font-black transition-all cursor-pointer font-mono ${
+                  speedGear === 1 
+                    ? 'bg-cyan-500 text-slate-950 shadow-[0_0_10px_rgba(6,182,212,0.6)]' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
-                title="1단: 순항"
+                title="1단: ECO 순항"
               >
                 1단
               </button>
               <button
                 id="hud-gear-2-btn"
                 onClick={() => onChangeSpeedGear(2)}
-                className={`px-2 py-1 rounded-md text-xs font-black transition-all cursor-pointer ${
-                  speedGear === 2 ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-200'
+                className={`px-2 py-1 rounded-md text-[11px] font-black transition-all cursor-pointer font-mono ${
+                  speedGear === 2 
+                    ? 'bg-amber-400 text-slate-950 shadow-[0_0_10px_rgba(251,191,36,0.6)]' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
-                title="2단: 스포츠"
+                title="2단: STD 표준"
               >
                 2단
               </button>
               <button
                 id="hud-gear-3-btn"
                 onClick={() => onChangeSpeedGear(3)}
-                className={`px-2 py-1 rounded-md text-xs font-black transition-all cursor-pointer ${
-                  speedGear === 3 ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-200'
+                className={`px-2 py-1 rounded-md text-[11px] font-black transition-all cursor-pointer font-mono ${
+                  speedGear === 3 
+                    ? 'bg-rose-500 text-white shadow-[0_0_10px_rgba(244,63,94,0.6)]' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
-                title="3단: 터보"
+                title="3단: TURBO 터보"
               >
                 3단
               </button>
             </div>
           )}
 
-          {/* Reset Drone */}
+          {/* Quick Reset */}
           <button
             id="hud-reset-drone"
             onClick={onResetDrone}
-            className="p-1.5 sm:px-2.5 py-1 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-black text-xs border border-white shadow-xs transition-all cursor-pointer flex items-center gap-1"
-            title="드론 위치 리셋"
+            className="px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs border border-amber-400/40 shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1 font-mono"
+            title="드론 위치 리셋 (R)"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">리셋</span>
@@ -226,65 +268,167 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
           <button
             id="hud-camera-toggle"
             onClick={onCycleCamera}
-            className="p-1.5 rounded-lg bg-white hover:bg-blue-50 text-blue-900 border border-slate-200 shadow-xs transition-all cursor-pointer"
+            className="p-1.5 sm:px-2.5 py-1.5 rounded-lg bg-slate-900/90 hover:bg-cyan-950/60 text-cyan-300 border border-cyan-500/30 hover:border-cyan-400 shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 text-xs font-mono font-bold"
             title="카메라 시점 전환"
           >
-            <Camera className="w-4 h-4 text-blue-600" />
+            <Camera className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="hidden md:inline text-[11px]">{getCameraLabel(cameraView)}</span>
           </button>
 
           {/* Sound Toggle */}
           <button
             id="hud-sound-toggle"
             onClick={onToggleSound}
-            className="p-1.5 rounded-lg bg-white hover:bg-slate-50 text-blue-900 border border-slate-200 shadow-xs transition-all cursor-pointer"
-            title="사운드"
+            className="p-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 shadow-xs transition-all active:scale-95 cursor-pointer"
+            title="사운드 온/오프"
           >
-            {soundEnabled ? <Volume2 className="w-4 h-4 text-blue-600" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+            {soundEnabled ? <Volume2 className="w-4 h-4 text-cyan-400" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
           </button>
 
           {/* Settings Button */}
           <button
             id="hud-open-settings"
             onClick={onOpenSettings}
-            className="p-1.5 rounded-lg bg-white hover:bg-slate-50 text-blue-900 border border-slate-200 shadow-xs transition-all cursor-pointer"
+            className="p-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 shadow-xs transition-all active:scale-95 cursor-pointer"
             title="설정"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-4 h-4 text-slate-300" />
           </button>
         </div>
       </div>
 
-      {/* Middle Alerts (Crash or Warning notification overlay) */}
+      {/* ─── 2. CENTER TACTICAL RETICLE & ARTIFICIAL HORIZON ─── */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+        {/* Dynamic Horizon / Aiming Reticle (Tilts subtly with drone physics) */}
+        <div 
+          className="relative w-48 h-48 flex items-center justify-center opacity-80 transition-transform duration-75"
+          style={{
+            transform: `translateY(${pitchOffset * 1.5}px) rotate(${rollAngle}deg)`
+          }}
+        >
+          {/* Pitch Ladder Tick Marks */}
+          <div className="absolute -top-6 flex items-center gap-2 text-[9px] font-mono text-cyan-400/60">
+            <span className="w-4 h-[1px] bg-cyan-400/60" />
+            <span>+10</span>
+            <span className="w-4 h-[1px] bg-cyan-400/60" />
+          </div>
+
+          <div className="absolute -bottom-6 flex items-center gap-2 text-[9px] font-mono text-cyan-400/60">
+            <span className="w-4 h-[1px] bg-cyan-400/60" />
+            <span>-10</span>
+            <span className="w-4 h-[1px] bg-cyan-400/60" />
+          </div>
+
+          {/* Artificial Horizon Center Wing Bars */}
+          <div className="absolute w-full flex items-center justify-between px-2">
+            <div className="w-12 h-[2px] bg-gradient-to-r from-transparent to-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+            <div className="w-12 h-[2px] bg-gradient-to-l from-transparent to-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+          </div>
+
+          {/* Center Crosshair Pip */}
+          <div className="relative w-6 h-6 flex items-center justify-center">
+            <Crosshair className="w-5 h-5 text-cyan-300 drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]" />
+            <div className="w-1 h-1 bg-cyan-200 rounded-full" />
+          </div>
+
+          {/* Pitch Level Indicator Dots */}
+          <div className="absolute w-28 h-28 border border-cyan-400/20 rounded-full border-dashed" />
+        </div>
+      </div>
+
+      {/* ─── 3. LEFT & RIGHT AVIONICS TAPES (SPD on Left, ALT on Right) ─── */}
+      <div className="flex items-center justify-between w-full px-2 sm:px-6 pointer-events-none">
+        
+        {/* Left Tape: Airspeed / Throttle HUD */}
+        <div className="flex items-center gap-2 bg-slate-950/80 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border-l-4 border-l-cyan-400 border border-slate-800/80 shadow-[0_0_20px_rgba(0,0,0,0.5)] text-white">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5 text-[10px] font-mono tracking-widest text-cyan-400 uppercase font-bold">
+              <Gauge className="w-3.5 h-3.5 text-cyan-400" />
+              <span>SPD</span>
+            </div>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl sm:text-2xl font-black font-mono text-cyan-300 drop-shadow-[0_0_10px_rgba(6,182,212,0.6)]">
+                {telemetry.speedKmh.toFixed(1)}
+              </span>
+              <span className="text-[10px] font-mono text-slate-400">KM/H</span>
+            </div>
+            <div className="flex items-center gap-2 mt-1 pt-1 border-t border-slate-800 text-[10px] font-mono text-slate-300">
+              <span className="text-cyan-400 font-bold">THR:</span>
+              <span>{telemetry.throttlePct}%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Tape: Altitude / Climb Rate HUD */}
+        <div className="flex items-center gap-2 bg-slate-950/80 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border-r-4 border-r-emerald-400 border border-slate-800/80 shadow-[0_0_20px_rgba(0,0,0,0.5)] text-white">
+          <div className="flex flex-col items-end">
+            <div className="flex items-center gap-1.5 text-[10px] font-mono tracking-widest text-emerald-400 uppercase font-bold">
+              <span>ALT</span>
+              <ArrowUp className="w-3.5 h-3.5 text-emerald-400" />
+            </div>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl sm:text-2xl font-black font-mono text-emerald-300 drop-shadow-[0_0_10px_rgba(16,185,129,0.6)]">
+                {telemetry.altitudeM.toFixed(1)}
+              </span>
+              <span className="text-[10px] font-mono text-slate-400">M</span>
+            </div>
+            <div className="flex items-center gap-2 mt-1 pt-1 border-t border-slate-800 text-[10px] font-mono text-slate-300">
+              <span className={telemetry.isGrounded ? "text-amber-400 font-bold" : "text-emerald-400 font-bold"}>
+                {telemetry.isGrounded ? 'GND LOCK' : 'AIRBORNE'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ─── 4. CRASH & RESPAWN WARNING OVERLAY ─── */}
       {telemetry.hasCrashed && (
-        <div className="pointer-events-auto self-center bg-rose-600 border-4 border-white rounded-[28px] p-4 sm:p-5 shadow-2xl text-center max-w-sm animate-pulse text-white">
-          <h3 className="text-xl sm:text-2xl font-black mb-1 drop-shadow-md">⚠️ 충돌 감지!</h3>
-          <p className="text-xs text-rose-100 font-bold mb-3">
-            안전을 위해 드론을 다시 시작 지점으로 복귀합니다.
+        <div className="pointer-events-auto self-center bg-slate-950/95 border-2 border-rose-500 rounded-2xl p-4 sm:p-5 shadow-[0_0_35px_rgba(244,63,94,0.5)] text-center max-w-sm backdrop-blur-lg animate-pulse text-white z-20">
+          <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-rose-500/20 border border-rose-400/50 flex items-center justify-center">
+            <AlertTriangle className="w-7 h-7 text-rose-400 animate-bounce" />
+          </div>
+          <h3 className="text-lg sm:text-xl font-black tracking-wider text-rose-400 uppercase drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]">
+            COLLISION DETECTED
+          </h3>
+          <p className="text-xs text-rose-200/80 font-mono mt-1 mb-3.5">
+            기체 충돌 감지! 시작 지점으로 복귀합니다.
           </p>
           <button
             id="hud-crash-respawn-btn"
             onClick={onResetDrone}
-            className="px-5 py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black text-xs sm:text-sm rounded-xl border-2 border-white shadow-lg transition-transform active:scale-95 cursor-pointer"
+            className="w-full py-2.5 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-black text-xs sm:text-sm rounded-xl border border-white/40 shadow-lg transition-transform active:scale-95 cursor-pointer font-mono tracking-wider"
           >
             즉시 다시 비행하기 (R)
           </button>
         </div>
       )}
 
-      {/* Center Instrument Avionics Strip (Ultra Clear & Readable) */}
-      <div className="self-center flex items-center gap-5 bg-slate-900/80 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/40 shadow-lg pointer-events-none mb-1 text-white">
-        {/* Speedometer */}
-        <div className="flex items-center gap-1.5">
-          <Gauge className="w-4 h-4 text-yellow-300" />
-          <span className="text-sm font-black font-mono">{telemetry.speedKmh} <span className="text-[10px] text-slate-300 font-normal">km/h</span></span>
+      {/* ─── 5. BOTTOM COCKPIT TELEMETRY STRIP ─── */}
+      <div className="self-center flex items-center gap-3 sm:gap-6 bg-slate-950/80 backdrop-blur-md px-4 sm:px-6 py-1 rounded-full border border-cyan-500/30 shadow-[0_0_15px_rgba(0,0,0,0.4)] pointer-events-none text-[11px] font-mono text-slate-300 mb-0.5">
+        <div className="flex items-center gap-1.5 text-cyan-400">
+          <Activity className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline text-slate-400">ATT:</span>
+          <span>P:{telemetry.pitchDeg.toFixed(0)}° R:{telemetry.rollDeg.toFixed(0)}°</span>
         </div>
 
-        {/* Altimeter */}
-        <div className="flex items-center gap-1.5">
-          <ArrowUp className="w-4 h-4 text-emerald-300" />
-          <span className="text-sm font-black font-mono text-emerald-300">{telemetry.altitudeM} <span className="text-[10px] text-slate-300 font-normal">m</span></span>
+        <div className="w-[1px] h-3 bg-slate-800" />
+
+        <div className="flex items-center gap-1.5 text-emerald-400">
+          <Wifi className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline text-slate-400">SIG:</span>
+          <span>99% 5.8G</span>
+        </div>
+
+        <div className="w-[1px] h-3 bg-slate-800" />
+
+        <div className="flex items-center gap-1.5 text-amber-400">
+          <Zap className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline text-slate-400">BAT:</span>
+          <span>{telemetry.batteryPct}%</span>
         </div>
       </div>
+
     </div>
   );
 };

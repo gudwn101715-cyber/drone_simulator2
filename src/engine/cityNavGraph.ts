@@ -23,7 +23,7 @@ export function isLineObstructed(
 ): boolean {
   _scratchDir.subVectors(p2, p1);
   const dist = _scratchDir.length();
-  if (dist < 0.01) return false;
+  if (dist < 0.1) return false;
   _scratchDir.normalize();
 
   _scratchRay.origin.copy(p1);
@@ -45,19 +45,24 @@ export function isLineObstructed(
       continue;
     }
 
-    // Expand collision box by margin
-    _scratchBox.min.set(box.min.x - margin, box.min.y - margin, box.min.z - margin);
-    _scratchBox.max.set(box.max.x + margin, box.max.y + margin, box.max.z + margin);
+    // Tight collision box with small margin
+    _scratchBox.min.set(box.min.x - 0.2, box.min.y - 0.2, box.min.z - 0.2);
+    _scratchBox.max.set(box.max.x + 0.2, box.max.y + 0.2, box.max.z + 0.2);
 
-    if (_scratchBox.containsPoint(p1) || _scratchBox.containsPoint(p2)) {
-      return true;
-    }
-
+    // If ray intersects the box between 0.3m from p1 and (dist - 0.3m) from p2, segment is obstructed
     if (_scratchRay.intersectBox(_scratchBox, _scratchIntersect)) {
       const hitDist = p1.distanceTo(_scratchIntersect);
-      if (hitDist <= dist) {
+      if (hitDist > 0.3 && hitDist < dist - 0.3) {
         return true;
       }
+    }
+
+    // Midpoint check (in case ray origin is slightly embedded on roof edge)
+    const midX = (p1.x + p2.x) * 0.5;
+    const midY = (p1.y + p2.y) * 0.5;
+    const midZ = (p1.z + p2.z) * 0.5;
+    if (_scratchBox.containsPoint(_scratchIntersect.set(midX, midY, midZ))) {
+      return true;
     }
   }
 
@@ -94,8 +99,8 @@ export class CityNavGraph {
 
   private initGraph() {
     // 1. Grid of street intersections & open airways (at street flight altitude y=4.5 and mid-air y=14)
-    const xCorridors = [-88, -52, -18, 0, 18, 52, 88];
-    const zCrossways = [-65, -40, -20, 0, 20, 40, 65];
+    const xCorridors = [-88, -52, -18, 0, 18, 45, 52, 88];
+    const zCrossways = [-95, -65, -40, -20, 0, 20, 40, 65, 95];
     const altitudes = [4.5, 14.0];
 
     const gridMap: { [key: string]: number } = {};
@@ -103,9 +108,6 @@ export class CityNavGraph {
     altitudes.forEach((y) => {
       zCrossways.forEach((z) => {
         xCorridors.forEach((x) => {
-          // Skip positions directly inside solid skyscrapers
-          // Alpha: (-35, -40), Twin S: (-70, -20), Twin N: (-70, 30)
-          // Plaza: (35, 0), Gamma: (35, 40), Hospital: (70, -20), Annex: (70, 30)
           const nodeKey = `${x},${y},${z}`;
           const id = this.addNode(x, y, z);
           gridMap[nodeKey] = id;
@@ -141,10 +143,10 @@ export class CityNavGraph {
       });
     });
 
-    // 2. High-Altitude Clear Airspace Grid (y=44, clear above all buildings)
+    // 2. High-Altitude Clear Airspace Grid (y=44, clear above all standard buildings)
     const skyY = 44.0;
-    const skyXs = [-70, -35, 0, 35, 70];
-    const skyZs = [-60, -20, 20, 60];
+    const skyXs = [-70, -45, -35, 0, 35, 45, 70];
+    const skyZs = [-95, -60, -20, 0, 20, 60, 95];
     const skyMap: { [key: string]: number } = {};
 
     skyZs.forEach((z) => {
@@ -327,26 +329,37 @@ export class CityNavGraph {
 
     // F) 63 Building Observation Rooftop Helipad (45, 78.5, 95)
     const bldg63Helipad = this.addNode(45, 78.5, 95);
-    const bldg63Approach = this.addNode(45, 86, 95);
-    const bldg63Mid = this.addNode(45, 44, 95);
+    const bldg63Approach = this.addNode(45, 88, 95);
+    const bldg63SkyHigh = this.addNode(45, 55, 95);
+    const bldg63Mid = this.addNode(45, 25, 95);
     this.connect(bldg63Helipad, bldg63Approach);
-    this.connect(bldg63Approach, bldg63Mid);
+    this.connect(bldg63Approach, bldg63SkyHigh);
+    this.connect(bldg63SkyHigh, bldg63Mid);
 
     const nearSky63A = skyMap[`35,60`];
-    const nearSky63B = skyMap[`70,60`];
+    const nearSky63B = skyMap[`45,95`];
+    const nearSky63C = skyMap[`0,95`];
+    const nearSky63D = skyMap[`70,95`];
     if (nearSky63A !== undefined) this.connect(bldg63Approach, nearSky63A);
     if (nearSky63B !== undefined) this.connect(bldg63Approach, nearSky63B);
+    if (nearSky63C !== undefined) this.connect(bldg63Approach, nearSky63C);
+    if (nearSky63D !== undefined) this.connect(bldg63Approach, nearSky63D);
 
     const nearGrid63A = gridMap[`52,14,65`];
     const nearGrid63B = gridMap[`18,14,65`];
+    const nearGrid63C = gridMap[`45,14,95`];
     if (nearGrid63A !== undefined) this.connect(bldg63Mid, nearGrid63A);
     if (nearGrid63B !== undefined) this.connect(bldg63Mid, nearGrid63B);
+    if (nearGrid63C !== undefined) this.connect(bldg63Mid, nearGrid63C);
 
     // G) Hospital Rooftop Helipad (70, 25, -20)
-    const hospHelipad = this.addNode(70, 25, -20);
-    const hospApproach = this.addNode(70, 30, -20);
+    const hospHelipad = this.addNode(70, 24.8, -20);
+    const hospApproach = this.addNode(70, 32, -20);
+    const hospSky = this.addNode(70, 44, -20);
     this.connect(hospHelipad, hospApproach);
+    this.connect(hospApproach, hospSky);
     this.connect(hospApproach, bldg63Approach); // Direct high-altitude sky corridor between 63 Building and Hospital!
+    this.connect(hospSky, bldg63Approach);
     const hospStreetApproach = this.addNode(52, 25, -20);
     this.connect(hospApproach, hospStreetApproach);
     const nearHospGrid = gridMap[`52,14,-20`];
@@ -429,9 +442,9 @@ export class CityNavGraph {
     let bestRawPath: THREE.Vector3[] | null = null;
     let shortestTotalDist = Infinity;
 
-    // Test best start/goal candidate pairs (up to 3)
-    const testStartLimit = Math.min(3, startNodeCandidates.length);
-    const testGoalLimit = Math.min(3, goalNodeCandidates.length);
+    // Test best start/goal candidate pairs (up to 2 for zero frame latency on mobile/tablets)
+    const testStartLimit = Math.min(2, startNodeCandidates.length);
+    const testGoalLimit = Math.min(2, goalNodeCandidates.length);
 
     for (let sIdx = 0; sIdx < testStartLimit; sIdx++) {
       const startId = startNodeCandidates[sIdx].id;
@@ -450,6 +463,8 @@ export class CityNavGraph {
           }
         }
       }
+      // If we found a valid path on first start node, break early to save CPU on tablet
+      if (bestRawPath) break;
     }
 
     if (!bestRawPath || bestRawPath.length <= 2) {

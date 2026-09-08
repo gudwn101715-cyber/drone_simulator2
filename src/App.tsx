@@ -318,10 +318,9 @@ export default function App() {
     }
   }, [handleStageComplete]);
 
-  // Telemetry callback
+  // Telemetry callback (Throttled by DroneWorld to 5Hz to prevent React thread lock)
   const handleTelemetry = useCallback((data: DroneTelemetry) => {
     setTelemetry(data);
-    soundManager.updateMotorSound(data.throttlePct, data.speedKmh, data.isGrounded);
   }, []);
 
   // Stable callbacks ref for DroneWorld
@@ -464,15 +463,15 @@ export default function App() {
       soundManager.playCountdownBeep(true);
       droneWorldRef.current?.setRaceReady(true);
 
-      // Start elapsed timer exactly from 0.0s at launch
+      // Start elapsed timer from 0.0s at launch (ticked at 200ms to preserve UI thread)
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
         setElapsedSec(prev => {
-          const next = Math.round((prev + 0.1) * 10) / 10;
+          const next = Math.round((prev + 0.2) * 10) / 10;
           elapsedSecRef.current = next;
           return next;
         });
-      }, 100);
+      }, 200);
     }, 3000);
 
     countdownTimeoutsRef.current = [t1, t2, t3];

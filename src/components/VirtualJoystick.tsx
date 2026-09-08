@@ -23,13 +23,20 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
   autoCenterY = true
 }) => {
   const baseRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [stickPos, setStickPos] = useState({ x: 0, y: 0 });
+  const knobRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const [isDraggingVisual, setIsDraggingVisual] = useState(false);
 
   // Dynamic radius based on element size
   const getRadius = () => {
     if (!baseRef.current) return 60;
     return Math.min(baseRef.current.clientWidth / 2 - 16, 72);
+  };
+
+  const updateKnobTransform = (dx: number, dy: number) => {
+    if (knobRef.current) {
+      knobRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+    }
   };
 
   const handlePointer = useCallback((clientX: number, clientY: number) => {
@@ -48,7 +55,7 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
       deltaY = (deltaY / distance) * currentRadius;
     }
 
-    setStickPos({ x: deltaX, y: deltaY });
+    updateKnobTransform(deltaX, deltaY);
 
     // Normalize to -1 .. +1 (up is -Y in screen coords)
     const normX = deltaX / currentRadius;
@@ -59,12 +66,13 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
 
   const handleStart = (e: React.PointerEvent) => {
     e.currentTarget.setPointerCapture(e.pointerId);
-    setIsDragging(true);
+    isDraggingRef.current = true;
+    setIsDraggingVisual(true);
     handlePointer(e.clientX, e.clientY);
   };
 
   const handleMove = (e: React.PointerEvent) => {
-    if (!isDragging) return;
+    if (!isDraggingRef.current) return;
     handlePointer(e.clientX, e.clientY);
   };
 
@@ -74,28 +82,25 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
     } catch {
       // ignore
     }
-    setIsDragging(false);
-    const currentRadius = getRadius();
+    isDraggingRef.current = false;
+    setIsDraggingVisual(false);
 
     if (autoCenterY) {
-      setStickPos({ x: 0, y: 0 });
+      updateKnobTransform(0, 0);
       onChange(0, 0);
     } else {
-      setStickPos(prev => ({ x: 0, y: prev.y }));
-      onChange(0, -stickPos.y / currentRadius);
+      updateKnobTransform(0, 0);
+      onChange(0, 0);
     }
   };
 
-  // Sync with keyboard/external inputs
+  // Sync with keyboard/external inputs when not dragging
   useEffect(() => {
-    if (!isDragging) {
+    if (!isDraggingRef.current) {
       const currentRadius = getRadius();
-      setStickPos({
-        x: valueX * currentRadius,
-        y: -valueY * currentRadius
-      });
+      updateKnobTransform(valueX * currentRadius, -valueY * currentRadius);
     }
-  }, [valueX, valueY, isDragging]);
+  }, [valueX, valueY]);
 
   const isLeft = type === 'LEFT_STICK';
 
@@ -109,7 +114,7 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
         onPointerUp={handleEnd}
         onPointerCancel={handleEnd}
         className={`relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 rounded-full border-4 border-white/80 bg-white/35 backdrop-blur-lg shadow-2xl flex items-center justify-center cursor-pointer transition-all ${
-          isDragging 
+          isDraggingVisual 
             ? 'border-white bg-white/50 ring-4 ring-white/60 scale-102' 
             : 'hover:border-white hover:bg-white/45 active:scale-98'
         }`}
@@ -162,17 +167,18 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
 
         {/* Draggable Thumb Stick Knob */}
         <div
-          className={`absolute w-14 h-14 sm:w-18 sm:h-18 rounded-full shadow-2xl flex items-center justify-center transition-transform pointer-events-none border-4 border-white ${
+          ref={knobRef}
+          className={`absolute w-14 h-14 sm:w-18 sm:h-18 rounded-full shadow-2xl flex items-center justify-center pointer-events-none border-4 border-white will-change-transform ${
             isLeft
-              ? isDragging
+              ? isDraggingVisual
                 ? 'bg-blue-600 shadow-blue-500/70 scale-105'
                 : 'bg-blue-500 shadow-lg'
-              : isDragging
+              : isDraggingVisual
                 ? 'bg-orange-500 shadow-orange-500/70 scale-105'
                 : 'bg-orange-400 shadow-lg'
           }`}
           style={{
-            transform: `translate(${stickPos.x}px, ${stickPos.y}px)`
+            transform: 'translate3d(0px, 0px, 0px)'
           }}
         >
           <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white shadow-md flex items-center justify-center">
