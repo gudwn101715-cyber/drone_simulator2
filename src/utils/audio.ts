@@ -26,6 +26,10 @@ class SoundController {
 
   private enabled: boolean = true;
   private isMotorRunning: boolean = false;
+  private lastMotorThrottle: number = -1;
+  private lastMotorSpeed: number = -1;
+  private lastMotorGrounded: boolean | null = null;
+  private lastMotorUpdateTime: number = 0;
 
   // BGM Engine State
   private currentBgmType: 'LOBBY' | 'RACING' | 'RACING_2' | null = null;
@@ -1022,6 +1026,22 @@ class SoundController {
     if (!this.enabled || !this.ctx || !this.isMotorRunning || !this.motorOsc || !this.motorGain || !this.motorFilter) {
       return;
     }
+
+    const nowPerf = performance.now();
+    // Throttle audio parameter updates if values didn't change significantly or updated very recently (< 30ms)
+    if (
+      nowPerf - this.lastMotorUpdateTime < 30 &&
+      Math.abs(throttlePct - this.lastMotorThrottle) < 1.0 &&
+      Math.abs(speedKmh - this.lastMotorSpeed) < 0.8 &&
+      isGrounded === this.lastMotorGrounded
+    ) {
+      return;
+    }
+
+    this.lastMotorUpdateTime = nowPerf;
+    this.lastMotorThrottle = throttlePct;
+    this.lastMotorSpeed = speedKmh;
+    this.lastMotorGrounded = isGrounded;
 
     try {
       const now = this.ctx.currentTime;

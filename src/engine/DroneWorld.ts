@@ -93,6 +93,9 @@ function createSignBoardMesh(text: string, isEntrance: boolean, width = 6.8, hei
   }
 
   const texture = new THREE.CanvasTexture(canvas);
+  texture.generateMipmaps = false;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
   texture.needsUpdate = true;
 
   const geo = new THREE.PlaneGeometry(width, height);
@@ -1028,6 +1031,9 @@ function createKoreanStoreSignMesh(
   }
 
   const texture = new THREE.CanvasTexture(canvas);
+  texture.generateMipmaps = false;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
   texture.needsUpdate = true;
 
   const geo = new THREE.PlaneGeometry(width, height);
@@ -1107,6 +1113,9 @@ function createBillboardMesh(
   }
 
   const texture = new THREE.CanvasTexture(canvas);
+  texture.generateMipmaps = false;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
   texture.needsUpdate = true;
 
   const geo = new THREE.PlaneGeometry(width, height);
@@ -1279,10 +1288,10 @@ function createKoreanStreetSignMesh(
   }
 
   const tex = new THREE.CanvasTexture(canvas);
-  tex.needsUpdate = true;
-  tex.generateMipmaps = true;
-  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
   tex.magFilter = THREE.LinearFilter;
+  tex.needsUpdate = true;
   const geo = new THREE.PlaneGeometry(width, height);
   const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
   return new THREE.Mesh(geo, mat);
@@ -1682,20 +1691,20 @@ export class DroneWorld {
     this.scene.background = new THREE.Color(0xbde0fe); // Crisp sunny sky blue
     this.scene.fog = new THREE.Fog(0xcfe2fe, 120, 380); // Ultra-lightweight linear daylight fog (zero exponential shader overhead)
 
-    // Camera with balanced depth range (near: 0.4, far: 400 for zero Z-fighting)
+    // Camera with balanced depth range (near: 0.5, far: 320 for zero Z-fighting & maximum 24-bit depth precision)
     const aspect = container.clientWidth / container.clientHeight;
-    this.camera = new THREE.PerspectiveCamera(65, aspect, 0.4, 400);
+    this.camera = new THREE.PerspectiveCamera(65, aspect, 0.5, 320);
     this.camera.position.set(0, 3, 6);
 
-    // Optimized WebGLRenderer with logarithmicDepthBuffer for zero floor tearing
+    // High-performance WebGLRenderer (Optimized for silky 60FPS on mobile, tablet & laptops)
     this.renderer = new THREE.WebGLRenderer({ 
-      antialias: true, 
+      antialias: false, 
       alpha: false, 
       stencil: false, 
       depth: true,
-      logarithmicDepthBuffer: true,
+      logarithmicDepthBuffer: false,
       powerPreference: 'high-performance',
-      precision: 'highp'
+      precision: 'mediump'
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
@@ -4988,33 +4997,42 @@ export class DroneWorld {
 
   private updateEnvironment(dt: number) {
     const time = performance.now() * 0.001;
+    const px = this.position.x;
+    const pz = this.position.z;
 
-    // 1. Wind Turbine Blades Rotation
-    this.windTurbineRotors.forEach((rotor, idx) => {
-      rotor.rotation.z += (1.2 + idx * 0.2) * dt;
-    });
+    // 1. Wind Turbine Blades Rotation (Fast scalar update)
+    const turbineCount = this.windTurbineRotors.length;
+    for (let i = 0; i < turbineCount; i++) {
+      this.windTurbineRotors[i].rotation.z += (1.2 + i * 0.2) * dt;
+    }
 
     // 2. Hot Air Balloons Gentle Floating & Slow Drift
-    this.hotAirBalloons.forEach(b => {
+    const balloonCount = this.hotAirBalloons.length;
+    for (let i = 0; i < balloonCount; i++) {
+      const b = this.hotAirBalloons[i];
       b.group.position.y = b.baseY + Math.sin(time * b.speed + b.phase) * 2.8;
       b.group.rotation.y += b.rotSpeed * dt;
-    });
+    }
 
-    // 3. Sky Birds Circular Gliding & Wing Flap
-    this.birdFlock.forEach(bird => {
+    // 3. Sky Birds Circular Gliding & Wing Flap (Lightweight orbital math)
+    const birdCount = this.birdFlock.length;
+    for (let i = 0; i < birdCount; i++) {
+      const bird = this.birdFlock[i];
       bird.angle += bird.speed * dt;
       bird.group.position.x = bird.center.x + Math.cos(bird.angle) * bird.radius;
       bird.group.position.z = bird.center.z + Math.sin(bird.angle) * bird.radius;
-      bird.group.position.y = bird.height + Math.sin(time * 1.5 + bird.flapPhase) * 1.5;
+      bird.group.position.y = bird.height + Math.sin(time * 1.5 + bird.flapPhase) * 1.2;
       bird.group.rotation.y = -bird.angle;
 
-      const flap = Math.sin(time * bird.flapSpeed + bird.flapPhase) * 0.5;
+      const flap = Math.sin(time * bird.flapSpeed + bird.flapPhase) * 0.45;
       bird.leftWing.rotation.z = flap;
       bird.rightWing.rotation.z = -flap;
-    });
+    }
 
-    // 4. Lightweight Pedestrians Walk Animation
-    this.animatedPedestrians.forEach(ped => {
+    // 4. Lightweight Pedestrians Walk Animation (LOD: update limbs only when within 45m of drone)
+    const pedCount = this.animatedPedestrians.length;
+    for (let i = 0; i < pedCount; i++) {
+      const ped = this.animatedPedestrians[i];
       if (ped.isX) {
         ped.group.position.x += ped.speed * ped.dir * dt;
         if (ped.group.position.x > ped.maxVal) {
@@ -5034,16 +5052,24 @@ export class DroneWorld {
           ped.group.rotation.y = 0;
         }
       }
-      ped.walkPhase += dt * 6.5;
-      const swing = Math.sin(ped.walkPhase) * 0.45;
-      ped.leftLeg.rotation.x = swing;
-      ped.rightLeg.rotation.x = -swing;
-      ped.leftArm.rotation.x = -swing;
-      ped.rightArm.rotation.x = swing;
-    });
 
-    // 6. Lightweight Road Traffic
-    this.dynamicVehicles.forEach(veh => {
+      // Proximity check for detailed limb animation
+      const dx = ped.group.position.x - px;
+      const dz = ped.group.position.z - pz;
+      if (dx * dx + dz * dz < 2025) { // within 45m
+        ped.walkPhase += dt * 6.5;
+        const swing = Math.sin(ped.walkPhase) * 0.45;
+        ped.leftLeg.rotation.x = swing;
+        ped.rightLeg.rotation.x = -swing;
+        ped.leftArm.rotation.x = -swing;
+        ped.rightArm.rotation.x = swing;
+      }
+    }
+
+    // 5. Lightweight Road Traffic (LOD: rotate wheels only when within 55m of drone)
+    const vehCount = this.dynamicVehicles.length;
+    for (let i = 0; i < vehCount; i++) {
+      const veh = this.dynamicVehicles[i];
       if (veh.isX) {
         veh.group.position.x += veh.speed * veh.dir * dt;
         if (veh.dir === 1 && veh.group.position.x > veh.maxVal) {
@@ -5059,18 +5085,23 @@ export class DroneWorld {
           veh.group.position.z = veh.maxVal;
         }
       }
-      const wheelRot = (veh.speed / 0.45) * dt * (veh.dir > 0 ? 1 : -1);
-      veh.wheels.forEach(w => {
-        w.rotation.x += wheelRot;
-      });
-    });
 
-    // 7. Stage 5 Rescue: 63 Building Beacon Pulse when active
-    if (this.currentStage?.type === 'RESCUE' || this.currentStage?.id === 'stage-5') {
-      if (this.bldg63CrownMat) {
-        const pulseCrown = 0.5 + 0.5 * Math.sin(time * 8.0);
-        this.bldg63CrownMat.emissive.setRGB(0.85 * pulseCrown, 0.5 * pulseCrown, 0.1);
+      // Proximity check for wheel rotation
+      const vx = veh.group.position.x - px;
+      const vz = veh.group.position.z - pz;
+      if (vx * vx + vz * vz < 3025) { // within 55m
+        const wheelRot = (veh.speed / 0.45) * dt * (veh.dir > 0 ? 1 : -1);
+        const wCount = veh.wheels.length;
+        for (let w = 0; w < wCount; w++) {
+          veh.wheels[w].rotation.x += wheelRot;
+        }
       }
+    }
+
+    // 6. Stage 5 Rescue: 63 Building Beacon Pulse when active
+    if ((this.currentStage?.type === 'RESCUE' || this.currentStage?.id === 'stage-5') && this.bldg63CrownMat) {
+      const pulseCrown = 0.5 + 0.5 * Math.sin(time * 8.0);
+      this.bldg63CrownMat.emissive.setRGB(0.85 * pulseCrown, 0.5 * pulseCrown, 0.1);
     }
   }
 
@@ -7584,47 +7615,51 @@ export class DroneWorld {
           this.cachedQuestCurve = null;
         }
 
-        // Direct Buffer Update for Guidance Line & Glow Line without GC churn
-        const numPoints = 64;
-        const lineGeo = this.missionGuidanceLine!.geometry as THREE.BufferGeometry;
-        const posAttr = lineGeo.attributes.position as THREE.BufferAttribute;
-        const posArray = posAttr.array as Float32Array;
+        // Direct Buffer Update for Guidance Line & Glow Line only if visible
+        if (this.missionGuidanceLine && this.missionGuidanceLine.visible) {
+          const numPoints = 32;
+          const lineGeo = this.missionGuidanceLine.geometry as THREE.BufferGeometry;
+          const posAttr = lineGeo.attributes.position as THREE.BufferAttribute;
+          const posArray = posAttr.array as Float32Array;
 
-        const glowLineGeo = this.missionGuidanceGlowLine?.geometry as THREE.BufferGeometry | undefined;
-        const glowPosAttr = glowLineGeo?.attributes.position as THREE.BufferAttribute | undefined;
-        const glowPosArray = glowPosAttr?.array as Float32Array | undefined;
+          const glowLineGeo = this.missionGuidanceGlowLine?.geometry as THREE.BufferGeometry | undefined;
+          const glowPosAttr = glowLineGeo?.attributes.position as THREE.BufferAttribute | undefined;
+          const glowPosArray = glowPosAttr?.array as Float32Array | undefined;
 
-        for (let i = 0; i < numPoints; i++) {
-          const t = i / (numPoints - 1);
-          if (this.cachedQuestCurve) {
-            this.cachedQuestCurve.getPoint(t, this._tempOrbPos);
-          } else {
-            const pt = getPointAlongPolyline(questWaypoints, t);
-            this._tempOrbPos.copy(pt);
+          for (let i = 0; i < numPoints; i++) {
+            const t = i / (numPoints - 1);
+            if (this.cachedQuestCurve) {
+              this.cachedQuestCurve.getPoint(t, this._tempOrbPos);
+            } else {
+              const pt = getPointAlongPolyline(questWaypoints, t);
+              this._tempOrbPos.copy(pt);
+            }
+            posArray[i * 3] = this._tempOrbPos.x;
+            posArray[i * 3 + 1] = this._tempOrbPos.y;
+            posArray[i * 3 + 2] = this._tempOrbPos.z;
+
+            if (glowPosArray) {
+              glowPosArray[i * 3] = this._tempOrbPos.x;
+              glowPosArray[i * 3 + 1] = this._tempOrbPos.y;
+              glowPosArray[i * 3 + 2] = this._tempOrbPos.z;
+            }
           }
-          posArray[i * 3] = this._tempOrbPos.x;
-          posArray[i * 3 + 1] = this._tempOrbPos.y;
-          posArray[i * 3 + 2] = this._tempOrbPos.z;
-
-          if (glowPosArray) {
-            glowPosArray[i * 3] = this._tempOrbPos.x;
-            glowPosArray[i * 3 + 1] = this._tempOrbPos.y;
-            glowPosArray[i * 3 + 2] = this._tempOrbPos.z;
-          }
+          posAttr.needsUpdate = true;
+          if (glowPosAttr) glowPosAttr.needsUpdate = true;
         }
-        posAttr.needsUpdate = true;
-        if (glowPosAttr) glowPosAttr.needsUpdate = true;
       }
 
-      // 1. Core & Glow Line Colors
-      const lineMat = this.missionGuidanceLine!.material as THREE.LineBasicMaterial;
-      lineMat.color.setHex(guidanceColor);
-      lineMat.opacity = 0.95 + Math.sin(now * 0.008) * 0.05;
+      // 1. Core & Glow Line Colors (Only if visible)
+      if (this.missionGuidanceLine && this.missionGuidanceLine.visible) {
+        const lineMat = this.missionGuidanceLine.material as THREE.LineBasicMaterial;
+        lineMat.color.setHex(guidanceColor);
+        lineMat.opacity = 0.95 + Math.sin(now * 0.008) * 0.05;
 
-      if (this.missionGuidanceGlowLine) {
-        const glowMat = this.missionGuidanceGlowLine.material as THREE.LineBasicMaterial;
-        glowMat.color.setHex(guidanceColor);
-        glowMat.opacity = 0.45 + Math.sin(now * 0.006) * 0.15;
+        if (this.missionGuidanceGlowLine) {
+          const glowMat = this.missionGuidanceGlowLine.material as THREE.LineBasicMaterial;
+          glowMat.color.setHex(guidanceColor);
+          glowMat.opacity = 0.45 + Math.sin(now * 0.006) * 0.15;
+        }
       }
 
       // 2. Animate Forward-Flowing Aerodynamic Flight Chevrons along Corridor (Zero allocations, sleek HUD navigation)
