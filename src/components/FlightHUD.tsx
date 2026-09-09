@@ -23,7 +23,6 @@ import {
   Zap,
   BatteryCharging,
   Navigation,
-  Crosshair,
   Wifi,
   Activity,
   AlertTriangle
@@ -294,45 +293,6 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
           >
             <Settings className="w-4 h-4 text-slate-300" />
           </button>
-        </div>
-      </div>
-
-      {/* ─── 2. CENTER TACTICAL RETICLE & ARTIFICIAL HORIZON ─── */}
-      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-        {/* Dynamic Horizon / Aiming Reticle (Tilts subtly with drone physics) */}
-        <div 
-          className="relative w-48 h-48 flex items-center justify-center opacity-80 transition-transform duration-75"
-          style={{
-            transform: `translateY(${pitchOffset * 1.5}px) rotate(${rollAngle}deg)`
-          }}
-        >
-          {/* Pitch Ladder Tick Marks */}
-          <div className="absolute -top-6 flex items-center gap-2 text-[9px] font-mono text-cyan-400/60">
-            <span className="w-4 h-[1px] bg-cyan-400/60" />
-            <span>+10</span>
-            <span className="w-4 h-[1px] bg-cyan-400/60" />
-          </div>
-
-          <div className="absolute -bottom-6 flex items-center gap-2 text-[9px] font-mono text-cyan-400/60">
-            <span className="w-4 h-[1px] bg-cyan-400/60" />
-            <span>-10</span>
-            <span className="w-4 h-[1px] bg-cyan-400/60" />
-          </div>
-
-          {/* Artificial Horizon Center Wing Bars */}
-          <div className="absolute w-full flex items-center justify-between px-2">
-            <div className="w-12 h-[2px] bg-gradient-to-r from-transparent to-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-            <div className="w-12 h-[2px] bg-gradient-to-l from-transparent to-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-          </div>
-
-          {/* Center Crosshair Pip */}
-          <div className="relative w-6 h-6 flex items-center justify-center">
-            <Crosshair className="w-5 h-5 text-cyan-300 drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]" />
-            <div className="w-1 h-1 bg-cyan-200 rounded-full" />
-          </div>
-
-          {/* Pitch Level Indicator Dots */}
-          <div className="absolute w-28 h-28 border border-cyan-400/20 rounded-full border-dashed" />
         </div>
       </div>
 
