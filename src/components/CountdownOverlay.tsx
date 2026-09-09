@@ -11,10 +11,10 @@ export const CountdownOverlay: React.FC<CountdownOverlayProps> = ({ count }) => 
   return (
     <div
       id="race-countdown-overlay"
-      className="absolute inset-0 z-50 flex flex-col items-center justify-center pointer-events-none bg-slate-950/20 backdrop-blur-[1px]"
+      className="absolute inset-0 z-50 flex flex-col items-center justify-center pointer-events-none bg-slate-950/30"
     >
       {/* 3-Signal Cluster (3 -> 2 -> 1) */}
-      <div className="flex items-center gap-3 sm:gap-4 mb-4 bg-slate-900/80 px-4 py-2 rounded-full border border-white/20 shadow-xl backdrop-blur-xs">
+      <div className="flex items-center gap-3 sm:gap-4 mb-4 bg-slate-900/95 px-4 py-2 rounded-full border border-white/20 shadow-xl">
         {[3, 2, 1].map((stepNumber, idx) => {
           let isLit = false;
           if (count === 3 && idx === 0) isLit = true;

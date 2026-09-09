@@ -106,7 +106,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
           <button
             id="hud-exit-mission"
             onClick={onExitMission}
-            className="group flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-slate-200 hover:text-white font-bold text-xs sm:text-sm border border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] backdrop-blur-md transition-all active:scale-95 cursor-pointer"
+            className="group flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-950/90 hover:bg-slate-900 text-slate-200 hover:text-white font-bold text-xs sm:text-sm border border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all active:scale-95 cursor-pointer"
             title="미션 나가기"
           >
             <LogOut className="w-4 h-4 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
@@ -114,7 +114,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
           </button>
 
           {/* Mission Objective Card */}
-          <div className="flex items-center gap-2.5 bg-slate-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.2)] text-white max-w-[220px] sm:max-w-md">
+          <div className="flex items-center gap-2.5 bg-slate-950/92 px-3.5 py-1.5 rounded-xl border border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.2)] text-white max-w-[220px] sm:max-w-md">
             {/* Mission Type Icon */}
             <div className="w-7 h-7 rounded-lg bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center shrink-0">
               {stage.type === 'COIN_HUNT' && <Coins className="w-4 h-4 text-amber-400" />}
@@ -179,7 +179,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
         {/* Center: Mission Chronometer & Compass Heading Ribbon */}
         <div className="pointer-events-auto flex flex-col items-center gap-1">
           {/* Top Compass Heading Ribbon */}
-          <div className="flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md px-3 py-0.5 rounded-full border border-cyan-500/30 text-[11px] font-mono font-bold text-cyan-300 shadow-md">
+          <div className="flex items-center gap-1.5 bg-slate-950/90 px-3 py-0.5 rounded-full border border-cyan-500/30 text-[11px] font-mono font-bold text-cyan-300 shadow-md">
             <Compass className="w-3.5 h-3.5 text-cyan-400 animate-spin-slow" />
             <span>HDG {String(heading).padStart(3, '0')}°</span>
             <span className="text-[9px] text-slate-400">
@@ -195,7 +195,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
 
           {/* Precision Flight Timer */}
           {stage.timeLimitSec > 0 && (
-            <div className="bg-slate-950/90 backdrop-blur-md px-3.5 py-1 rounded-xl border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.25)] flex items-center gap-2">
+            <div className="bg-slate-950/92 px-3.5 py-1 rounded-xl border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.25)] flex items-center gap-2">
               <span className="text-[10px] uppercase font-mono tracking-widest text-amber-400 font-bold">TIME</span>
               <span className="text-sm sm:text-base font-black font-mono text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">
                 {formatTime(elapsedSec)}
@@ -205,7 +205,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
         </div>
 
         {/* Right: Flight Controls & Gear System */}
-        <div className="pointer-events-auto flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md p-1.5 rounded-xl border border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+        <div className="pointer-events-auto flex items-center gap-1.5 bg-slate-950/92 p-1.5 rounded-xl border border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
           {/* Speed Gear Multiplier (1단 / 2단 / 3단) */}
           {isAiRace ? (
             <div className="px-2.5 py-1 bg-purple-500/20 rounded-lg text-xs font-black text-purple-300 border border-purple-400/40 font-mono">
@@ -300,7 +300,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
       <div className="flex items-center justify-between w-full px-2 sm:px-6 pointer-events-none">
         
         {/* Left Tape: Airspeed / Throttle HUD */}
-        <div className="flex items-center gap-2 bg-slate-950/80 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border-l-4 border-l-cyan-400 border border-slate-800/80 shadow-[0_0_20px_rgba(0,0,0,0.5)] text-white">
+        <div className="flex items-center gap-2 bg-slate-950/90 p-2.5 sm:p-3 rounded-2xl border-l-4 border-l-cyan-400 border border-slate-800/80 shadow-[0_0_20px_rgba(0,0,0,0.5)] text-white">
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5 text-[10px] font-mono tracking-widest text-cyan-400 uppercase font-bold">
               <Gauge className="w-3.5 h-3.5 text-cyan-400" />
@@ -320,7 +320,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
         </div>
 
         {/* Right Tape: Altitude / Climb Rate HUD */}
-        <div className="flex items-center gap-2 bg-slate-950/80 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border-r-4 border-r-emerald-400 border border-slate-800/80 shadow-[0_0_20px_rgba(0,0,0,0.5)] text-white">
+        <div className="flex items-center gap-2 bg-slate-950/90 p-2.5 sm:p-3 rounded-2xl border-r-4 border-r-emerald-400 border border-slate-800/80 shadow-[0_0_20px_rgba(0,0,0,0.5)] text-white">
           <div className="flex flex-col items-end">
             <div className="flex items-center gap-1.5 text-[10px] font-mono tracking-widest text-emerald-400 uppercase font-bold">
               <span>ALT</span>
@@ -344,7 +344,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
 
       {/* ─── 4. CRASH & RESPAWN WARNING OVERLAY ─── */}
       {telemetry.hasCrashed && (
-        <div className="pointer-events-auto self-center bg-slate-950/95 border-2 border-rose-500 rounded-2xl p-4 sm:p-5 shadow-[0_0_35px_rgba(244,63,94,0.5)] text-center max-w-sm backdrop-blur-lg animate-pulse text-white z-20">
+        <div className="pointer-events-auto self-center bg-slate-950/95 border-2 border-rose-500 rounded-2xl p-4 sm:p-5 shadow-[0_0_35px_rgba(244,63,94,0.5)] text-center max-w-sm animate-pulse text-white z-20">
           <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-rose-500/20 border border-rose-400/50 flex items-center justify-center">
             <AlertTriangle className="w-7 h-7 text-rose-400 animate-bounce" />
           </div>
@@ -365,7 +365,7 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
       )}
 
       {/* ─── 5. BOTTOM COCKPIT TELEMETRY STRIP ─── */}
-      <div className="self-center flex items-center gap-3 sm:gap-6 bg-slate-950/80 backdrop-blur-md px-4 sm:px-6 py-1 rounded-full border border-cyan-500/30 shadow-[0_0_15px_rgba(0,0,0,0.4)] pointer-events-none text-[11px] font-mono text-slate-300 mb-0.5">
+      <div className="self-center flex items-center gap-3 sm:gap-6 bg-slate-950/90 px-4 sm:px-6 py-1 rounded-full border border-cyan-500/30 shadow-[0_0_15px_rgba(0,0,0,0.4)] pointer-events-none text-[11px] font-mono text-slate-300 mb-0.5">
         <div className="flex items-center gap-1.5 text-cyan-400">
           <Activity className="w-3.5 h-3.5" />
           <span className="hidden sm:inline text-slate-400">ATT:</span>

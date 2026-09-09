@@ -25,12 +25,18 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
   const baseRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
-  const [isDraggingVisual, setIsDraggingVisual] = useState(false);
+  const centerPosRef = useRef({ x: 0, y: 0, radius: 60 });
 
   // Dynamic radius based on element size
-  const getRadius = () => {
-    if (!baseRef.current) return 60;
-    return Math.min(baseRef.current.clientWidth / 2 - 16, 72);
+  const updateMetrics = () => {
+    if (!baseRef.current) return;
+    const rect = baseRef.current.getBoundingClientRect();
+    const radius = Math.min(rect.width / 2 - 16, 72);
+    centerPosRef.current = {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+      radius
+    };
   };
 
   const updateKnobTransform = (dx: number, dy: number) => {
@@ -40,11 +46,7 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
   };
 
   const handlePointer = useCallback((clientX: number, clientY: number) => {
-    if (!baseRef.current) return;
-    const rect = baseRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const currentRadius = getRadius();
+    const { x: centerX, y: centerY, radius: currentRadius } = centerPosRef.current;
 
     let deltaX = clientX - centerX;
     let deltaY = clientY - centerY;
@@ -67,7 +69,7 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
   const handleStart = (e: React.PointerEvent) => {
     e.currentTarget.setPointerCapture(e.pointerId);
     isDraggingRef.current = true;
-    setIsDraggingVisual(true);
+    updateMetrics();
     handlePointer(e.clientX, e.clientY);
   };
 
@@ -83,21 +85,16 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
       // ignore
     }
     isDraggingRef.current = false;
-    setIsDraggingVisual(false);
 
-    if (autoCenterY) {
-      updateKnobTransform(0, 0);
-      onChange(0, 0);
-    } else {
-      updateKnobTransform(0, 0);
-      onChange(0, 0);
-    }
+    updateKnobTransform(0, 0);
+    onChange(0, 0);
   };
 
   // Sync with keyboard/external inputs when not dragging
   useEffect(() => {
     if (!isDraggingRef.current) {
-      const currentRadius = getRadius();
+      updateMetrics();
+      const currentRadius = centerPosRef.current.radius;
       updateKnobTransform(valueX * currentRadius, -valueY * currentRadius);
     }
   }, [valueX, valueY]);
@@ -113,11 +110,7 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
         onPointerMove={handleMove}
         onPointerUp={handleEnd}
         onPointerCancel={handleEnd}
-        className={`relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 rounded-full border-4 border-white/80 bg-white/35 backdrop-blur-lg shadow-2xl flex items-center justify-center cursor-pointer transition-all ${
-          isDraggingVisual 
-            ? 'border-white bg-white/50 ring-4 ring-white/60 scale-102' 
-            : 'hover:border-white hover:bg-white/45 active:scale-98'
-        }`}
+        className="relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 rounded-full border-4 border-white/80 bg-slate-900/80 shadow-2xl flex items-center justify-center cursor-pointer active:ring-4 active:ring-white/60 active:border-white"
       >
         {/* Subtle crosshair & inner guide circles */}
         <div className="absolute inset-x-0 top-1/2 h-[2px] bg-white/40 pointer-events-none" />
@@ -169,13 +162,7 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
         <div
           ref={knobRef}
           className={`absolute w-14 h-14 sm:w-18 sm:h-18 rounded-full shadow-2xl flex items-center justify-center pointer-events-none border-4 border-white will-change-transform ${
-            isLeft
-              ? isDraggingVisual
-                ? 'bg-blue-600 shadow-blue-500/70 scale-105'
-                : 'bg-blue-500 shadow-lg'
-              : isDraggingVisual
-                ? 'bg-orange-500 shadow-orange-500/70 scale-105'
-                : 'bg-orange-400 shadow-lg'
+            isLeft ? 'bg-blue-600 shadow-blue-500/70' : 'bg-orange-500 shadow-orange-500/70'
           }`}
           style={{
             transform: 'translate3d(0px, 0px, 0px)'
@@ -188,8 +175,8 @@ const VirtualJoystickComponent: React.FC<VirtualJoystickProps> = ({
       </div>
 
       {/* Mode 2 Label Pill Below */}
-      <div className="mt-2 bg-white/95 backdrop-blur-md px-3 sm:px-3.5 py-0.5 sm:py-1 rounded-full border border-white shadow-md flex items-center gap-1">
-        <span className="text-[10px] sm:text-[11px] font-black text-blue-950 uppercase">{title}</span>
+      <div className="mt-2 bg-slate-900/90 px-3 sm:px-3.5 py-0.5 sm:py-1 rounded-full border border-white/60 shadow-md flex items-center gap-1">
+        <span className="text-[10px] sm:text-[11px] font-black text-cyan-300 uppercase">{title}</span>
       </div>
     </div>
   );

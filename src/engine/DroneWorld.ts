@@ -1708,10 +1708,10 @@ export class DroneWorld {
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
-    this.renderer.setPixelRatio(Math.min(dpr, 1.0));
+    this.renderer.setPixelRatio(Math.min(dpr, 1.0) * 0.8);
     
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMapping = THREE.LinearToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
     this.renderer.shadowMap.enabled = false;
     this.renderer.autoClear = true;
     container.appendChild(this.renderer.domElement);

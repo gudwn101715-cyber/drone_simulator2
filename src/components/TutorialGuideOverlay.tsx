@@ -529,7 +529,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = memo(({
           key={praiseToast.id}
           className="fixed top-14 left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all animate-bounce"
         >
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-950/90 border border-amber-400/80 shadow-[0_0_20px_rgba(251,191,36,0.5)] backdrop-blur-xs text-white">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-950/95 border border-amber-400/80 shadow-[0_0_20px_rgba(251,191,36,0.5)] text-white">
             <span className="text-base">{praiseToast.emoji}</span>
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-black text-amber-300">{praiseToast.title}</span>
@@ -547,7 +547,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = memo(({
             : 'top-12 left-1/2 -translate-x-1/2 w-[92%] max-w-sm sm:max-w-md'
         }`}
       >
-        <div className="bg-slate-950/85 hover:bg-slate-950/95 border border-cyan-400/40 hover:border-cyan-400/70 rounded-2xl px-3 py-2 shadow-lg backdrop-blur-xs transition-all text-white">
+        <div className="bg-slate-950/92 hover:bg-slate-950/98 border border-cyan-400/40 hover:border-cyan-400/70 rounded-2xl px-3 py-2 shadow-lg transition-all text-white">
           {/* Header Row */}
           <div className="flex items-center justify-between gap-1.5 pb-1 mb-1 border-b border-slate-800/60">
             <div className="flex items-center gap-1.5 min-w-0">
