@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="probeBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="45%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="probeWhiteGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- App Rounded Square Base -->
+  <rect width="512" height="512" rx="118" fill="url(#probeBgGrad)"/>
+
+  <!-- Subtle Diagonal Atmosphere Stripes -->
+  <line x1="0" y1="120" x2="512" y2="400" stroke="#ffffff" stroke-width="1.5" opacity="0.08"/>
+  <line x1="0" y1="200" x2="512" y2="480" stroke="#ffffff" stroke-width="1.5" opacity="0.08"/>
+
+  <!-- Centered PROBE Emblem -->
+  <g transform="translate(48, 70) scale(1.45)" fill="url(#probeWhiteGrad)">
+    <!-- Stylized 'P' -->
+    <path d="M 68 84 C 68 76, 74 70, 82 70 L 126 70 C 148 70, 166 84, 166 106 C 166 128, 148 142, 126 142 L 96 142 L 96 168 C 96 178, 88 186, 78 186 C 70 186, 68 178, 68 168 Z" />
+    
+    <!-- Orbital Ring -->
+    <path d="M 44 116 C 40 134, 46 154, 68 166 C 88 176, 120 178, 150 162 C 162 155, 172 144, 176 138 C 178 134, 174 130, 170 132 C 158 138, 138 144, 116 140 C 94 136, 76 124, 70 108 C 68 102, 60 102, 58 108 C 52 110, 46 112, 44 116 Z" />
+    <path d="M 128 62 C 150 62, 172 74, 182 92 C 186 98, 182 104, 176 102 C 168 96, 152 86, 132 84 C 122 84, 120 74, 126 70 Z" />
+
+    <!-- Probe Satellite Capsule Inside 'P' -->
+    <g transform="translate(108, 102) rotate(-35)">
+      <ellipse cx="0" cy="0" rx="14" ry="20" />
+      <circle cx="0" cy="-16" r="8" fill="#38bdf8" />
+      <path d="M -14 -4 L -26 -10 L -26 4 L -14 6 Z" />
+      <path d="M 14 -4 L 26 -10 L 26 4 L 14 6 Z" />
+      <line x1="-10" y1="2" x2="10" y2="2" stroke="#0284c7" stroke-width="2" />
+      <line x1="-12" y1="-6" x2="12" y2="-6" stroke="#0284c7" stroke-width="2" />
+    </g>
+
+    <!-- Sparkles -->
+    <path d="M 166 64 Q 168 72 176 74 Q 168 76 166 84 Q 164 76 156 74 Q 164 72 166 64 Z" fill="#ffffff" />
+    <path d="M 182 82 Q 183 87 188 88 Q 183 89 182 94 Q 181 89 176 88 Q 181 87 182 82 Z" fill="#ffffff" />
+    <path d="M 174 98 Q 175 101 178 102 Q 175 103 174 106 Q 173 103 170 102 Q 173 101 174 98 Z" fill="#38bdf8" />
+  </g>
+
+  <!-- Tracked PROBE Text at bottom -->
+  <text x="256" y="420" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="900" letter-spacing="14" text-anchor="middle" fill="#ffffff">
+    PROBE
+  </text>
+</svg>
