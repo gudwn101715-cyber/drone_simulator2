@@ -1689,11 +1689,11 @@ export class DroneWorld {
     // Scene with Bright Daylight Atmosphere
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xbde0fe); // Crisp sunny sky blue
-    this.scene.fog = new THREE.Fog(0xcfe2fe, 120, 380); // Ultra-lightweight linear daylight fog (zero exponential shader overhead)
+    this.scene.fog = new THREE.Fog(0xcfe2fe, 100, 270); // Ultra-lightweight linear daylight fog (zero exponential shader overhead)
 
-    // Camera with balanced depth range (near: 0.5, far: 320 for zero Z-fighting & maximum 24-bit depth precision)
+    // Camera with balanced depth range (near: 0.4, far: 280 for zero Z-fighting & maximum 24-bit depth precision)
     const aspect = container.clientWidth / container.clientHeight;
-    this.camera = new THREE.PerspectiveCamera(65, aspect, 0.5, 320);
+    this.camera = new THREE.PerspectiveCamera(65, aspect, 0.4, 280);
     this.camera.position.set(0, 3, 6);
 
     // High-performance WebGLRenderer (Optimized for silky 60FPS on mobile, tablet & laptops)
@@ -1708,7 +1708,7 @@ export class DroneWorld {
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
-    this.renderer.setPixelRatio(Math.min(dpr, 1.0) * 0.8);
+    this.renderer.setPixelRatio(Math.min(dpr, 1.0) * 0.75);
     
     this.renderer.toneMapping = THREE.LinearToneMapping;
     this.renderer.toneMappingExposure = 1.0;
@@ -1787,7 +1787,7 @@ export class DroneWorld {
     this.buildCyberSkyAndAtmosphere();
 
     // 2. Base Green Countryside Turf & Landscape Base
-    const groundGeo = new THREE.PlaneGeometry(600, 600);
+    const groundGeo = new THREE.PlaneGeometry(600, 600, 16, 16);
     const groundTex = createProceduralLawnTexture();
     const groundMat = new THREE.MeshLambertMaterial({ 
       color: 0xffffff,
@@ -1798,6 +1798,8 @@ export class DroneWorld {
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = 0;
     ground.renderOrder = 0;
+    ground.matrixAutoUpdate = false;
+    ground.updateMatrix();
     this.scene.add(ground);
 
     // 3. Layered Urban Districts, Foundations & Parking Lots
@@ -1841,6 +1843,46 @@ export class DroneWorld {
 
     // 16. Container for Custom Loaded GLTF / 3D Models
     this.scene.add(this.customModelsGroup);
+
+    // 17. Freeze static matrices to maximize Helio G85 CPU efficiency
+    this.freezeStaticObjects();
+  }
+
+  private freezeStaticObjects() {
+    this.scene.updateMatrixWorld(true);
+    const dynamicGroups = new Set<THREE.Object3D>([
+      this.droneGroup,
+      this.customModelsGroup,
+      this.missionGuidanceGroup
+    ]);
+
+    this.scene.traverse((obj) => {
+      let current: THREE.Object3D | null = obj;
+      let isDynamic = false;
+      while (current) {
+        if (dynamicGroups.has(current)) {
+          isDynamic = true;
+          break;
+        }
+        current = current.parent;
+      }
+
+      if (
+        this.redWarningLights.includes(obj as THREE.Mesh) ||
+        this.windTurbineRotors.some(r => r === obj || obj.parent === r) ||
+        this.hotAirBalloons.some(b => b.group === obj || obj.parent === b.group) ||
+        this.animatedPedestrians.some(p => p.group === obj || obj.parent === p.group) ||
+        this.dynamicVehicles.some(v => v.group === obj || obj.parent === v.group) ||
+        this.birdFlock.some(b => b.group === obj || obj.parent === b.group) ||
+        this.trafficLightMeshes.some(tl => tl.nsRedMesh === obj || tl.nsGreenMesh === obj || tl.ewRedMesh === obj || tl.ewGreenMesh === obj)
+      ) {
+        isDynamic = true;
+      }
+
+      if (!isDynamic) {
+        obj.matrixAutoUpdate = false;
+      }
+    });
   }
 
   private buildCyberSkyAndAtmosphere() {
@@ -1946,7 +1988,7 @@ export class DroneWorld {
     const districtGroup = new THREE.Group();
     districtGroup.renderOrder = 0;
 
-    // Downtown Paved Parking Lots (Elevated neatly at y = 0.15 with no ground z-fighting)
+    // Downtown Paved Parking Lots (Elevated neatly at y = 0.06 with no ground z-fighting)
     const parkingLots = [
       { x: -55, z: -35, w: 26, d: 24, label: 'ALPHA PARKING' },
       { x: 55, z: -35, w: 26, d: 24, label: 'COMMERCIAL LOT' },
@@ -1955,36 +1997,30 @@ export class DroneWorld {
     ];
 
     const parkingMat = new THREE.MeshLambertMaterial({ 
-      color: 0x475569,
-      polygonOffset: true,
-      polygonOffsetFactor: -4.0,
-      polygonOffsetUnits: -4.0
+      color: 0x475569
     });
     const stallLineMat = new THREE.MeshBasicMaterial({ 
-      color: 0xf8fafc,
-      polygonOffset: true,
-      polygonOffsetFactor: -8.0,
-      polygonOffsetUnits: -8.0
+      color: 0xf8fafc
     });
 
     parkingLots.forEach(lot => {
       const lotMesh = new THREE.Mesh(new THREE.PlaneGeometry(lot.w, lot.d), parkingMat);
       lotMesh.rotation.x = -Math.PI / 2;
-      lotMesh.position.set(lot.x, 0.15, lot.z);
+      lotMesh.position.set(lot.x, 0.06, lot.z);
       districtGroup.add(lotMesh);
 
-      // White parking stall stripes
+      // White parking stall stripes (y = 0.09)
       const numBays = Math.floor(lot.w / 3.2);
       for (let i = 0; i < numBays; i++) {
         const offX = -lot.w / 2 + 1.8 + i * 3.0;
         const line1 = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 5.0), stallLineMat);
         line1.rotation.x = -Math.PI / 2;
-        line1.position.set(lot.x + offX, 0.22, lot.z - lot.d / 4);
+        line1.position.set(lot.x + offX, 0.09, lot.z - lot.d / 4);
         districtGroup.add(line1);
 
         const line2 = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 5.0), stallLineMat);
         line2.rotation.x = -Math.PI / 2;
-        line2.position.set(lot.x + offX, 0.22, lot.z + lot.d / 4);
+        line2.position.set(lot.x + offX, 0.09, lot.z + lot.d / 4);
         districtGroup.add(line2);
       }
     });
@@ -1995,17 +2031,14 @@ export class DroneWorld {
   private buildRiverCanalAndBridges() {
     const riverGroup = new THREE.Group();
 
-    // 1. South Waterway Canal: Han River (Clean deep azure blue water at Z = 158, y = 0.05)
+    // 1. South Waterway Canal: Han River (Clean deep azure blue water at Z = 158, y = 0.04)
     const riverGeo = new THREE.PlaneGeometry(580, 48);
     const riverMat = new THREE.MeshLambertMaterial({ 
-      color: 0x0284c7,
-      polygonOffset: true,
-      polygonOffsetFactor: -1.0,
-      polygonOffsetUnits: -1.0
+      color: 0x0284c7
     });
     const river = new THREE.Mesh(riverGeo, riverMat);
     river.rotation.x = -Math.PI / 2;
-    river.position.set(0, 0.05, 158);
+    river.position.set(0, 0.04, 158);
     riverGroup.add(river);
 
     // Subtle Han River Water Surface Ripple Stripes
@@ -2177,83 +2210,68 @@ export class DroneWorld {
     parkFloor.position.set(105, 0.1, -5);
     sportsGroup.add(parkFloor);
 
-    // Park Promenade Walkway Paving Border (y = 0.21)
+    // Park Promenade Walkway Paving Border (y = 0.08)
     const walkBorder = new THREE.Mesh(
       new THREE.PlaneGeometry(60, 106),
       new THREE.MeshLambertMaterial({ 
-        color: 0xe2e8f0,
-        polygonOffset: true,
-        polygonOffsetFactor: -2.0,
-        polygonOffsetUnits: -2.0
+        color: 0xe2e8f0
       })
     );
     walkBorder.rotation.x = -Math.PI / 2;
-    walkBorder.position.set(105, 0.21, -5);
+    walkBorder.position.set(105, 0.08, -5);
     sportsGroup.add(walkBorder);
 
     // 1. Olympic Soccer Field & All-Weather Running Track at x: 105, z: -32
-    // Red Polyurethane Running Track Oval / Base (y = 0.24)
+    // Red Polyurethane Running Track Oval / Base (y = 0.11)
     const trackBase = new THREE.Mesh(
       new THREE.PlaneGeometry(54, 36),
       new THREE.MeshLambertMaterial({ 
-        color: 0x991b1b,
-        polygonOffset: true,
-        polygonOffsetFactor: -3.0,
-        polygonOffsetUnits: -3.0
+        color: 0x991b1b
       })
     );
     trackBase.rotation.x = -Math.PI / 2;
-    trackBase.position.set(105, 0.24, -32);
+    trackBase.position.set(105, 0.11, -32);
     sportsGroup.add(trackBase);
 
-    // Track White Lane Marker Lines (y = 0.26)
+    // Track White Lane Marker Lines (y = 0.13)
     const laneLineMat = new THREE.MeshBasicMaterial({ 
-      color: 0xffffff,
-      polygonOffset: true,
-      polygonOffsetFactor: -4.0,
-      polygonOffsetUnits: -4.0
+      color: 0xffffff
     });
     const innerTrackRing = new THREE.Mesh(new THREE.PlaneGeometry(48, 30), laneLineMat);
     innerTrackRing.rotation.x = -Math.PI / 2;
-    innerTrackRing.position.set(105, 0.26, -32);
+    innerTrackRing.position.set(105, 0.13, -32);
     sportsGroup.add(innerTrackRing);
 
-    // Lush Green Natural Turf Soccer Pitch (y = 0.28)
+    // Lush Green Natural Turf Soccer Pitch (y = 0.15)
     const pitchMat = new THREE.MeshLambertMaterial({ 
-      color: 0x16a34a,
-      polygonOffset: true,
-      polygonOffsetFactor: -5.0,
-      polygonOffsetUnits: -5.0
+      color: 0x16a34a
     });
     const pitch = new THREE.Mesh(new THREE.PlaneGeometry(44, 26), pitchMat);
     pitch.rotation.x = -Math.PI / 2;
-    pitch.position.set(105, 0.28, -32);
+    pitch.position.set(105, 0.15, -32);
     sportsGroup.add(pitch);
 
-    // Soccer Field Pitch White Boundary & Markings (y = 0.30)
+    // Soccer Field Pitch White Boundary & Markings (y = 0.18)
     const lineMat = new THREE.MeshBasicMaterial({ 
-      color: 0xffffff,
-      polygonOffset: true,
-      polygonOffsetFactor: -8.0,
-      polygonOffsetUnits: -8.0
+      color: 0xffffff
     });
 
     // Center Circle
     const centerCircle = new THREE.Mesh(new THREE.RingGeometry(4.0, 4.25, 24), lineMat);
     centerCircle.rotation.x = -Math.PI / 2;
-    centerCircle.position.set(105, 0.30, -32);
+    centerCircle.position.set(105, 0.18, -32);
     sportsGroup.add(centerCircle);
 
     // Center Spot
     const centerSpot = new THREE.Mesh(new THREE.CircleGeometry(0.5, 12), lineMat);
     centerSpot.rotation.x = -Math.PI / 2;
-    centerSpot.position.set(105, 0.30, -32);
+    centerSpot.position.set(105, 0.18, -32);
     sportsGroup.add(centerSpot);
 
     // Halfway Dividing Line
     const centerLine = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 26), lineMat);
     centerLine.rotation.x = -Math.PI / 2;
-    centerLine.position.set(105, 0.30, -32);
+    centerLine.position.set(105, 0.18, -32);
     sportsGroup.add(centerLine);
 
     // Goal Areas / Penalty Boxes (East & West ends)
@@ -2331,51 +2349,42 @@ export class DroneWorld {
       );
     });
 
-    // 2. Outdoor Community Basketball Court at x: 105, z: 18 (y = 0.24)
+    // 2. Outdoor Community Basketball Court at x: 105, z: 18 (y = 0.11)
     const bCourt = new THREE.Mesh(
       new THREE.PlaneGeometry(26, 16),
       new THREE.MeshLambertMaterial({ 
-        color: 0x0284c7, // Pro blue outdoor hardcourt
-        polygonOffset: true,
-        polygonOffsetFactor: -4.0,
-        polygonOffsetUnits: -4.0
+        color: 0x0284c7 // Pro blue outdoor hardcourt
       })
     );
     bCourt.rotation.x = -Math.PI / 2;
-    bCourt.position.set(105, 0.24, 18);
+    bCourt.position.set(105, 0.11, 18);
     sportsGroup.add(bCourt);
 
     const bInnerKey = new THREE.Mesh(
       new THREE.PlaneGeometry(22, 13),
       new THREE.MeshLambertMaterial({ 
-        color: 0xea580c, // Vivid orange inner court
-        polygonOffset: true,
-        polygonOffsetFactor: -6.0,
-        polygonOffsetUnits: -6.0
+        color: 0xea580c // Vivid orange inner court
       })
     );
     bInnerKey.rotation.x = -Math.PI / 2;
-    bInnerKey.position.set(105, 0.27, 18);
+    bInnerKey.position.set(105, 0.13, 18);
     sportsGroup.add(bInnerKey);
 
-    // Basketball Court White Line Markings (y = 0.30)
+    // Basketball Court White Line Markings (y = 0.16)
     const bLineMat = new THREE.MeshBasicMaterial({ 
-      color: 0xffffff,
-      polygonOffset: true,
-      polygonOffsetFactor: -8.0,
-      polygonOffsetUnits: -8.0
+      color: 0xffffff
     });
 
     // Center Half-Court Line
     const bCenterLine = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 13), bLineMat);
     bCenterLine.rotation.x = -Math.PI / 2;
-    bCenterLine.position.set(105, 0.30, 18);
+    bCenterLine.position.set(105, 0.16, 18);
     sportsGroup.add(bCenterLine);
 
     // Center Circle
     const bCenterCircle = new THREE.Mesh(new THREE.RingGeometry(2.0, 2.2, 20), bLineMat);
     bCenterCircle.rotation.x = -Math.PI / 2;
-    bCenterCircle.position.set(105, 0.30, 18);
+    bCenterCircle.position.set(105, 0.16, 18);
     sportsGroup.add(bCenterCircle);
 
     // Basketball Hoops & Backboards (East & West)
@@ -2479,24 +2488,18 @@ export class DroneWorld {
     const koreanRoadTex = createKoreanRoadTexture();
     const koreanRoadMat = new THREE.MeshLambertMaterial({ 
       color: 0xffffff,
-      map: koreanRoadTex,
-      polygonOffset: true,
-      polygonOffsetFactor: -4.0,
-      polygonOffsetUnits: -4.0
+      map: koreanRoadTex
     });
 
     const crossRoadMat = new THREE.MeshLambertMaterial({ 
-      color: 0x1e293b,
-      polygonOffset: true,
-      polygonOffsetFactor: -4.0,
-      polygonOffsetUnits: -4.0
+      color: 0x1e293b
     });
 
     // 1. Main Central Boulevard: 테헤란로 / 여의대로 (Gangnam Teheran-ro / Yeouido Blvd)
     const mainRoadGeo = new THREE.PlaneGeometry(22, 220);
     const mainRoad = new THREE.Mesh(mainRoadGeo, koreanRoadMat);
     mainRoad.rotation.x = -Math.PI / 2;
-    mainRoad.position.set(0, 0.15, 0);
+    mainRoad.position.set(0, 0.06, 0);
     roadGroup.add(mainRoad);
 
     // 2. East-West Connecting Crossways (Gangnam & Yeouido Street Crossings)
@@ -2505,36 +2508,30 @@ export class DroneWorld {
       const crossRoadGeo = new THREE.PlaneGeometry(160, 16);
       const crossRoad = new THREE.Mesh(crossRoadGeo, crossRoadMat);
       crossRoad.rotation.x = -Math.PI / 2;
-      crossRoad.position.set(0, 0.16, cz);
+      crossRoad.position.set(0, 0.065, cz);
       roadGroup.add(crossRoad);
 
-      // Yellow Centerline
+      // Yellow Centerline (y = 0.09)
       const cYLineGeo = new THREE.PlaneGeometry(156, 0.35);
       const cYLineMat = new THREE.MeshBasicMaterial({ 
-        color: 0xfacc15,
-        polygonOffset: true,
-        polygonOffsetFactor: -8.0,
-        polygonOffsetUnits: -8.0
+        color: 0xfacc15
       });
       const cYLine = new THREE.Mesh(cYLineGeo, cYLineMat);
       cYLine.rotation.x = -Math.PI / 2;
-      cYLine.position.set(0, 0.24, cz);
+      cYLine.position.set(0, 0.09, cz);
       roadGroup.add(cYLine);
 
-      // Korean Crosswalks (횡단보도) at Intersection Corners
+      // Korean Crosswalks (횡단보도) at Intersection Corners (y = 0.10)
       [-12.5, 12.5].forEach(cwX => {
         for (let bx = -6.5; bx <= 6.5; bx += 1.3) {
           const zStripe = new THREE.Mesh(
             new THREE.PlaneGeometry(0.7, 3.2),
             new THREE.MeshBasicMaterial({ 
-              color: 0xf8fafc,
-              polygonOffset: true,
-              polygonOffsetFactor: -10.0,
-              polygonOffsetUnits: -10.0
+              color: 0xf8fafc
             })
           );
           zStripe.rotation.x = -Math.PI / 2;
-          zStripe.position.set(cwX > 0 ? cwX + 2.5 : cwX - 2.5, 0.25, cz + bx);
+          zStripe.position.set(cwX > 0 ? cwX + 2.5 : cwX - 2.5, 0.10, cz + bx);
           roadGroup.add(zStripe);
         }
       });
@@ -2602,10 +2599,7 @@ export class DroneWorld {
 
     // 3. Korean Sidewalks & Granite Curbstones (보도블록 및 화강석 경계석)
     const sidewalkMat = new THREE.MeshLambertMaterial({ 
-      color: 0xcbd5e1,
-      polygonOffset: true,
-      polygonOffsetFactor: -6.0,
-      polygonOffsetUnits: -6.0
+      color: 0xcbd5e1
     });
     const curbMat = new THREE.MeshLambertMaterial({ color: 0x64748b });
 
@@ -2641,18 +2635,15 @@ export class DroneWorld {
     const olympicExpGeo = new THREE.PlaneGeometry(280, 16);
     const olympicExpRoad = new THREE.Mesh(olympicExpGeo, crossRoadMat);
     olympicExpRoad.rotation.x = -Math.PI / 2;
-    olympicExpRoad.position.set(0, 0.16, 124);
+    olympicExpRoad.position.set(0, 0.065, 124);
     roadGroup.add(olympicExpRoad);
 
-    // Olympic Expressway Yellow Centerline & Lane Markings
+    // Olympic Expressway Yellow Centerline & Lane Markings (y = 0.09)
     const oYLine = new THREE.Mesh(new THREE.PlaneGeometry(276, 0.4), new THREE.MeshBasicMaterial({ 
-      color: 0xfacc15,
-      polygonOffset: true,
-      polygonOffsetFactor: -8.0,
-      polygonOffsetUnits: -8.0
+      color: 0xfacc15
     }));
     oYLine.rotation.x = -Math.PI / 2;
-    oYLine.position.set(0, 0.24, 124);
+    oYLine.position.set(0, 0.09, 124);
     roadGroup.add(oYLine);
 
     // 5. Overhead Korean Highway & Street Gantry Signboards (도로 이정표 안내 표지판 - 넓은 통과 폭 적용)
@@ -2703,10 +2694,7 @@ export class DroneWorld {
     // Outer circle
     const circleGeo = new THREE.CircleGeometry(size / 2, 32);
     const circleMat = new THREE.MeshBasicMaterial({ 
-      color,
-      polygonOffset: true,
-      polygonOffsetFactor: -6.0,
-      polygonOffsetUnits: -6.0
+      color
     });
     const circle = new THREE.Mesh(circleGeo, circleMat);
     circle.rotation.x = -Math.PI / 2;
@@ -2717,10 +2705,7 @@ export class DroneWorld {
     const ringGeo = new THREE.RingGeometry(size / 2 - 0.5, size / 2, 32);
     const ringMat = new THREE.MeshBasicMaterial({ 
       color: 0xffffff, 
-      side: THREE.DoubleSide,
-      polygonOffset: true,
-      polygonOffsetFactor: -8.0,
-      polygonOffsetUnits: -8.0
+      side: THREE.DoubleSide
     });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = -Math.PI / 2;
@@ -2729,24 +2714,21 @@ export class DroneWorld {
 
     // Letter 'H'
     const hBarMat = new THREE.MeshBasicMaterial({ 
-      color: 0xffffff,
-      polygonOffset: true,
-      polygonOffsetFactor: -10.0,
-      polygonOffsetUnits: -10.0
+      color: 0xffffff
     });
     const hBar1 = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 3.2), hBarMat);
     hBar1.rotation.x = -Math.PI / 2;
-    hBar1.position.set(-1.1, 0.06, 0);
+    hBar1.position.set(-1.1, 0.07, 0);
     padGroup.add(hBar1);
 
     const hBar2 = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 3.2), hBarMat);
     hBar2.rotation.x = -Math.PI / 2;
-    hBar2.position.set(1.1, 0.06, 0);
+    hBar2.position.set(1.1, 0.07, 0);
     padGroup.add(hBar2);
 
     const hBarMid = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.6), hBarMat);
     hBarMid.rotation.x = -Math.PI / 2;
-    hBarMid.position.set(0, 0.06, 0);
+    hBarMid.position.set(0, 0.07, 0);
     padGroup.add(hBarMid);
 
     this.scene.add(padGroup);
@@ -4291,14 +4273,11 @@ export class DroneWorld {
     const gardenPlaza = new THREE.Mesh(
       new THREE.PlaneGeometry(140, 48), 
       new THREE.MeshLambertMaterial({ 
-        color: 0xe2e8f0,
-        polygonOffset: true,
-        polygonOffsetFactor: -2.0,
-        polygonOffsetUnits: -2.0
+        color: 0xe2e8f0
       })
     );
     gardenPlaza.rotation.x = -Math.PI / 2;
-    gardenPlaza.position.set(0, 0.08, 52);
+    gardenPlaza.position.set(0, 0.05, 52);
     assemblyGroup.add(gardenPlaza);
 
     const lawnFountain = new THREE.Mesh(new THREE.CylinderGeometry(7.0, 8.0, 1.2, 24), baseStoneMat);
