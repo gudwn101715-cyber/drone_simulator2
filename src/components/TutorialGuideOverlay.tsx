@@ -539,12 +539,12 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = memo(({
         </div>
       )}
 
-      {/* 2. Compact, Non-Obstructive Mission Bar (Placed at Bottom Center or Top Center) */}
+      {/* 2. Compact, Non-Obstructive Mission Bar (Centered between Left/Right Joysticks) */}
       <div 
         className={`fixed z-20 pointer-events-auto transition-all ${
           position === 'bottom' 
-            ? 'bottom-2.5 sm:bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-sm sm:max-w-md' 
-            : 'top-12 left-1/2 -translate-x-1/2 w-[92%] max-w-sm sm:max-w-md'
+            ? 'bottom-20 sm:bottom-24 md:bottom-20 left-1/2 -translate-x-1/2 w-[86%] max-w-[290px] sm:max-w-sm md:max-w-md' 
+            : 'top-24 sm:top-28 left-1/2 -translate-x-1/2 w-[86%] max-w-[290px] sm:max-w-sm md:max-w-md'
         }`}
       >
         <div className="bg-slate-950/92 hover:bg-slate-950/98 border border-cyan-400/40 hover:border-cyan-400/70 rounded-2xl px-3 py-2 shadow-lg transition-all text-white">

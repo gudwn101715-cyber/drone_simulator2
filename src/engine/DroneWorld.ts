@@ -1039,7 +1039,8 @@ function createKoreanStoreSignMesh(
   const geo = new THREE.PlaneGeometry(width, height);
   const mat = new THREE.MeshBasicMaterial({
     map: texture,
-    transparent: true,
+    transparent: false,
+    depthWrite: true,
     side: THREE.DoubleSide
   });
   return new THREE.Mesh(geo, mat);
@@ -1121,7 +1122,8 @@ function createBillboardMesh(
   const geo = new THREE.PlaneGeometry(width, height);
   const mat = new THREE.MeshBasicMaterial({
     map: texture,
-    transparent: true,
+    transparent: false,
+    depthWrite: true,
     side: THREE.DoubleSide
   });
   return new THREE.Mesh(geo, mat);
@@ -1293,7 +1295,12 @@ function createKoreanStreetSignMesh(
   tex.magFilter = THREE.LinearFilter;
   tex.needsUpdate = true;
   const geo = new THREE.PlaneGeometry(width, height);
-  const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
+  const mat = new THREE.MeshBasicMaterial({ 
+    map: tex, 
+    transparent: false,
+    depthWrite: true,
+    side: THREE.DoubleSide 
+  });
   return new THREE.Mesh(geo, mat);
 }
 
@@ -1691,9 +1698,9 @@ export class DroneWorld {
     this.scene.background = new THREE.Color(0xbde0fe); // Crisp sunny sky blue
     this.scene.fog = new THREE.Fog(0xcfe2fe, 100, 270); // Ultra-lightweight linear daylight fog (zero exponential shader overhead)
 
-    // Camera with balanced depth range (near: 0.4, far: 280 for zero Z-fighting & maximum 24-bit depth precision)
+    // Camera with balanced depth range & wide 3rd person field of view (FOV: 72, near: 0.4, far: 280)
     const aspect = container.clientWidth / container.clientHeight;
-    this.camera = new THREE.PerspectiveCamera(65, aspect, 0.4, 280);
+    this.camera = new THREE.PerspectiveCamera(72, aspect, 0.4, 280);
     this.camera.position.set(0, 3, 6);
 
     // High-performance WebGLRenderer (Optimized for silky 60FPS on mobile, tablet & laptops)
@@ -1704,7 +1711,7 @@ export class DroneWorld {
       depth: true,
       logarithmicDepthBuffer: false,
       powerPreference: 'high-performance',
-      precision: 'mediump'
+      precision: 'highp'
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
@@ -3530,17 +3537,17 @@ export class DroneWorld {
         });
 
         const megaSign = createKoreanStoreSignMesh('MEGA_COFFEE', 11, 4.5);
-        megaSign.position.set(0, 4.0, spec.d / 2 + 0.08);
+        megaSign.position.set(0, 4.0, spec.d / 2 + 0.25);
         bGroup.add(megaSign);
       } else if (spec.x === 35 && spec.z === 40) {
         // Gamma Building (x: 35, z: 40): KAKAO 본사 타워 + 카카오프렌즈 스토어 + 배달의민족 B마트
         const kakaoHQSign = createKoreanStoreSignMesh('KAKAO', 15, 5.8);
-        kakaoHQSign.position.set(-spec.w / 2 - 0.08, spec.h / 2 - 4.0, 0);
+        kakaoHQSign.position.set(-spec.w / 2 - 0.25, spec.h / 2 - 4.0, 0);
         kakaoHQSign.rotation.y = -Math.PI / 2;
         bGroup.add(kakaoHQSign);
 
         const kakaoFriendsSign = createKoreanStoreSignMesh('KAKAO_FRIENDS', 13, 5.0);
-        kakaoFriendsSign.position.set(0, spec.h / 2 - 4.0, -spec.d / 2 - 0.08);
+        kakaoFriendsSign.position.set(0, spec.h / 2 - 4.0, -spec.d / 2 - 0.25);
         kakaoFriendsSign.rotation.y = Math.PI;
         bGroup.add(kakaoFriendsSign);
 
@@ -3552,17 +3559,17 @@ export class DroneWorld {
         bGroup.add(kakaoAwning);
 
         const baeminSign = createKoreanStoreSignMesh('BAEMIN', 13, 5.0);
-        baeminSign.position.set(0, 4.5, spec.d / 2 + 0.08);
+        baeminSign.position.set(0, 4.5, spec.d / 2 + 0.25);
         bGroup.add(baeminSign);
       } else if (spec.isHospital) {
         // General Hospital (x: 70, z: -20): 119 항공구조 외상센터 + GS25 편의점 병원점
         const hospSign = createBillboardMesh('METRO 119 AIR RESCUE', 'Level-1 Emergency Trauma Center', 'EMERGENCY', '#dc2626', '#ffffff', 14, 5.5);
-        hospSign.position.set(-spec.w / 2 - 0.08, spec.h / 2 - 3.5, 0);
+        hospSign.position.set(-spec.w / 2 - 0.25, spec.h / 2 - 3.5, 0);
         hospSign.rotation.y = -Math.PI / 2;
         bGroup.add(hospSign);
 
         const gsSign = createKoreanStoreSignMesh('GS25', 10, 4.0);
-        gsSign.position.set(-spec.w / 2 - 0.08, 2.5, 4.5);
+        gsSign.position.set(-spec.w / 2 - 0.25, 2.5, 4.5);
         gsSign.rotation.y = -Math.PI / 2;
         bGroup.add(gsSign);
 
@@ -3575,66 +3582,66 @@ export class DroneWorld {
       } else if (spec.x === 70 && spec.z === 30) {
         // KRAFTON PUBG 스튜디오 본사 (x: 70, z: 30)
         const kraftonSign = createKoreanStoreSignMesh('KRAFTON', 15, 5.8);
-        kraftonSign.position.set(-spec.w / 2 - 0.08, spec.h / 2 - 4.5, 0);
+        kraftonSign.position.set(-spec.w / 2 - 0.25, spec.h / 2 - 4.5, 0);
         kraftonSign.rotation.y = -Math.PI / 2;
         bGroup.add(kraftonSign);
       } else if (spec.x === 110 && spec.z === 65) {
         // SMILEGATE 엔터테인먼트 (x: 110, z: 65)
         const smileSign = createKoreanStoreSignMesh('SMILEGATE', 15, 5.8);
-        smileSign.position.set(-spec.w / 2 - 0.08, spec.h / 2 - 4.5, 0);
+        smileSign.position.set(-spec.w / 2 - 0.25, spec.h / 2 - 4.5, 0);
         smileSign.rotation.y = -Math.PI / 2;
         bGroup.add(smileSign);
       } else if (spec.x === 35 && spec.z === 70) {
         // CJ ENM 글로벌 K-콘텐츠 타워 (x: 35, z: 70)
         const cjSign = createKoreanStoreSignMesh('CJ', 14, 5.2);
-        cjSign.position.set(0, spec.h / 2 - 4.5, -spec.d / 2 - 0.08);
+        cjSign.position.set(0, spec.h / 2 - 4.5, -spec.d / 2 - 0.25);
         cjSign.rotation.y = Math.PI;
         bGroup.add(cjSign);
       } else if (spec.x === 70 && spec.z === 75) {
         // LINE 라인 글로벌 소프트웨어 연구소 (x: 70, z: 75)
         const lineSign = createKoreanStoreSignMesh('LINE', 14, 5.2);
-        lineSign.position.set(0, spec.h / 2 - 4.5, -spec.d / 2 - 0.08);
+        lineSign.position.set(0, spec.h / 2 - 4.5, -spec.d / 2 - 0.25);
         lineSign.rotation.y = Math.PI;
         bGroup.add(lineSign);
       } else if (spec.x === -110 && spec.z === -80) {
         // SK TELECOM AI T-TOWER (x: -110, z: -80)
         const skSign = createKoreanStoreSignMesh('SK', 15, 5.8);
-        skSign.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.08);
+        skSign.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.25);
         bGroup.add(skSign);
       } else if (spec.x === -80 && spec.z === -85) {
         // KB국민은행 여의도 본점 신관 (x: -80, z: -85)
         const kbSign = createKoreanStoreSignMesh('KB', 14, 5.5);
-        kbSign.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.08);
+        kbSign.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.25);
         bGroup.add(kbSign);
       } else if (spec.x === -40 && spec.z === -85) {
         // 신한투자증권 여의도 금융타워 (x: -40, z: -85)
         const shinhanSign = createKoreanStoreSignMesh('SHINHAN', 14, 5.5);
-        shinhanSign.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.08);
+        shinhanSign.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.25);
         bGroup.add(shinhanSign);
       } else if (spec.x === 35 && spec.z === -40) {
         // KRX 한국거래소 여의도 본부 메인 타워 (x: 35, z: -40 - 삼성전자 옆건물)
         const krxSign = createKoreanStoreSignMesh('KRX', 16, 6.0);
-        krxSign.position.set(-spec.w / 2 - 0.08, spec.h / 2 - 4.5, 0);
+        krxSign.position.set(-spec.w / 2 - 0.25, spec.h / 2 - 4.5, 0);
         krxSign.rotation.y = -Math.PI / 2;
         bGroup.add(krxSign);
 
         const krxSignFront = createKoreanStoreSignMesh('KRX', 14, 5.2);
-        krxSignFront.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.08);
+        krxSignFront.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.25);
         bGroup.add(krxSignFront);
       } else if (spec.x === 40 && spec.z === -85) {
         // 미래에셋증권 글로벌 금융타워 (x: 40, z: -85)
         const miraeSign = createKoreanStoreSignMesh('MIRAE_ASSET', 14, 5.5);
-        miraeSign.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.08);
+        miraeSign.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.25);
         bGroup.add(miraeSign);
       } else if (spec.x === 80 && spec.z === -85) {
         // 하나금융그룹 글로벌 본사 (x: 80, z: -85)
         const hanaSign = createKoreanStoreSignMesh('HANA', 14, 5.5);
-        hanaSign.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.08);
+        hanaSign.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.25);
         bGroup.add(hanaSign);
       } else if (spec.x === 110 && spec.z === -80) {
         // HYUNDAI 현대자동차 AAM 연구소 (x: 110, z: -80)
         const hyundaiSign = createKoreanStoreSignMesh('HYUNDAI', 15, 5.8);
-        hyundaiSign.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.08);
+        hyundaiSign.position.set(0, spec.h / 2 - 4.5, spec.d / 2 + 0.25);
         bGroup.add(hyundaiSign);
       }
 
@@ -3881,36 +3888,36 @@ export class DroneWorld {
       bGroup.add(body);
 
       // Side Windows Strip
-      const sideWin = new THREE.Mesh(new THREE.BoxGeometry(2.54, 0.85, 7.2), windowMat);
+      const sideWin = new THREE.Mesh(new THREE.BoxGeometry(2.58, 0.85, 7.2), windowMat);
       sideWin.position.y = 1.85;
       bGroup.add(sideWin);
 
       // Front Windshield
       const frontWin = new THREE.Mesh(new THREE.BoxGeometry(2.35, 1.05, 0.2), windowMat);
-      frontWin.position.set(0, 1.85, 4.15);
+      frontWin.position.set(0, 1.85, 4.22);
       bGroup.add(frontWin);
 
       // Rear Window
       const rearWin = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.85, 0.2), windowMat);
-      rearWin.position.set(0, 1.85, -4.15);
+      rearWin.position.set(0, 1.85, -4.22);
       bGroup.add(rearWin);
 
       // LED Route Destination Board (전면 전자 노선 표지판)
       const ledBox = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.35, 0.25), new THREE.MeshBasicMaterial({ color: 0xf97316 }));
-      ledBox.position.set(0, 2.5, 4.15);
+      ledBox.position.set(0, 2.5, 4.23);
       bGroup.add(ledBox);
 
       // Headlights (Front: +Z)
       [-0.95, 0.95].forEach(hx => {
         const hl = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.25, 0.15), headlightMat);
-        hl.position.set(hx, 0.65, 4.22);
+        hl.position.set(hx, 0.65, 4.24);
         bGroup.add(hl);
       });
 
       // Taillights (Rear: -Z)
       [-0.95, 0.95].forEach(hx => {
         const tl = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.25, 0.15), taillightMat);
-        tl.position.set(hx, 0.65, -4.22);
+        tl.position.set(hx, 0.65, -4.24);
         bGroup.add(tl);
       });
 
@@ -3945,24 +3952,24 @@ export class DroneWorld {
       cGroup.add(cabin);
 
       // Windows
-      const win = new THREE.Mesh(new THREE.BoxGeometry(1.68, 0.52, 2.1), windowMat);
+      const win = new THREE.Mesh(new THREE.BoxGeometry(1.72, 0.54, 2.15), windowMat);
       win.position.set(0, 1.1, -0.2);
       cGroup.add(win);
 
       // Taxi Roof Lamp
       if (isTaxi) {
         const taxiCap = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.22, 0.35), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
-        taxiCap.position.set(0, 1.48, -0.2);
+        taxiCap.position.set(0, 1.50, -0.2);
         cGroup.add(taxiCap);
       }
 
       // Ambulance Light Bar & Red Cross
       if (isAmbulance) {
         const bar = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.18, 0.25), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-        bar.position.set(0, 1.48, -0.2);
+        bar.position.set(0, 1.50, -0.2);
         cGroup.add(bar);
 
-        const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.15, 4.32), new THREE.MeshBasicMaterial({ color: 0xdc2626 }));
+        const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.15, 4.36), new THREE.MeshBasicMaterial({ color: 0xdc2626 }));
         crossH.position.set(0, 0.55, 0);
         cGroup.add(crossH);
       }
@@ -3970,14 +3977,14 @@ export class DroneWorld {
       // Headlights (Front: +Z)
       [-0.72, 0.72].forEach(hx => {
         const hl = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.18, 0.12), headlightMat);
-        hl.position.set(hx, 0.55, 2.16);
+        hl.position.set(hx, 0.55, 2.20);
         cGroup.add(hl);
       });
 
       // Taillights (Rear: -Z)
       [-0.72, 0.72].forEach(hx => {
         const tl = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.18, 0.12), taillightMat);
-        tl.position.set(hx, 0.55, -2.16);
+        tl.position.set(hx, 0.55, -2.20);
         cGroup.add(tl);
       });
 
@@ -7818,8 +7825,8 @@ export class DroneWorld {
 
   private updateCamera() {
     if (this.cameraView === 'CHASE') {
-      // Dynamic chase camera following behind drone with gimbal-stabilized spring lerp (Zero heap allocation)
-      this._tempCamOffset.set(0, 2.2, 5.5);
+      // Dynamic chase camera following behind drone with wider 3rd-person field of view & gimbal stabilization
+      this._tempCamOffset.set(0, 2.7, 7.0);
       this._tempRotMat4.makeRotationY(this.rotation.y);
       this._tempCamOffset.applyMatrix4(this._tempRotMat4);
 
@@ -7832,7 +7839,7 @@ export class DroneWorld {
 
       // Smooth look-at target with virtual gimbal damping
       this._tempVecA.copy(this.position);
-      this._tempVecA.y += 0.6;
+      this._tempVecA.y += 0.8;
       this.currentCameraLookTarget.lerp(this._tempVecA, 0.16);
       this.camera.lookAt(this.currentCameraLookTarget);
     } else if (this.cameraView === 'FPV') {
