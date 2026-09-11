@@ -10,7 +10,6 @@ import {
   Camera, 
   Volume2, 
   VolumeX, 
-  Compass, 
   Gauge, 
   ArrowUp, 
   Coins, 
@@ -20,11 +19,7 @@ import {
   Sparkles, 
   Settings, 
   LogOut,
-  Zap,
-  BatteryCharging,
   Navigation,
-  Wifi,
-  Activity,
   AlertTriangle
 } from 'lucide-react';
 
@@ -88,7 +83,6 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
   };
 
   const isAiRace = stage.type === 'AI_RACING';
-  const heading = ((Math.round(telemetry.yawDeg || 0) % 360) + 360) % 360;
 
   // Calculate horizon tilt clamped for clean tactical HUD visuals
   const rollAngle = Math.max(-25, Math.min(25, Math.round(telemetry.rollDeg || 0)));
@@ -177,23 +171,8 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
             </div>
           </div>
 
-          {/* Center: Mission Chronometer & Compass Heading Ribbon */}
+          {/* Center: Mission Chronometer */}
           <div className="pointer-events-auto flex flex-col items-center gap-1">
-            {/* Top Compass Heading Ribbon */}
-            <div className="flex items-center gap-1.5 bg-slate-950/90 px-3 py-0.5 rounded-full border border-cyan-500/30 text-[11px] font-mono font-bold text-cyan-300 shadow-md">
-              <Compass className="w-3.5 h-3.5 text-cyan-400 animate-spin-slow" />
-              <span>HDG {String(heading).padStart(3, '0')}°</span>
-              <span className="text-[9px] text-slate-400">
-                {heading >= 338 || heading < 23 ? 'N' :
-                 heading >= 23 && heading < 68 ? 'NE' :
-                 heading >= 68 && heading < 113 ? 'E' :
-                 heading >= 113 && heading < 158 ? 'SE' :
-                 heading >= 158 && heading < 203 ? 'S' :
-                 heading >= 203 && heading < 248 ? 'SW' :
-                 heading >= 248 && heading < 293 ? 'W' : 'NW'}
-              </span>
-            </div>
-
             {/* Precision Flight Timer */}
             {stage.timeLimitSec > 0 && (
               <div className="bg-slate-950/92 px-3.5 py-1 rounded-xl border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.25)] flex items-center gap-2">
@@ -363,31 +342,6 @@ const FlightHUDComponent: React.FC<FlightHUDProps> = ({
           </button>
         </div>
       )}
-
-      {/* ─── 5. BOTTOM COCKPIT TELEMETRY STRIP ─── */}
-      <div className="self-center flex items-center gap-3 sm:gap-6 bg-slate-950/90 px-4 sm:px-6 py-1 rounded-full border border-cyan-500/30 shadow-[0_0_15px_rgba(0,0,0,0.4)] pointer-events-none text-[11px] font-mono text-slate-300 mb-0.5">
-        <div className="flex items-center gap-1.5 text-cyan-400">
-          <Activity className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline text-slate-400">ATT:</span>
-          <span>P:{telemetry.pitchDeg.toFixed(0)}° R:{telemetry.rollDeg.toFixed(0)}°</span>
-        </div>
-
-        <div className="w-[1px] h-3 bg-slate-800" />
-
-        <div className="flex items-center gap-1.5 text-emerald-400">
-          <Wifi className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline text-slate-400">SIG:</span>
-          <span>99% 5.8G</span>
-        </div>
-
-        <div className="w-[1px] h-3 bg-slate-800" />
-
-        <div className="flex items-center gap-1.5 text-amber-400">
-          <Zap className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline text-slate-400">BAT:</span>
-          <span>{telemetry.batteryPct}%</span>
-        </div>
-      </div>
 
     </div>
   );

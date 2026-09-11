@@ -1435,7 +1435,7 @@ export class DroneWorld {
 
   // Drone State
   private droneGroup: THREE.Group = new THREE.Group();
-  private propMeshes: THREE.Mesh[] = [];
+  private propMeshes: THREE.Object3D[] = [];
   private droneBodyMesh: THREE.Mesh | null = null;
   private ledLights: THREE.PointLight[] = [];
   private tractorBeamMesh: THREE.Mesh | null = null;
@@ -1687,6 +1687,17 @@ export class DroneWorld {
   // Time tracking & 60 FPS Render Loop
   private lastTime: number = performance.now();
   private hoverTimeTracker: number = 0;
+  private isPaused: boolean = false;
+
+  // High-Tech Cyber Dynamic LED Lighting System (Flashing aviation strobes & neon motor rings)
+  private dynamicLeds: {
+    mesh: THREE.Mesh;
+    mat: THREE.MeshBasicMaterial;
+    mode: 'strobe_white' | 'strobe_red' | 'strobe_cyan' | 'pulse_cyan' | 'battery_green' | 'nav_green' | 'nav_red';
+    baseColor: number;
+    activeColor: number;
+    offset: number;
+  }[] = [];
 
   constructor(container: HTMLElement, skin: DroneSkin, callbacks: WorldCallbacks) {
     this.container = container;
@@ -1703,7 +1714,7 @@ export class DroneWorld {
     this.camera = new THREE.PerspectiveCamera(72, aspect, 0.4, 280);
     this.camera.position.set(0, 3, 6);
 
-    // High-performance WebGLRenderer (Optimized for silky 60FPS on mobile, tablet & laptops)
+    // High-performance WebGLRenderer (Crystal-clear visuals optimized for Helio G85 / Mali-G52 tablet)
     this.renderer = new THREE.WebGLRenderer({ 
       antialias: false, 
       alpha: false, 
@@ -1715,7 +1726,8 @@ export class DroneWorld {
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
-    this.renderer.setPixelRatio(Math.min(dpr, 1.0) * 0.75);
+    this.renderer.setPixelRatio(Math.min(dpr, 1.35));
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     
     this.renderer.toneMapping = THREE.LinearToneMapping;
     this.renderer.toneMappingExposure = 1.0;
@@ -5125,6 +5137,7 @@ export class DroneWorld {
     this.propMeshes = [];
     this.ledLights = [];
     this.jetFlameMeshes = [];
+    this.dynamicLeds = [];
 
     const primaryColor = new THREE.Color(this.currentSkin.primaryColor);
     const secondaryColor = new THREE.Color(this.currentSkin.secondaryColor);
@@ -5186,7 +5199,7 @@ export class DroneWorld {
     this.scene.add(this.droneGroup);
   }
 
-  // 1. Classic Quad Probe X-4 (X-Quad with Safety Ring Duct Guards & Front Camera Eye)
+  // 1. High-Tech Cyber Racing Quadcopter (Sleek Monocoque Carbon Frame, Dual Headlights, Motor LED Rings, Aviation Strobes & Tri-Blades)
   private buildQuadProbeModel(
     bodyMat: THREE.Material, 
     accentMat: THREE.Material, 
@@ -5195,24 +5208,98 @@ export class DroneWorld {
     propColor: THREE.Color,
     ledColor: THREE.Color
   ) {
-    const coreGeo = new THREE.SphereGeometry(0.42, 24, 18);
-    coreGeo.scale(1.2, 0.75, 1.3);
+    // A. Aerodynamic Monocoque Fuselage
+    const mainBodyGroup = new THREE.Group();
+
+    // Central Carbon Monocoque Core (Sharp high-speed racing contour)
+    const coreGeo = new THREE.BoxGeometry(0.38, 0.16, 0.62);
     this.droneBodyMesh = new THREE.Mesh(coreGeo, bodyMat);
     this.droneBodyMesh.castShadow = true;
-    this.droneModelHolder.add(this.droneBodyMesh);
+    mainBodyGroup.add(this.droneBodyMesh);
 
-    const visorGeo = new THREE.SphereGeometry(0.28, 16, 16);
-    visorGeo.scale(1.0, 0.6, 1.1);
+    // Aerodynamic Top Cowling / Hood
+    const hoodGeo = new THREE.ConeGeometry(0.24, 0.48, 4);
+    hoodGeo.rotateY(Math.PI / 4);
+    hoodGeo.rotateX(-Math.PI / 2);
+    const hood = new THREE.Mesh(hoodGeo, accentMat);
+    hood.position.set(0, 0.09, 0.05);
+    hood.scale.set(0.9, 0.4, 0.95);
+    mainBodyGroup.add(hood);
+
+    // Tinted Aero Glass Cockpit Canopy with Cyber Neon HUD
+    const visorGeo = new THREE.SphereGeometry(0.22, 16, 14);
+    visorGeo.scale(0.85, 0.55, 1.25);
     const visor = new THREE.Mesh(visorGeo, canopyMat);
-    visor.position.set(0, 0.1, 0.22);
-    this.droneModelHolder.add(visor);
+    visor.position.set(0, 0.12, 0.12);
+    mainBodyGroup.add(visor);
 
-    const eyeGeo = new THREE.SphereGeometry(0.08, 12, 12);
-    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
-    const eye = new THREE.Mesh(eyeGeo, eyeMat);
-    eye.position.set(0, 0.08, 0.45);
-    this.droneModelHolder.add(eye);
+    // Dual High-Intensity Projector Headlights (Forward Cyber Illumination)
+    const headMatL = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    const headMatR = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    const headGeo = new THREE.SphereGeometry(0.045, 10, 10);
+    const headL = new THREE.Mesh(headGeo, headMatL);
+    headL.position.set(-0.11, 0.04, 0.31);
+    mainBodyGroup.add(headL);
 
+    const headR = new THREE.Mesh(headGeo, headMatR);
+    headR.position.set(0.11, 0.04, 0.31);
+    mainBodyGroup.add(headR);
+
+    this.dynamicLeds.push(
+      { mesh: headL, mat: headMatL, mode: 'pulse_cyan', baseColor: 0x0284c7, activeColor: 0xe0f2fe, offset: 0 },
+      { mesh: headR, mat: headMatR, mode: 'pulse_cyan', baseColor: 0x0284c7, activeColor: 0xe0f2fe, offset: 0 }
+    );
+
+    // Forward FPV 4K Camera Turret
+    const camMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+    const camCasing = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.08, 12), camMat);
+    camCasing.rotation.x = Math.PI / 2;
+    camCasing.position.set(0, -0.02, 0.32);
+    mainBodyGroup.add(camCasing);
+
+    const lens = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 10), new THREE.MeshBasicMaterial({ color: 0x06b6d4 }));
+    lens.position.set(0, -0.02, 0.36);
+    mainBodyGroup.add(lens);
+
+    // Top 4S High-Capacity LiPo Battery with Glowing Digital Power Gauges
+    const battMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+    const battPack = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.09, 0.34), battMat);
+    battPack.position.set(0, 0.13, -0.10);
+    mainBodyGroup.add(battPack);
+
+    // 4-Step Animated Battery LED Level Indicator
+    for (let b = 0; b < 4; b++) {
+      const bMat = new THREE.MeshBasicMaterial({ color: 0x22c55e });
+      const bMesh = new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.015, 0.035), bMat);
+      bMesh.position.set(-0.045 + b * 0.03, 0.18, -0.10);
+      mainBodyGroup.add(bMesh);
+      this.dynamicLeds.push({
+        mesh: bMesh,
+        mat: bMat,
+        mode: 'battery_green',
+        baseColor: 0x15803d,
+        activeColor: 0x4ade80,
+        offset: b * 0.4
+      });
+    }
+
+    // Underbody Cyber Glow Ground-Wash Projector
+    const underMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+    const underGlow = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.02, 12), underMat);
+    underGlow.position.set(0, -0.09, 0);
+    mainBodyGroup.add(underGlow);
+    this.dynamicLeds.push({
+      mesh: underGlow,
+      mat: underMat,
+      mode: 'pulse_cyan',
+      baseColor: 0x0284c7,
+      activeColor: 0x67e8f9,
+      offset: 0.5
+    });
+
+    this.droneModelHolder.add(mainBodyGroup);
+
+    // B. Carbon-Weave Truss Arms, CNC Motor Bells & Animated Glowing Halo Rings
     const armDistance = 0.68;
     const armAngles = [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4, (7 * Math.PI) / 4];
 
@@ -5221,61 +5308,132 @@ export class DroneWorld {
       const x = Math.cos(angle) * armLength;
       const z = Math.sin(angle) * armLength;
 
-      const armGeo = new THREE.CylinderGeometry(0.045, 0.045, armLength, 8);
-      const arm = new THREE.Mesh(armGeo, carbonMat);
-      arm.rotation.z = Math.PI / 2;
-      arm.rotation.y = -angle;
-      arm.position.set(x / 2, 0, z / 2);
-      this.droneModelHolder.add(arm);
+      // 1. Dual-Tube Carbon Fiber Structural Truss Arm
+      [-0.03, 0.03].forEach(offZ => {
+        const armGeo = new THREE.CylinderGeometry(0.022, 0.022, armLength * 0.96, 8);
+        const arm = new THREE.Mesh(armGeo, carbonMat);
+        arm.rotation.z = Math.PI / 2;
+        arm.rotation.y = -angle;
+        arm.position.set(x / 2, -0.01, z / 2 + offZ);
+        this.droneModelHolder.add(arm);
+      });
 
-      const motorGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.16, 16);
-      const motor = new THREE.Mesh(motorGeo, accentMat);
-      motor.position.set(x, 0.05, z);
-      motor.castShadow = true;
-      this.droneModelHolder.add(motor);
+      // 2. High-Tech CNC Anodized Aluminum Motor Bell (Metallic blue / accent)
+      const motorBase = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.06, 16), carbonMat);
+      motorBase.position.set(x, 0.02, z);
+      this.droneModelHolder.add(motorBase);
 
-      const ringGeo = new THREE.TorusGeometry(0.32, 0.025, 8, 24);
-      const guard = new THREE.Mesh(ringGeo, accentMat);
+      const motorBell = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.12, 16), accentMat);
+      motorBell.position.set(x, 0.09, z);
+      this.droneModelHolder.add(motorBell);
+
+      // 3. Glowing Neon LED Halo Ring below each motor!
+      const haloMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+      const motorHalo = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.016, 8, 20), haloMat);
+      motorHalo.rotation.x = Math.PI / 2;
+      motorHalo.position.set(x, 0.04, z);
+      this.droneModelHolder.add(motorHalo);
+      this.dynamicLeds.push({
+        mesh: motorHalo,
+        mat: haloMat,
+        mode: 'pulse_cyan',
+        baseColor: 0x0284c7,
+        activeColor: 0x38bdf8,
+        offset: idx * 0.35
+      });
+
+      // 4. Low-Drag Aerodynamic Duct Guard Ring
+      const ductMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
+      const guard = new THREE.Mesh(new THREE.TorusGeometry(0.33, 0.018, 8, 24), ductMat);
       guard.rotation.x = Math.PI / 2;
-      guard.position.set(x, 0.14, z);
+      guard.position.set(x, 0.17, z);
       this.droneModelHolder.add(guard);
 
+      // 5. Aerodynamic High-Speed Tri-Blade Racing Propeller
       const propGroup = new THREE.Group();
-      propGroup.position.set(x, 0.16, z);
+      propGroup.position.set(x, 0.19, z);
 
-      const bladeGeo = new THREE.BoxGeometry(0.56, 0.012, 0.06);
+      // 3 Blades at 120-degree intervals
+      const bladeGeo = new THREE.BoxGeometry(0.28, 0.012, 0.052);
       const bladeMat = new THREE.MeshLambertMaterial({ color: propColor });
-      const blade = new THREE.Mesh(bladeGeo, bladeMat);
-      propGroup.add(blade);
 
-      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.05, 12), accentMat);
+      [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3].forEach(bAngle => {
+        const singleBlade = new THREE.Mesh(bladeGeo, bladeMat);
+        singleBlade.rotation.y = bAngle;
+        singleBlade.position.x = Math.cos(bAngle) * 0.13;
+        singleBlade.position.z = Math.sin(bAngle) * 0.13;
+        propGroup.add(singleBlade);
+
+        // Neon tip on each blade
+        const tipMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+        const tip = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.014, 0.048), tipMat);
+        tip.position.set(0.11, 0, 0);
+        singleBlade.add(tip);
+      });
+
+      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.06, 12), accentMat);
       propGroup.add(hub);
 
       this.droneModelHolder.add(propGroup);
-      this.propMeshes.push(blade);
+      this.propMeshes.push(propGroup);
 
-      const ledColorHex = (idx === 0 || idx === 3) ? 0x22c55e : 0xef4444;
-      const ledMesh = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), new THREE.MeshBasicMaterial({ color: ledColorHex }));
-      ledMesh.position.set(x, -0.06, z);
-      this.droneModelHolder.add(ledMesh);
+      // 6. Dynamic Aviation Strobe & Navigation LEDs on Arm Tips
+      const isFront = (idx === 0 || idx === 3);
+      const isLeft = (idx === 0 || idx === 1);
+
+      // Front Left: Port Aviation Green / Front Right: Starboard Aviation Red
+      // Rear: Dual High-Frequency Pulsing White/Magenta Strobes!
+      let ledMat: THREE.MeshBasicMaterial;
+      let strobeMode: 'strobe_white' | 'strobe_red' | 'strobe_cyan' | 'pulse_cyan';
+      let baseCol: number;
+      let activeCol: number;
+
+      if (isFront) {
+        if (isLeft) {
+          ledMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+          strobeMode = 'strobe_cyan';
+          baseCol = 0x047857;
+          activeCol = 0x34d399;
+        } else {
+          ledMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+          strobeMode = 'strobe_red';
+          baseCol = 0xb91c1c;
+          activeCol = 0xf87171;
+        }
+      } else {
+        // Rear twin strobes (Super bright pulsing aviation beacons)
+        ledMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        strobeMode = 'strobe_white';
+        baseCol = 0x334155;
+        activeCol = 0xffffff;
+      }
+
+      const armLed = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), ledMat);
+      armLed.position.set(x * 1.08, -0.04, z * 1.08);
+      this.droneModelHolder.add(armLed);
+
+      this.dynamicLeds.push({
+        mesh: armLed,
+        mat: ledMat,
+        mode: strobeMode,
+        baseColor: baseCol,
+        activeColor: activeCol,
+        offset: idx * 0.28
+      });
     });
 
-    // Landing skids
+    // C. Sleek Carbon Fiber Landing Skids
     const skidMat = carbonMat;
-    const skidLeft = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.03, 0.7), skidMat);
-    skidLeft.position.set(-0.32, -0.22, 0);
-    this.droneModelHolder.add(skidLeft);
+    [-0.26, 0.26].forEach(lx => {
+      const runner = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.025, 0.64), skidMat);
+      runner.position.set(lx, -0.19, 0);
+      this.droneModelHolder.add(runner);
 
-    const skidRight = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.03, 0.7), skidMat);
-    skidRight.position.set(0.32, -0.22, 0);
-    this.droneModelHolder.add(skidRight);
-
-    const legGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.22, 8);
-    [-0.32, 0.32].forEach(lx => {
-      [-0.2, 0.2].forEach(lz => {
-        const leg = new THREE.Mesh(legGeo, skidMat);
-        leg.position.set(lx, -0.11, lz);
-        this.droneModelHolder.add(leg);
+      [-0.18, 0.18].forEach(lz => {
+        const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.17, 8), skidMat);
+        strut.position.set(lx, -0.10, lz);
+        strut.rotation.z = lx > 0 ? -0.22 : 0.22;
+        this.droneModelHolder.add(strut);
       });
     });
   }
@@ -6860,6 +7018,11 @@ export class DroneWorld {
     this.invertPitch = invert;
   }
 
+  public setSkin(skin: DroneSkin) {
+    this.currentSkin = skin;
+    this.buildDroneModel();
+  }
+
   public setPerformanceMode(mode: 'TABLET_MAX_FPS' | 'BALANCED') {
     this.performanceMode = mode;
     if (this.renderer) {
@@ -6934,12 +7097,25 @@ export class DroneWorld {
     }
   }
 
+  public pause() {
+    this.isPaused = true;
+  }
+
+  public resume() {
+    this.isPaused = false;
+    this.lastTime = performance.now();
+  }
+
   // Main Loop (Silky Smooth 60 FPS for Tablet Hardware)
   private animate = () => {
     this.animationFrameId = requestAnimationFrame(this.animate);
     const now = performance.now();
     const elapsed = now - this.lastTime;
     this.lastTime = now;
+
+    if (this.isPaused) {
+      return;
+    }
 
     // Smooth delta time capped at 50ms (20fps floor) to prevent physics leaps
     const dt = Math.min(elapsed / 1000, 0.05);
@@ -7022,6 +7198,26 @@ export class DroneWorld {
       const dir = idx % 2 === 0 ? 1 : -1;
       prop.rotation.y += propRpmSpeed * dt * dir;
     });
+
+    // Dynamic Aviation & Cyber LED Strobe Animation (Zero heap allocations)
+    const curTime = performance.now() * 0.001;
+    for (let i = 0; i < this.dynamicLeds.length; i++) {
+      const led = this.dynamicLeds[i];
+      if (led.mode === 'strobe_white' || led.mode === 'strobe_red' || led.mode === 'strobe_cyan') {
+        // High-frequency dual strobe aviation flash
+        const localT = (curTime + led.offset) % 1.1;
+        const isFlashing = (localT < 0.08) || (localT > 0.16 && localT < 0.24);
+        led.mat.color.setHex(isFlashing ? led.activeColor : led.baseColor);
+      } else if (led.mode === 'pulse_cyan') {
+        // Smooth futuristic glowing neon breathing pulse
+        const pulse = 0.5 + 0.5 * Math.sin((curTime + led.offset) * 4.2);
+        led.mat.color.setHex(pulse > 0.55 ? led.activeColor : led.baseColor);
+      } else if (led.mode === 'battery_green') {
+        // Dynamic LiPo gauge battery light tracker
+        const battCycle = Math.floor((curTime * 3.0 + led.offset) % 4);
+        led.mat.color.setHex(battCycle >= 1 ? led.activeColor : led.baseColor);
+      }
+    }
 
     // Plasma exhaust glow for CyberJet or high speed gears
     if (this.jetFlameMeshes.length > 0) {
@@ -7813,6 +8009,41 @@ export class DroneWorld {
     this.aiRacerState.speed = THREE.MathUtils.lerp(this.aiRacerState.speed, targetSpeed, 3.2 * dt);
     currentPos.addScaledVector(dir, this.aiRacerState.speed * dt);
 
+    // Solid Building & Wall Collision Detection: Prevent AI Drone from clipping through any buildings or structures
+    const aiDroneRadius = 0.55;
+    for (let i = 0; i < this.buildingBoxes.length; i++) {
+      const box = this.buildingBoxes[i];
+      // Quick AABB collision check with drone radius buffer
+      if (
+        currentPos.x >= box.min.x - aiDroneRadius &&
+        currentPos.x <= box.max.x + aiDroneRadius &&
+        currentPos.z >= box.min.z - aiDroneRadius &&
+        currentPos.z <= box.max.z + aiDroneRadius &&
+        currentPos.y >= box.min.y &&
+        currentPos.y <= box.max.y + aiDroneRadius
+      ) {
+        // AI collided with a building! Resolve penetration by pushing out along nearest exterior wall face
+        const distLeft = Math.abs(currentPos.x - (box.min.x - aiDroneRadius));
+        const distRight = Math.abs(currentPos.x - (box.max.x + aiDroneRadius));
+        const distFront = Math.abs(currentPos.z - (box.min.z - aiDroneRadius));
+        const distBack = Math.abs(currentPos.z - (box.max.z + aiDroneRadius));
+        const distTop = Math.abs(currentPos.y - (box.max.y + aiDroneRadius));
+
+        const minDist = Math.min(distLeft, distRight, distFront, distBack, distTop);
+        if (minDist === distLeft) {
+          currentPos.x = box.min.x - aiDroneRadius - 0.05;
+        } else if (minDist === distRight) {
+          currentPos.x = box.max.x + aiDroneRadius + 0.05;
+        } else if (minDist === distFront) {
+          currentPos.z = box.min.z - aiDroneRadius - 0.05;
+        } else if (minDist === distBack) {
+          currentPos.z = box.max.z + aiDroneRadius + 0.05;
+        } else {
+          currentPos.y = box.max.y + aiDroneRadius + 0.05;
+        }
+      }
+    }
+
     this.aiRacerState.position = { x: currentPos.x, y: currentPos.y, z: currentPos.z };
     this.aiDroneGroup.position.copy(currentPos);
 
@@ -8155,7 +8386,7 @@ export class DroneWorld {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
     const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
-    this.renderer.setPixelRatio(Math.min(dpr, 1.0) * 0.75);
+    this.renderer.setPixelRatio(Math.min(dpr, 1.35));
   };
 
   public destroy() {

@@ -485,9 +485,9 @@ export default function App() {
       countdownTimeoutsRef.current = [];
       setCountdown(null);
       soundManager.stopMotorSound();
+      // Pause 3D render loop while in menu to eliminate CPU/GPU overhead on tablet
       if (droneWorldRef.current) {
-        droneWorldRef.current.destroy();
-        droneWorldRef.current = null;
+        droneWorldRef.current.pause();
       }
       return;
     }
@@ -535,6 +535,11 @@ export default function App() {
       world.loadMission(currentStage);
       droneWorldRef.current = world;
     } else {
+      droneWorldRef.current.resume();
+      droneWorldRef.current.setSkin(activeSkin);
+      droneWorldRef.current.setAssistLevel(profile.assistLevel);
+      droneWorldRef.current.setSensitivity(profile.sensitivity);
+      droneWorldRef.current.setInvertPitch(profile.invertPitch);
       if (isAiRace) {
         droneWorldRef.current.setSpeedGear(2);
       }
@@ -805,52 +810,61 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-slate-950 select-none font-sans">
+      {/* 3D WebGL Canvas Layer (Mounted persistently to eliminate instantiation lag on tablet) */}
+      <div 
+        ref={canvasContainerRef} 
+        className={`absolute inset-0 z-0 w-full h-full ${!hasStartedApp || !currentStage ? 'pointer-events-none opacity-0' : 'cursor-grab active:cursor-grabbing opacity-100 transition-opacity duration-300'}`} 
+      />
+
       {/* 0. If First Launch / Splash Screen: Show Start Screen with Title and Photo */}
       {!hasStartedApp ? (
-        <StartSplashScreen
-          profile={profile}
-          onStart={() => setHasStartedApp(true)}
-        />
+        <div className="relative z-20 w-full h-full">
+          <StartSplashScreen
+            profile={profile}
+            onStart={() => setHasStartedApp(true)}
+          />
+        </div>
       ) : !currentStage ? (
         /* 1. If in Menu: Show Stage Expedition Roadmap Selector */
-        <MissionSelector
-          profile={profile}
-          activeSkin={activeSkin}
-          onSelectStage={handleSelectStage}
-          onOpenLicense={() => setShowLicenseModal(true)}
-          onOpenSkins={() => setShowSkinModal(true)}
-          onOpenSettings={() => setShowSettingsModal(true)}
-          onOpenHelp={() => setShowHelpModal(true)}
-          onReturnHome={() => setHasStartedApp(false)}
-        />
-      ) : (
-        /* 2. If in 3D Flight Simulation: Render Canvas & HUD & Controls */
-        <div className="relative w-full h-full">
-          {/* 3D WebGL Canvas Layer */}
-          <div ref={canvasContainerRef} className="absolute inset-0 z-0 w-full h-full cursor-grab active:cursor-grabbing" />
-
-          {/* Flight Instruments & HUD */}
-          <FlightHUD
-            telemetry={telemetry}
-            stage={currentStage}
-            cameraView={cameraView}
-            speedGear={speedGear}
-            soundEnabled={profile.soundEnabled}
-            elapsedSec={elapsedSec}
-            missionData={missionData}
-            onCycleCamera={handleCycleCamera}
-            onChangeSpeedGear={handleChangeSpeedGear}
-            onToggleSound={handleToggleSound}
-            onResetDrone={handleResetDrone}
-            onEmergencyStop={() => {
-              droneWorldRef.current?.emergencyHoverStop();
-              setStickValues({ leftX: 0, leftY: 0, rightX: 0, rightY: 0 });
-              soundManager.speakGuide('제자리 호버링 멈춤!');
-            }}
+        <div className="relative z-20 w-full h-full">
+          <MissionSelector
+            profile={profile}
+            activeSkin={activeSkin}
+            onSelectStage={handleSelectStage}
+            onOpenLicense={() => setShowLicenseModal(true)}
+            onOpenSkins={() => setShowSkinModal(true)}
             onOpenSettings={() => setShowSettingsModal(true)}
             onOpenHelp={() => setShowHelpModal(true)}
-            onExitMission={handleExitMission}
+            onReturnHome={() => setHasStartedApp(false)}
           />
+        </div>
+      ) : (
+        /* 2. If in 3D Flight Simulation: Render HUD & Controls */
+        <div className="relative z-10 w-full h-full pointer-events-none">
+          {/* Flight Instruments & HUD */}
+          <div className="pointer-events-auto">
+            <FlightHUD
+              telemetry={telemetry}
+              stage={currentStage}
+              cameraView={cameraView}
+              speedGear={speedGear}
+              soundEnabled={profile.soundEnabled}
+              elapsedSec={elapsedSec}
+              missionData={missionData}
+              onCycleCamera={handleCycleCamera}
+              onChangeSpeedGear={handleChangeSpeedGear}
+              onToggleSound={handleToggleSound}
+              onResetDrone={handleResetDrone}
+              onEmergencyStop={() => {
+                droneWorldRef.current?.emergencyHoverStop();
+                setStickValues({ leftX: 0, leftY: 0, rightX: 0, rightY: 0 });
+                soundManager.speakGuide('제자리 호버링 멈춤!');
+              }}
+              onOpenSettings={() => setShowSettingsModal(true)}
+              onOpenHelp={() => setShowHelpModal(true)}
+              onExitMission={handleExitMission}
+            />
+          </div>
 
           {/* Real-time Interactive Mission Guide Overlay & Praise Notifications (All Stages) */}
           <TutorialGuideOverlay
@@ -913,7 +927,7 @@ export default function App() {
               <VirtualJoystick
                 id="joystick-left"
                 type="LEFT_STICK"
-                title="왼쪽 스틱 (Mode 2)"
+                title="왼쪽 스틱"
                 subLabel="상승·하강 / 좌·우회전"
                 valueX={stickValues.leftX}
                 valueY={stickValues.leftY}
@@ -927,7 +941,7 @@ export default function App() {
               <VirtualJoystick
                 id="joystick-right"
                 type="RIGHT_STICK"
-                title="오른쪽 스틱 (Mode 2)"
+                title="오른쪽 스틱"
                 subLabel="전진·후진 / 좌·우이동"
                 valueX={stickValues.rightX}
                 valueY={stickValues.rightY}

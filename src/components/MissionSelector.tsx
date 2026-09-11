@@ -229,24 +229,12 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                 </div>
               </div>
 
-              {/* Compact Launch Button & Progress next to Roadmap Title */}
+              {/* Overall Progress next to Roadmap Title */}
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black text-emerald-400 font-mono px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hidden md:inline-block">
-                  {MISSION_STAGES.filter(s => profile.missionProgress[s.id]?.completed).length} / {MISSION_STAGES.length} 완료
+                <span className="text-xs sm:text-sm font-black text-emerald-300 font-mono px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 shadow-sm flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>{MISSION_STAGES.filter(s => profile.missionProgress[s.id]?.completed).length} / {MISSION_STAGES.length} 완료</span>
                 </span>
-
-                <button
-                  id={`btn-header-launch-${activeStage.id}`}
-                  onClick={async () => {
-                    await requestFullscreen().catch(() => {});
-                    onSelectStage(activeStage);
-                  }}
-                  className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 hover:from-cyan-300 hover:via-blue-400 hover:to-indigo-500 text-white font-black text-xs sm:text-sm shadow-[0_0_20px_rgba(6,182,212,0.6)] transition-all transform active:scale-95 cursor-pointer flex items-center gap-1.5 border border-white/20"
-                >
-                  <Play className="w-3.5 h-3.5 fill-current text-white animate-pulse" />
-                  <span>출격 ({activeStage.title})</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-cyan-200" />
-                </button>
               </div>
             </div>
 
@@ -411,28 +399,28 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
               </p>
 
               {/* Top High-Visibility Launch Action Section */}
-              <div className="mb-4 p-3 rounded-2xl bg-cyan-950/40 border border-cyan-500/40 shadow-lg">
+              <div className="mb-4 p-3.5 sm:p-4 rounded-3xl bg-gradient-to-b from-cyan-950/60 to-blue-950/60 border-2 border-cyan-400/60 shadow-[0_0_30px_rgba(6,182,212,0.3)]">
                 <button
                   id={`btn-launch-roadmap-${activeStage.id}`}
                   onClick={async () => {
                     await requestFullscreen().catch(() => {});
                     onSelectStage(activeStage);
                   }}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 hover:from-cyan-300 hover:via-blue-400 hover:to-indigo-500 text-white font-black text-sm sm:text-base shadow-[0_0_25px_rgba(6,182,212,0.6)] transition-all transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-4 sm:py-5 px-6 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 hover:from-cyan-300 hover:via-blue-400 hover:to-indigo-500 text-white font-black text-base sm:text-lg shadow-[0_0_30px_rgba(6,182,212,0.7)] transition-all transform hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center justify-center gap-3 border-2 border-white/30"
                 >
-                  <Play className="w-5 h-5 fill-current text-white animate-pulse" />
-                  <span>🚀 출격하기 (START!)</span>
-                  <ChevronRight className="w-4 h-4 text-cyan-200" />
+                  <Play className="w-6 h-6 fill-current text-white animate-pulse" />
+                  <span className="tracking-wide">🚀 출격하기 (START!)</span>
+                  <ChevronRight className="w-5 h-5 text-cyan-200" />
                 </button>
 
-                <div className="flex items-center justify-between text-[11px] mt-2.5 px-1">
-                  <span className="text-slate-400 font-bold">🏆 내 최고 점수 / 기록</span>
-                  <span className="font-mono font-black text-cyan-300">
+                <div className="flex items-center justify-between text-xs mt-3 px-1.5">
+                  <span className="text-slate-300 font-bold">🏆 내 최고 점수 / 기록</span>
+                  <span className="font-mono font-black text-cyan-300 text-xs sm:text-sm">
                     {activeProgress.highScore > 0
                       ? `${activeProgress.highScore.toLocaleString()}점 (${activeProgress.stars}성)` 
                       : activeProgress.bestTimeSec !== null
                         ? `${activeProgress.bestTimeSec.toFixed(1)}초 (${activeProgress.stars}성)`
-                        : '아직 도전 안 함'}
+                        : '도전 대기 중'}
                   </span>
                 </div>
               </div>
