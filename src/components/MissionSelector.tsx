@@ -229,6 +229,20 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                 </div>
               </div>
 
+              {/* Center Prominent Sortie / Launch Button (Directly located in top center area) */}
+              <button
+                id={`btn-launch-header-${activeStage.id}`}
+                onClick={async () => {
+                  await requestFullscreen().catch(() => {});
+                  onSelectStage(activeStage);
+                }}
+                className="py-2.5 sm:py-3 px-5 sm:px-7 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 hover:from-cyan-300 hover:via-blue-400 hover:to-indigo-500 text-white font-black text-sm sm:text-base shadow-[0_0_25px_rgba(6,182,212,0.6)] transition-all transform hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-2.5 border-2 border-white/40 ring-2 ring-cyan-400/30"
+              >
+                <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current text-white animate-pulse" />
+                <span className="tracking-wide">🚀 {activeStage.title.split(':')[1]?.trim() || activeStage.title} 출격하기</span>
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-200" />
+              </button>
+
               {/* Overall Progress next to Roadmap Title */}
               <div className="flex items-center gap-2">
                 <span className="text-xs sm:text-sm font-black text-emerald-300 font-mono px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 shadow-sm flex items-center gap-1.5">
@@ -369,7 +383,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
             <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
               <span className="flex items-center gap-1.5 text-sky-300/80 text-[11px] font-medium">
                 <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                팁: 단계를 선택한 후 우측 출격하기 버튼을 누르면 즉시 3D 비행이 시작됩니다.
+                팁: 원하는 단계를 선택한 후 상단 [출격하기] 버튼을 누르면 즉시 3D 비행이 시작됩니다.
               </span>
               <span className="text-[11px] text-slate-500 font-mono">
                 PROBE Flight System

@@ -6542,31 +6542,52 @@ export class DroneWorld {
         new THREE.Vector3(0, 4.0, 0)            // 13: [결승선] 스타트/피니시 골인
       ];
 
-      // Dense, wall-collision-free trajectory for AI Drone (Level 2)
+      // Dense, obstacle-and-coin intersecting trajectory for AI Drone (Level 2)
       this.aiFlightWaypoints = [
         new THREE.Vector3(0, 4.0, 0),           // 0: Start Gantry
-        new THREE.Vector3(0, 6.0, -45.0),       // 1: Boulevard Arch
-        new THREE.Vector3(0, 18.0, -95.0),      // 2: Assembly Dome Climb (18m)
-        new THREE.Vector3(-45.0, 12.0, -75.0),  // 3: West Banking S-Curve
-        new THREE.Vector3(-35.0, 12.0, -52.0),  // 4: Alpha Tunnel North Entrance
-        new THREE.Vector3(-35.0, 12.0, -40.0),  // Inside Alpha Tunnel (Mid)
-        new THREE.Vector3(-35.0, 12.0, -28.0),  // Alpha Tunnel South Exit
-        new THREE.Vector3(-55.0, 16.0, -30.0),  // Turn towards Twin Tower
-        new THREE.Vector3(-70.0, 20.0, -32.0),  // 5: Twin Tower South Entrance
-        new THREE.Vector3(-70.0, 20.0, 5.0),    // Inside Skybridge (Mid)
-        new THREE.Vector3(-70.0, 20.0, 42.0),   // 6: Twin Tower North Exit
-        new THREE.Vector3(-45.0, 18.0, 60.0),   // Turn towards East
+        new THREE.Vector3(0, 4.5, -15.0),       // Coin 1
+        new THREE.Vector3(0, 5.2, -28.0),       // Coin 2
+        new THREE.Vector3(0, 5.8, -40.0),       // Coin 3
+        new THREE.Vector3(0, 6.0, -45.0),       // 1: Boulevard Arch Gate
+        new THREE.Vector3(0, 9.0, -60.0),       // Coin 4 & Dome Climb
+        new THREE.Vector3(0, 13.0, -78.0),      // Coin 5 & Dome Climb
+        new THREE.Vector3(0, 17.0, -88.0),      // Coin 6 & Dome Climb
+        new THREE.Vector3(0, 18.0, -95.0),      // 2: Assembly Dome Climb Gate (18m)
+        new THREE.Vector3(-15.0, 16.0, -92.0),  // West S-Banking Turn High
+        new THREE.Vector3(-30.0, 14.0, -85.0),  // West S-Banking Turn Mid
+        new THREE.Vector3(-45.0, 12.0, -75.0),  // 3: West Banking S-Curve Gate
+        new THREE.Vector3(-35.0, 12.0, -70.0),  // Alpha Tunnel Straight Alignment
+        new THREE.Vector3(-35.0, 12.0, -58.0),  // Coin 9
+        new THREE.Vector3(-35.0, 12.0, -52.0),  // 4: Alpha Tunnel North Entrance Gate
+        new THREE.Vector3(-35.0, 12.0, -40.0),  // Coin 10 (Inside Alpha Mid)
+        new THREE.Vector3(-35.0, 12.0, -28.0),  // Coin 11 (Alpha South Exit)
+        new THREE.Vector3(-35.0, 14.0, -15.0),  // Alpha Tunnel Clear
+        new THREE.Vector3(-50.0, 16.0, -30.0),  // Coin 12 (Turn towards Twin Tower)
+        new THREE.Vector3(-70.0, 20.0, -45.0),  // Twin Tower Straight Alignment
+        new THREE.Vector3(-70.0, 20.0, -32.0),  // 5: Twin Tower South Entrance Gate
+        new THREE.Vector3(-70.0, 20.0, -15.0),  // Coin 13 (South Tower Inside)
+        new THREE.Vector3(-70.0, 20.0, 5.0),    // Coin 14 (Skybridge Mid)
+        new THREE.Vector3(-70.0, 20.0, 25.0),   // Coin 15 (North Tower Inside)
+        new THREE.Vector3(-70.0, 20.0, 42.0),   // 6: Twin Tower North Exit Gate
+        new THREE.Vector3(-70.0, 20.0, 55.0),   // Twin Tower Clear
+        new THREE.Vector3(-45.0, 18.0, 55.0),   // Coin 16
         new THREE.Vector3(-20.0, 16.0, 60.0),   // 7: North Skyline Gate
+        new THREE.Vector3(-20.0, 16.0, 64.0),   // Coin 17
+        new THREE.Vector3(10.0, 15.0, 60.0),    // Coin 18
         new THREE.Vector3(15.0, 14.0, 60.0),    // 8: Tech Tower Gate
-        new THREE.Vector3(35.0, 14.0, 60.0),    // Gamma North Approach
-        new THREE.Vector3(35.0, 14.0, 52.0),    // 9: Gamma Tunnel North Entrance
-        new THREE.Vector3(35.0, 14.0, 40.0),    // Inside Gamma Tunnel (Mid)
-        new THREE.Vector3(35.0, 14.0, 28.0),    // Gamma Tunnel South Exit
-        new THREE.Vector3(35.0, 6.0, -10.0),    // 10: River Waterfront Slalom
+        new THREE.Vector3(35.0, 14.0, 65.0),    // Gamma North Approach
+        new THREE.Vector3(35.0, 14.0, 52.0),    // 9: Gamma Tunnel North Entrance Gate
+        new THREE.Vector3(35.0, 14.0, 40.0),    // Coin 19 (Inside Gamma Mid)
+        new THREE.Vector3(35.0, 14.0, 28.0),    // Coin 20 (Gamma South Exit)
+        new THREE.Vector3(35.0, 12.0, 15.0),    // Gamma Tunnel Clear
+        new THREE.Vector3(35.0, 6.0, -10.0),    // 10: River Waterfront Slalom Gate
         new THREE.Vector3(25.0, 7.0, 5.0),      // Water return curve
+        new THREE.Vector3(20.0, 8.0, 15.0),     // Coin 21
         new THREE.Vector3(15.0, 8.0, 15.0),     // 11: South Waterfront Arch Gate
         new THREE.Vector3(5.0, 6.0, 12.0),      // Approach
-        new THREE.Vector3(0.0, 5.0, 12.0),      // 12: Finish Gate
+        new THREE.Vector3(0.0, 5.0, 12.0),      // 12: Finish Gate & Coin 22
+        new THREE.Vector3(0.0, 4.5, 6.0),       // Coin 23
+        new THREE.Vector3(0.0, 4.0, 2.0),       // Coin 24
         new THREE.Vector3(0.0, 4.0, 0.0)        // 13: Start Line / Lap Milestone
       ];
     } else {
@@ -6585,33 +6606,50 @@ export class DroneWorld {
         new THREE.Vector3(0, 4.0, 0)            // 10: [결승선] 스타트/피니시 골인
       ];
 
-      // Dense, wall-collision-free trajectory for AI Drone (Level 1)
+      // Dense, obstacle-and-coin intersecting trajectory for AI Drone (Level 1)
       this.aiFlightWaypoints = [
         new THREE.Vector3(0, 4.0, 0),           // 0: 출발선
-        new THREE.Vector3(0, 6.0, -45.0),       // 1: 중앙대로 아치
-        new THREE.Vector3(0, 8.0, -95.0),       // 2: 국회의사당 분수대
-        new THREE.Vector3(-35.0, 10.0, -75.0),  // 완만한 선회
-        new THREE.Vector3(-35.0, 12.0, -52.0),  // 3: 알파 빌딩 터널 입구
-        new THREE.Vector3(-35.0, 12.0, -40.0),  // 알파 빌딩 터널 내부 (Mid)
-        new THREE.Vector3(-35.0, 12.0, -28.0),  // 알파 빌딩 터널 출구
-        new THREE.Vector3(-55.0, 16.0, -30.0),  // 트윈타워 진입 코너
-        new THREE.Vector3(-70.0, 20.0, -32.0),  // 4: 트윈타워 남측 입구
-        new THREE.Vector3(-70.0, 20.0, -10.0),  // 남측 타워 내부
-        new THREE.Vector3(-70.0, 20.0, 5.0),    // 스카이브릿지 내부 (Mid)
-        new THREE.Vector3(-70.0, 20.0, 25.0),   // 북측 타워 내부
+        new THREE.Vector3(0, 4.5, -15.0),       // 동전 1
+        new THREE.Vector3(0, 5.2, -28.0),       // 동전 2
+        new THREE.Vector3(0, 5.8, -40.0),       // 동전 3
+        new THREE.Vector3(0, 6.0, -45.0),       // 1: 중앙대로 아치 게이트
+        new THREE.Vector3(0, 6.8, -60.0),       // 동전 4
+        new THREE.Vector3(0, 7.4, -75.0),       // 동전 5
+        new THREE.Vector3(0, 8.0, -90.0),       // 동전 6
+        new THREE.Vector3(0, 8.0, -95.0),       // 2: 국회의사당 분수대 앞 게이트
+        new THREE.Vector3(-12.0, 9.5, -85.0),   // 동전 7
+        new THREE.Vector3(-24.0, 11.0, -70.0),  // 동전 8
+        new THREE.Vector3(-35.0, 12.0, -70.0),  // 알파 빌딩 정면 직선 정렬
+        new THREE.Vector3(-35.0, 12.0, -58.0),  // 동전 9
+        new THREE.Vector3(-35.0, 12.0, -52.0),  // 3: 알파 빌딩 터널 입구 게이트
+        new THREE.Vector3(-35.0, 12.0, -40.0),  // 동전 10 (알파 터널 내부 Mid)
+        new THREE.Vector3(-35.0, 12.0, -28.0),  // 동전 11 (알파 터널 출구)
+        new THREE.Vector3(-35.0, 14.0, -15.0),  // 알파 빌딩 안전 탈출
+        new THREE.Vector3(-50.0, 16.0, -30.0),  // 동전 12 (트윈타워 방향 선회)
+        new THREE.Vector3(-70.0, 20.0, -45.0),  // 트윈타워 정면 직선 정렬
+        new THREE.Vector3(-70.0, 20.0, -32.0),  // 4: 트윈타워 남측 입구 게이트
+        new THREE.Vector3(-70.0, 20.0, -15.0),  // 동전 13 (남측 타워 내부)
+        new THREE.Vector3(-70.0, 20.0, 5.0),    // 동전 14 (스카이브릿지 Mid)
+        new THREE.Vector3(-70.0, 20.0, 25.0),   // 동전 15 (북측 타워 내부)
         new THREE.Vector3(-70.0, 20.0, 42.0),   // 북측 타워 출구
-        new THREE.Vector3(-45.0, 18.0, 60.0),   // 북측 회랑 진입 코너
-        new THREE.Vector3(-20.0, 16.0, 60.0),   // 5: 북측 스카이라인 회랑
-        new THREE.Vector3(15.0, 14.0, 60.0),    // 6: 동측 테크타워
-        new THREE.Vector3(35.0, 14.0, 60.0),    // 감마 빌딩 진입 코너
-        new THREE.Vector3(35.0, 14.0, 52.0),    // 7: 감마 빌딩 터널 입구
-        new THREE.Vector3(35.0, 14.0, 40.0),    // 감마 빌딩 터널 내부 (Mid)
-        new THREE.Vector3(35.0, 14.0, 28.0),    // 감마 빌딩 터널 출구
-        new THREE.Vector3(25.0, 10.0, 20.0),    // 남동측 완만한 선회
-        new THREE.Vector3(15.0, 8.0, 15.0),     // 8: 남동측 개방 아치
+        new THREE.Vector3(-70.0, 20.0, 55.0),   // 트윈타워 안전 탈출
+        new THREE.Vector3(-45.0, 18.0, 55.0),   // 동전 16 (북측 회랑 선회)
+        new THREE.Vector3(-20.0, 16.0, 60.0),   // 5: 북측 스카이라인 회랑 게이트
+        new THREE.Vector3(-20.0, 16.0, 64.0),   // 동전 17
+        new THREE.Vector3(10.0, 15.0, 60.0),    // 동전 18
+        new THREE.Vector3(15.0, 14.0, 60.0),    // 6: 동측 테크타워 게이트
+        new THREE.Vector3(35.0, 14.0, 65.0),    // 감마 빌딩 정면 직선 정렬
+        new THREE.Vector3(35.0, 14.0, 52.0),    // 7: 감마 빌딩 터널 입구 게이트
+        new THREE.Vector3(35.0, 14.0, 40.0),    // 동전 19 (감마 터널 내부 Mid)
+        new THREE.Vector3(35.0, 14.0, 28.0),    // 동전 20 (감마 터널 출구)
+        new THREE.Vector3(35.0, 14.0, 15.0),    // 감마 빌딩 안전 탈출
+        new THREE.Vector3(20.0, 10.0, 20.0),    // 동전 21 (남동측 완만한 선회)
+        new THREE.Vector3(15.0, 8.0, 15.0),     // 8: 남동측 개방 아치 게이트
         new THREE.Vector3(5.0, 6.0, 12.0),      // 피니시 진입로
-        new THREE.Vector3(0.0, 5.0, 12.0),      // 9: 피니시 게이트
-        new THREE.Vector3(0.0, 4.0, 0.0)        // 10: 결승선
+        new THREE.Vector3(0.0, 5.0, 12.0),      // 9: 피니시 게이트 & 동전 22
+        new THREE.Vector3(0.0, 4.5, 6.0),       // 동전 23 (홈 스트레이트)
+        new THREE.Vector3(0.0, 4.0, 2.0),       // 동전 24 (결승선 바로 앞)
+        new THREE.Vector3(0.0, 4.0, 0.0)        // 10: 결승선 골인
       ];
     }
 
@@ -7946,9 +7984,9 @@ export class DroneWorld {
     const toWp = this._scratchToWp.copy(targetWp).sub(currentPos);
     const dist = toWp.length();
 
-    // Advance to next waypoint cleanly (tighter threshold in tunnel corridors for laser accuracy)
-    const isTunnelSegment = targetWp.y > 10.0;
-    const waypointThreshold = isTunnelSegment ? 3.0 : 4.8;
+    // Advance to next waypoint cleanly (tight threshold so AI flies right through every coin and gate)
+    const isTunnelSegment = targetWp.y >= 10.0;
+    const waypointThreshold = isTunnelSegment ? 2.2 : 3.0;
 
     if (dist < waypointThreshold) {
       this.aiRacerState.currentWaypointIdx++;
@@ -8008,41 +8046,6 @@ export class DroneWorld {
 
     this.aiRacerState.speed = THREE.MathUtils.lerp(this.aiRacerState.speed, targetSpeed, 3.2 * dt);
     currentPos.addScaledVector(dir, this.aiRacerState.speed * dt);
-
-    // Solid Building & Wall Collision Detection: Prevent AI Drone from clipping through any buildings or structures
-    const aiDroneRadius = 0.55;
-    for (let i = 0; i < this.buildingBoxes.length; i++) {
-      const box = this.buildingBoxes[i];
-      // Quick AABB collision check with drone radius buffer
-      if (
-        currentPos.x >= box.min.x - aiDroneRadius &&
-        currentPos.x <= box.max.x + aiDroneRadius &&
-        currentPos.z >= box.min.z - aiDroneRadius &&
-        currentPos.z <= box.max.z + aiDroneRadius &&
-        currentPos.y >= box.min.y &&
-        currentPos.y <= box.max.y + aiDroneRadius
-      ) {
-        // AI collided with a building! Resolve penetration by pushing out along nearest exterior wall face
-        const distLeft = Math.abs(currentPos.x - (box.min.x - aiDroneRadius));
-        const distRight = Math.abs(currentPos.x - (box.max.x + aiDroneRadius));
-        const distFront = Math.abs(currentPos.z - (box.min.z - aiDroneRadius));
-        const distBack = Math.abs(currentPos.z - (box.max.z + aiDroneRadius));
-        const distTop = Math.abs(currentPos.y - (box.max.y + aiDroneRadius));
-
-        const minDist = Math.min(distLeft, distRight, distFront, distBack, distTop);
-        if (minDist === distLeft) {
-          currentPos.x = box.min.x - aiDroneRadius - 0.05;
-        } else if (minDist === distRight) {
-          currentPos.x = box.max.x + aiDroneRadius + 0.05;
-        } else if (minDist === distFront) {
-          currentPos.z = box.min.z - aiDroneRadius - 0.05;
-        } else if (minDist === distBack) {
-          currentPos.z = box.max.z + aiDroneRadius + 0.05;
-        } else {
-          currentPos.y = box.max.y + aiDroneRadius + 0.05;
-        }
-      }
-    }
 
     this.aiRacerState.position = { x: currentPos.x, y: currentPos.y, z: currentPos.z };
     this.aiDroneGroup.position.copy(currentPos);
